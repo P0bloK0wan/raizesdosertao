@@ -1,40 +1,174 @@
+rules_version = '2';
+
 /* =========================================================
-   Configuração do Firebase — projeto Raízes do Sertão
+   Regras de segurança do Firestore — Raízes do Sertão
    ========================================================= */
 
-import {
-  initializeApp
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+service cloud.firestore {
 
-import {
-  getAuth,
-  connectAuthEmulator
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  connectFirestoreEmulator
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+  match /databases/{database}/documents {
 
 
-export const firebaseConfig = {
-  apiKey: "AIzaSyBPqAi0WzOzACn-heh6tNo73cdhzTaWjDA",
-  authDomain: "raizes-do-sertao-7d82c.firebaseapp.com",
-  projectId: "raizes-do-sertao-7d82c",
-  storageBucket: "raizes-do-sertao-7d82c.firebasestorage.app",
-  messagingSenderId: "983565125063",
-  appId: "1:983565125063:web:2611f8afd77d652b8505e2"
-};
+    /* =====================================================
+       FUNÇÕES
+       ===================================================== */
+
+    function estaLogado() {
+      return request.auth != null;
+    }
 
 
-export const firebaseConfigurado = Boolean(
-  firebaseConfig.apiKey &&
-  firebaseConfig.authDomain &&
-  firebaseConfig.projectId &&
-  firebaseConfig.appId
-);
+    function eLideranca() {
+      return estaLogado()
+        &&
+        request.auth.token.email
+          == 'lideranca@raizesdosertao.app';
+    }
 
 
+    function eDaUnidade(unidadeId) {
+      return estaLogado()
+        &&
+        request.auth.token.email
+          == unidadeId + '@raizesdosertao.app';
+    }
+
+
+    /* =====================================================
+       CONFIGURAÇÕES PÚBLICAS
+       ===================================================== */
+
+    match /config/{docId} {
+
+      allow read: if true;
+
+      allow write: if eLideranca();
+
+    }
+
+
+    /* =====================================================
+       MÍDIA PÚBLICA
+       ===================================================== */
+
+    match /midia/{pastaId} {
+
+      allow read: if true;
+
+      allow write: if eLideranca();
+
+    }
+
+
+    /* =====================================================
+       LAVA JATO
+       ===================================================== */
+
+    match /lavajato/{registroId} {
+
+      // Qualquer pessoa pode criar cadastro.
+      allow create: if true;
+
+
+      // Apenas liderança pode ler os cadastros.
+      allow read: if eLideranca();
+
+
+      // Liderança pode editar tudo.
+      // Visitante pode somente cancelar.
+      allow update: if eLideranca() || (
+
+        request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            'cancelado',
+            'canceladoEm'
+          ])
+
+        &&
+
+        request.resource.data.cancelado == true
+
+      );
+
+
+      // Apenas liderança pode excluir.
+      allow delete: if eLideranca();
+
+    }
+
+
+    /* =====================================================
+       MEMBROS DAS UNIDADES
+       ===================================================== */
+
+    match /unidades/{unidadeId}/membros/{membroId} {
+
+      allow read: if
+        eLideranca()
+        ||
+        eDaUnidade(unidadeId);
+
+      allow write: if
+        eLideranca()
+        ||
+        eDaUnidade(unidadeId);
+
+    }
+
+
+    /* =====================================================
+       REGISTROS DE REQUISITOS DOS MEMBROS
+       ===================================================== */
+
+    match /unidades/{unidadeId}/membros/{membroId}/registros/{registroId} {
+
+      allow read: if
+        eLideranca()
+        ||
+        eDaUnidade(unidadeId);
+
+      allow write: if
+        eLideranca()
+        ||
+        eDaUnidade(unidadeId);
+
+    }
+
+
+    /* =====================================================
+       TÓPICOS / ATIVIDADES / REQUISITOS
+       ===================================================== */
+
+    match /unidades/{unidadeId}/topicos/{topicoId} {
+
+      allow read: if
+        eLideranca()
+        ||
+        eDaUnidade(unidadeId);
+
+      allow write: if
+        eLideranca()
+        ||
+        eDaUnidade(unidadeId);
+
+    }
+
+
+    /* =====================================================
+       TODO O RESTANTE É NEGADO
+       ===================================================== */
+
+    match /{document=**} {
+
+      allow read, write: if false;
+
+    }
+
+  }
+
+}
 export const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
