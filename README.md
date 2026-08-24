@@ -37,6 +37,9 @@ Se alguma coisa não estiver funcionando depois de você mexer na configuração
 **"Dá erro ao cadastrar/salvar alguma coisa (Lava Jato, membro, mídia...)."**
 → As regras do Firestore não foram publicadas, ou estão desatualizadas. Vá em **Firestore Database → Regras**, apague tudo e cole de novo o conteúdo atual do arquivo [`firestore.rules`](./firestore.rules) → **Publicar**.
 
+**"O Firebase Console recusa publicar as regras (`firestore.rules`), ou dá um erro de sintaxe ao colar."**
+→ Mesmo problema do `firebase.js` acima, só que no arquivo de regras: alguém colou um conteúdo novo **por cima** do antigo, em vez de apagar tudo e colar de novo — isso duplica o bloco `service cloud.firestore { ... }`, e regras do Firestore só aceitam **um** bloco desses por arquivo. Se isso acontecer, abra o arquivo e confira se a palavra `service` aparece **uma única vez**; se aparecer duas vezes, o arquivo está com conteúdo duplicado e precisa ser substituído inteiro pela versão certa (a que está neste repositório).
+
 **Testar antes de publicar de verdade:** rode o site localmente (veja "Testando localmente" mais abaixo) e olhe o console do navegador (F12) — é o jeito mais rápido de achar o erro exato antes de fazer commit e esperar o GitHub Pages atualizar.
 
 ## 1. Configurar o Firebase (uma vez só)

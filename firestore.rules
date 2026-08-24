@@ -1,256 +1,75 @@
 rules_version = '2';
 
-/* =========================================================
-   Regras de segurança do Firestore — Raízes do Sertão
-   ========================================================= */
+/* Regras de segurança do Firestore para o site Raízes do Sertão.
+   Cole este conteúdo em: Console do Firebase → Firestore Database
+   → Regras (Rules) → Publicar.
+
+   Como funciona: cada conta (liderança e cada unidade) é um
+   e-mail "sintético" do tipo <usuario>@raizesdosertao.app criado
+   no Authentication. As regras conferem esse e-mail pra decidir
+   quem pode ler/escrever em cada coleção. */
 
 service cloud.firestore {
-
   match /databases/{database}/documents {
-
-
-    /* =====================================================
-       FUNÇÕES
-       ===================================================== */
 
     function estaLogado() {
       return request.auth != null;
     }
-
-
     function eLideranca() {
-      return estaLogado()
-        &&
-        request.auth.token.email
-          == 'lideranca@raizesdosertao.app';
+      return estaLogado() && request.auth.token.email == 'lideranca@raizesdosertao.app';
     }
-
-
     function eDaUnidade(unidadeId) {
-      return estaLogado()
-        &&
-        request.auth.token.email
-          == unidadeId + '@raizesdosertao.app';
+      return estaLogado() && request.auth.token.email == unidadeId + '@raizesdosertao.app';
     }
 
-
-    /* =====================================================
-       CONFIGURAÇÕES PÚBLICAS
-       ===================================================== */
-
+    // Configurações públicas (ex.: data do Campori) — qualquer
+    // visitante pode ler, só a liderança pode alterar.
     match /config/{docId} {
-
       allow read: if true;
-
       allow write: if eLideranca();
-
     }
 
-
-    /* =====================================================
-       MÍDIA PÚBLICA
-       ===================================================== */
-
+    // Pastas de mídia (links do Google Drive/Fotos) — públicas
+    // pra leitura, só a liderança publica/edita/remove.
     match /midia/{pastaId} {
-
       allow read: if true;
-
       allow write: if eLideranca();
-
     }
 
-
-    /* =====================================================
-       LAVA JATO
-       ===================================================== */
-
+    // Lava Jato: qualquer visitante pode criar um cadastro (não
+    // precisa estar logado). Só a liderança lê a lista completa
+    // (protege telefone/placa dos clientes de ficarem públicos).
+    // Cancelamento: liberado pra quem tiver o ID do próprio
+    // cadastro (guardado no navegador de quem se cadastrou) OU
+    // pela liderança — mas só pode alterar os campos de
+    // cancelamento, nada mais.
     match /lavajato/{registroId} {
-
-      // Qualquer pessoa pode criar cadastro.
       allow create: if true;
-
-
-      // Apenas liderança pode ler os cadastros.
       allow read: if eLideranca();
-
-
-      // Liderança pode editar tudo.
-      // Visitante pode somente cancelar.
       allow update: if eLideranca() || (
-
-        request.resource.data
-          .diff(resource.data)
-          .affectedKeys()
-          .hasOnly([
-            'cancelado',
-            'canceladoEm'
-          ])
-
-        &&
-
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelado', 'canceladoEm']) &&
         request.resource.data.cancelado == true
-
       );
-
-
-      // Apenas liderança pode excluir.
-      allow delete: if eLideranca();
-
-    }
-
-
-    /* =====================================================
-       MEMBROS DAS UNIDADES
-       ===================================================== */
-
-    match /unidades/{unidadeId}/membros/{membroId} {
-
-      allow read: if
-        eLideranca()
-        ||
-        eDaUnidade(unidadeId);
-
-      allow write: if
-        eLideranca()
-        ||
-        eDaUnidade(unidadeId);
-
-    }
-
-
-    /* =====================================================
-       REGISTROS DE REQUISITOS DOS MEMBROS
-       ===================================================== */
-
-    match /unidades/{unidadeId}/membros/{membroId}/registros/{registroId} {
-
-      allow read: if
-        eLideranca()
-        ||
-        eDaUnidade(unidadeId);
-
-      allow write: if
-        eLideranca()
-        ||
-        eDaUnidade(unidadeId);
-
-    }
-
-
-    /* =====================================================
-       TÓPICOS / ATIVIDADES / REQUISITOS
-       ===================================================== */
-
-    match /unidades/{unidadeId}/topicos/{topicoId} {
-
-      allow read: if
-        eLideranca()
-        ||
-        eDaUnidade(unidadeId);
-
-      allow write: if
-        eLideranca()
-        ||
-        eDaUnidade(unidadeId);
-rules_version = '2';
-
-service cloud.firestore {
-
-  match /databases/{database}/documents {
-
-    function estaLogado() {
-      return request.auth != null;
-    }
-
-    function eLideranca() {
-      return estaLogado()
-        && request.auth.token.email == 'lideranca@raizesdosertao.app';
-    }
-
-    function eDaUnidade(unidadeId) {
-      return estaLogado()
-        && request.auth.token.email == unidadeId + '@raizesdosertao.app';
-    }
-
-
-    /* CONFIGURAÇÕES */
-
-    match /config/{docId} {
-      allow read: if true;
-      allow write: if eLideranca();
-    }
-
-
-    /* MÍDIA */
-
-    match /midia/{pastaId} {
-      allow read: if true;
-      allow write: if eLideranca();
-    }
-
-
-    /* LAVA JATO */
-
-    match /lavajato/{registroId} {
-
-      allow create: if true;
-
-      allow read: if eLideranca();
-
-      allow update: if
-        eLideranca()
-        ||
-        (
-          request.resource.data.diff(resource.data)
-            .affectedKeys()
-            .hasOnly([
-              'cancelado',
-              'canceladoEm'
-            ])
-          &&
-          request.resource.data.cancelado == true
-        );
-
       allow delete: if eLideranca();
     }
 
-
-    /* MEMBROS */
-
+    // Desbravadores de cada unidade — só a própria unidade e a
+    // liderança podem ler e escrever; outras unidades não têm
+    // acesso nenhum aos dados de uma unidade que não é a sua.
     match /unidades/{unidadeId}/membros/{membroId} {
-
-      allow read, write:
-        if eLideranca()
-        || eDaUnidade(unidadeId);
+      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
     }
 
-
-    /* REGISTROS */
-
+    // Registros de requisitos por desbravador (histórico de
+    // lançamentos individuais) — mesma regra dos membros.
     match /unidades/{unidadeId}/membros/{membroId}/registros/{registroId} {
-
-      allow read, write:
-        if eLideranca()
-        || eDaUnidade(unidadeId);
+      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
     }
 
-
-    /* TÓPICOS */
-
-    match /unidades/{unidadeId}/topicos/{topicoId} {
-
-      allow read, write:
-        if eLideranca()
-        || eDaUnidade(unidadeId);
-    }
-
-
-    /* BLOQUEIO PADRÃO */
-
+    // Qualquer outra coleção não prevista acima fica bloqueada
+    // por padrão.
     match /{document=**} {
       allow read, write: if false;
     }
-
   }
-
 }
