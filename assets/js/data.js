@@ -103,7 +103,7 @@ export const RS_TIPOS_SANGUINEOS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", 
    Cloud Console com a Drive API ativada (veja o README), e (2)
    colar essa chave abaixo. Sem isso, a página de Mídia ainda
    funciona — só mostra um link "Abrir no Drive" em vez das fotos. */
-export const RS_GOOGLE_DRIVE_API_KEY = "";
+export const RS_GOOGLE_DRIVE_API_KEY = "AIzaSyCsIrW8qGUostNMb6Q5LOBfNKJ_QJ6uE_o";
 
 /* Extrai o ID da pasta a partir de um link do Google Drive
    (ex.: https://drive.google.com/drive/folders/<ID>?usp=sharing).
