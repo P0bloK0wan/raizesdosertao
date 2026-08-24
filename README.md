@@ -1,8 +1,43 @@
 # Raízes do Sertão — site do clube
 
-Site do Clube de Desbravadores **Raízes do Sertão** (Vila Eduardo — Região 13, 4º Distrito, APeC): história do clube, unidades, agenda, campanha do Lava Jato (todo domingo até dezembro), "Adote um Desbravador", galeria de fotos/vídeos, e painéis de login para a liderança e para cada unidade.
+Site do Clube de Desbravadores **Raízes do Sertão** (Vila Eduardo — Região 13, 4º Distrito, APeC): apresentação do clube, nossa história em linha do tempo, mídia (fotos/vídeos), campanha do Campori DSA 2027, cadastro do Lava Jato, redes sociais, e painéis de login para a liderança e para cada unidade.
 
-HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pages**. Os dados (desbravadores, avaliações, vagas do Lava Jato, meta de arrecadação, galeria) ficam sincronizados entre todos os aparelhos em tempo real, usando o **Firebase** (Firestore + Authentication) no plano gratuito do Google.
+HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pages**. Os dados (desbravadores, atividades, cadastros do Lava Jato, pastas de mídia, data do Campori) ficam sincronizados entre todos os aparelhos em tempo real, usando o **Firebase** (Firestore + Authentication) no plano gratuito do Google.
+
+## 📝 O que mudou na última atualização
+
+O site foi reestruturado pra ficar mais simples e direto:
+
+- **Menu reduzido a 7 itens**: Início, Nossa História, Mídia, Campori DSA 2027, Lava-Jato, Nossas Redes, Login.
+- **Página inicial** agora é só sobre o clube (nome, apresentação) + duas chamadas rápidas ("Quero fazer parte" e "Campori DSA 2027"). Removemos o Lava Jato, "Nos Ajude", "Adote um Desbravador", a agenda/programação e a grade de unidades da home.
+- **Nossa História** virou uma página própria com uma **linha do tempo visual**, cada marco mostrando o período, o diretor responsável e o acontecimento — sem fotos de diretores.
+- **Mídia** substituiu a antiga galeria: agora são **pastas** (nome + link do Google Drive ou Google Fotos), publicadas pela liderança e exibidas num carrossel horizontal pra qualquer visitante.
+- **Campori DSA 2027 — Versão Ômega** substituiu a antiga "meta de arrecadação": agora é uma página com explicação da campanha, um **cronômetro regressivo** (a liderança configura a data pelo painel) e um botão direto pro WhatsApp.
+- **Lava-Jato** deixou de ser um sistema de horários/vagas — agora é só um **cadastro simples** (nome, telefone, placa, modelo, cor do carro; R$ 50,00 pagos na hora, todo domingo). Quem se cadastra pode cancelar o próprio atendimento a qualquer momento; a liderança acompanha tudo em tempo real e é avisada quando alguém cancela.
+- **Unidades**: agora são 6 — Preá, Carcará, Tarântula, Andorinha, Raposa e Beija-Flor (antes eram 4).
+- A antiga "avaliação semanal com notas de 0 a 10" virou uma **lista de atividades/requisitos** por unidade, que a própria unidade edita e marca como realizado ou não. A liderança vê o andamento de todas as unidades.
+- **Login**: existe agora uma página `login.html` que serve como ponto de entrada único ("Sou de uma unidade" / "Sou da liderança").
+
+## 🔧 Resolver problemas no Firebase (checklist)
+
+Se alguma coisa não estiver funcionando depois de você mexer na configuração, comece por aqui:
+
+**"O site inteiro parou de responder — botões, login, tudo."**
+→ Quase sempre é um erro de sintaxe em `assets/js/firebase.js`. A causa mais comum: colar a configuração nova **por cima** do arquivo (sem apagar o conteúdo antigo primeiro), duplicando `firebaseConfig`, `app`, `auth`, `db`. Abra o arquivo e confira se cada um desses aparece **uma única vez**. Se tiver duplicado, apague tudo e cole de novo — o conteúdo novo deve **substituir** o arquivo inteiro, não ser adicionado no topo dele.
+
+**"Consigo abrir o site, mas o login não aparece / os botões não fazem nada."**
+→ Mesma causa acima na maioria das vezes: algum arquivo `.js` com erro de sintaxe quebra o carregamento de todos os outros (eles dependem uns dos outros). Abra o site, aperte F12 (ferramentas do desenvolvedor) → aba **Console** → veja se aparece algo em vermelho tipo "Uncaught SyntaxError" e em qual arquivo.
+
+**"Faço login mas o painel fica em branco, ou volta pro login sozinho."**
+→ Confira no Firebase Console → **Authentication → Users** se a conta existe com o e-mail **exato**: `lideranca@raizesdosertao.app` (liderança) ou `<id-da-unidade>@raizesdosertao.app` (ex.: `carcara@raizesdosertao.app`). Confira também se o provedor **E-mail/senha** está ativado em **Authentication → Sign-in method**.
+
+**"Uma unidade nova (Preá ou Beija-Flor) não consegue entrar."**
+→ Essas duas contas ainda não existiam no seu projeto Firebase — você precisa criá-las manualmente uma vez (veja a tabela de contas abaixo e o passo 1.2).
+
+**"Dá erro ao cadastrar/salvar alguma coisa (Lava Jato, membro, mídia...)."**
+→ As regras do Firestore não foram publicadas, ou estão desatualizadas. Vá em **Firestore Database → Regras**, apague tudo e cole de novo o conteúdo atual do arquivo [`firestore.rules`](./firestore.rules) → **Publicar**.
+
+**Testar antes de publicar de verdade:** rode o site localmente (veja "Testando localmente" mais abaixo) e olhe o console do navegador (F12) — é o jeito mais rápido de achar o erro exato antes de fazer commit e esperar o GitHub Pages atualizar.
 
 ## 1. Configurar o Firebase (uma vez só)
 
@@ -17,15 +52,17 @@ O site precisa de um projeto Firebase gratuito pra funcionar. Leva uns 10-15 min
 
 1. No menu lateral: **Compilação → Authentication → Introdução**.
 2. Na aba **Sign-in method**, ative o provedor **E-mail/senha**.
-3. Na aba **Users**, clique **Add user** e crie estas 5 contas (uma de cada vez):
+3. Na aba **Users**, clique **Add user** e crie estas 7 contas (uma de cada vez):
 
-   | E-mail | Senha (troque depois pelo painel) |
-   |---|---|
-   | `lideranca@raizesdosertao.app` | `raizes2026` |
-   | `tarantula@raizesdosertao.app` | `sertao123` |
-   | `andorinha@raizesdosertao.app` | `sertao123` |
-   | `carcara@raizesdosertao.app` | `sertao123` |
-   | `raposa@raizesdosertao.app` | `sertao123` |
+   | Papel | E-mail | Senha (troque depois pelo painel) |
+   |---|---|---|
+   | Liderança | `lideranca@raizesdosertao.app` | `raizes2026` |
+   | Unidade Preá | `prea@raizesdosertao.app` | `sertao123` |
+   | Unidade Carcará | `carcara@raizesdosertao.app` | `sertao123` |
+   | Unidade Tarântula | `tarantula@raizesdosertao.app` | `sertao123` |
+   | Unidade Andorinha | `andorinha@raizesdosertao.app` | `sertao123` |
+   | Unidade Raposa | `raposa@raizesdosertao.app` | `sertao123` |
+   | Unidade Beija-Flor | `beijaflor@raizesdosertao.app` | `sertao123` |
 
    Esses e-mails não recebem nada de verdade — são só identificadores de conta. Assim que o site estiver no ar, troque essas senhas pela opção "Trocar senha" dentro de cada painel.
 
@@ -40,7 +77,7 @@ O site precisa de um projeto Firebase gratuito pra funcionar. Leva uns 10-15 min
 1. No menu lateral: ⚙️ (ícone de engrenagem) → **Configurações do projeto**.
 2. Em **Seus apps**, clique no ícone `</>` (Web) → dê um nome (ex.: `site`) → **Registrar app** (não precisa do Firebase Hosting).
 3. Copie o objeto `firebaseConfig` que aparece na tela.
-4. Abra o arquivo [`assets/js/firebase.js`](./assets/js/firebase.js) deste projeto e substitua os valores de `firebaseConfig` pelos que você copiou.
+4. Abra o arquivo [`assets/js/firebase.js`](./assets/js/firebase.js) deste projeto e **substitua o arquivo inteiro** (não cole por cima) pelos valores que você copiou.
 5. Salve, faça commit e push — pronto, o site está conectado ao seu Firebase.
 
 Essas chaves **não são segredo** — é normal elas aparecerem no código de um app Firebase. Quem protege os dados de verdade são as regras do Firestore (passo 1.3), não esconder essas chaves.
@@ -51,38 +88,36 @@ Essas chaves **não são segredo** — é normal elas aparecerem no código de u
 2. **Settings → Pages → Build and deployment → Source: Deploy from a branch**, escolha a branch `main` e a pasta `/ (root)`.
 3. Em alguns minutos o site fica no ar em `https://<seu-usuario>.github.io/<repositorio>/`.
 
-## Fotos e vídeos
+## Mídia (fotos e vídeos)
 
-A galeria não guarda arquivos no site (isso não caberia num site gratuito sem servidor de armazenamento). Em vez disso:
+O site não guarda arquivos (isso não caberia num site gratuito sem servidor de armazenamento). Em vez disso:
 
-1. Suba as fotos/vídeos do evento num álbum do **Google Fotos** ou **Google Drive** (gratuito).
-2. Compartilhe o álbum como "qualquer pessoa com o link pode ver".
-3. No painel da liderança → **Fotos e vídeos**, cole o nome do evento + o link do álbum.
-4. O álbum aparece automaticamente na aba **Fotos** do site, pra qualquer visitante, na hora.
+1. Suba as fotos/vídeos do evento numa pasta do **Google Drive** ou álbum do **Google Fotos** (gratuito).
+2. Compartilhe como "qualquer pessoa com o link pode ver".
+3. No painel da liderança → **Mídia**, coloque o nome da pasta + o link.
+4. A pasta aparece automaticamente na página pública de **Mídia**, pra qualquer visitante, na hora.
 
 ## Contas de acesso (login)
 
-| Papel | Conta | Senha padrão |
+| Papel | Usuário no login | Senha padrão |
 |---|---|---|
 | Liderança | `lideranca` | `raizes2026` |
-| Cada unidade | `tarantula`, `andorinha`, `carcara`, `raposa` | `sertao123` |
+| Cada unidade | `prea`, `carcara`, `tarantula`, `andorinha`, `raposa`, `beijaflor` | `sertao123` |
 
 **Troque essas senhas** assim que o site estiver no ar — cada painel tem uma opção "Configurações → Trocar senha".
 
 ## O que dá pra fazer em cada painel
 
 **Painel da liderança** (`painel-lideranca.html`)
-- Ver, em tempo real e de qualquer aparelho, todas as vagas do Lava Jato e quem já fechou cada uma.
-- Ver os desbravadores cadastrados por cada unidade.
-- Ver o desempenho semanal (ranking com a média das avaliações lançadas pelas unidades).
-- Atualizar a meta de arrecadação (aparece na barra de progresso da home).
-- Publicar álbuns de fotos/vídeos.
+- Ver, em tempo real e de qualquer aparelho, todos os cadastros do Lava Jato — e ser avisada (notificação + contador no menu) quando alguém cancela.
+- Ver os desbravadores e o andamento das atividades/requisitos de cada uma das 6 unidades.
+- Publicar/remover pastas de Mídia.
+- Configurar a data do Campori DSA 2027 (alimenta o cronômetro da página pública).
 - Baixar um backup completo em `.json`.
 
 **Painel da unidade** (`painel-unidade.html`)
 - Cadastrar os desbravadores da unidade.
-- Lançar a avaliação semanal de cada desbravador (pontualidade, Bíblia/lição, uniforme, participação, comportamento — notas de 0 a 10).
-- Fechar/liberar vagas do Lava Jato, escalando quais desbravadores vão trabalhar.
+- Criar, editar, marcar como realizada (ou não) e remover as atividades/requisitos da unidade.
 
 Tudo isso sincroniza automaticamente — uma unidade pode cadastrar pelo celular no meio da reunião e a liderança já vê no computador dela, em outro lugar, na hora.
 
@@ -104,13 +139,13 @@ Já estão implementadas no site:
 - ✅ Botão flutuante do WhatsApp
 - ✅ PWA — dá pra "instalar" o site na tela inicial do celular
 - ✅ Compartilhar a página (Web Share API)
-- ✅ Contagem regressiva pro próximo domingo de Lava Jato
+- ✅ Cronômetro regressivo pro Campori DSA 2027
+- ✅ Aviso de cancelamento do Lava Jato pra liderança (toast + notificação do navegador, enquanto o painel estiver aberto)
 - ✅ Backup em `.json`
 - ✅ Página 404 personalizada
-- ✅ Estilo de impressão (pra imprimir a escala do Lava Jato, por exemplo)
+- ✅ Estilo de impressão
 
 Boas próximas adições, se quiser evoluir o site:
-- Um mural de recados/avisos que a liderança publica e todo mundo vê na home.
-- Emitir um "certificado" ou resumo em PDF do desempenho de cada desbravador no fim do ano.
+- Notificação por e-mail/WhatsApp de verdade quando alguém cancela o Lava Jato (precisaria de uma Cloud Function do Firebase — ainda gratuita nesse volume, mas exige habilitar o plano "Blaze" com cartão cadastrado, mesmo ficando em R$ 0).
+- Upload direto de fotos pelo painel (hoje é só link) usando o Firebase Storage, que já está disponível no mesmo projeto gratuito.
 - QR code na entrada do clube apontando pro site, pra facilitar o acesso de visitantes ao Lava Jato.
-- Notificação por e-mail/WhatsApp quando uma vaga do Lava Jato é fechada (precisaria de uma Cloud Function, ainda no plano gratuito do Firebase).

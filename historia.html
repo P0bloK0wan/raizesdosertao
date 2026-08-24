@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nossa História — Raízes do Sertão</title>
+<meta name="theme-color" content="#E97305">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div data-site-header></div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Desde 2004</span>
+      <h1>Nossa História</h1>
+      <p>Uma linha do tempo com os principais acontecimentos do Clube Raízes do Sertão, em ordem cronológica.</p>
+    </div>
+    <div class="timeline-visual" data-timeline></div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="card text-center" style="max-width:640px; margin:0 auto;">
+      <h2>Quer fazer parte da nossa história?</h2>
+      <p>Venha conhecer o clube — toda semana temos atividades pra crianças e adolescentes.</p>
+      <a href="https://wa.link/b84jhp" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:6px;">👉 Quero fazer parte</a>
+    </div>
+  </div>
+</section>
+
+<div data-site-footer></div>
+
+<script type="module">
+  import { RS_LINHA_DO_TEMPO } from "./assets/js/data.js";
+  const el = document.querySelector("[data-timeline]");
+  el.innerHTML = RS_LINHA_DO_TEMPO.map((m, i) => `
+    <div class="tl-item ${i % 2 === 0 ? "tl-left" : "tl-right"}">
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <span class="tl-periodo">${m.periodo}</span>
+        <h3>${m.diretor}</h3>
+        <p>${m.texto}</p>
+      </div>
+    </div>`).join("");
+</script>
+<script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

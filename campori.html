@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campori DSA 2027 — Raízes do Sertão</title>
+<meta name="theme-color" content="#E97305">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div data-site-header></div>
+
+<section class="hero">
+  <div class="container" style="text-align:center; max-width:720px; margin:0 auto;">
+    <div class="hero-tag" style="margin-inline:auto;">🏕️ Versão Ômega</div>
+    <h1>Nos ajude a levar nossos DBV ao Campori DSA 2027</h1>
+    <p class="lead" style="margin-inline:auto;">O Campori é um dos maiores encontros de Desbravadores da nossa União, e queremos levar o máximo de desbravadores do Raízes do Sertão pra viver essa experiência. Cada contribuição ajuda a cobrir inscrição, transporte e material — pra que nenhum desbravador fique de fora por falta de recursos.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="hero-card" style="max-width:520px; margin:0 auto; background:var(--bg-elevated); border:1px solid var(--border);">
+      <p style="font-weight:800; font-family:'Baloo 2',sans-serif; margin-bottom:4px; text-align:center;">⏳ Faltam para o Campori DSA 2027</p>
+      <div class="countdown" data-countdown-campori style="background:transparent;">
+        <div class="box" style="background:var(--gold); color:var(--black);"><b data-c="d">00</b><span>dias</span></div>
+        <div class="box" style="background:var(--gold); color:var(--black);"><b data-c="h">00</b><span>horas</span></div>
+        <div class="box" style="background:var(--gold); color:var(--black);"><b data-c="m">00</b><span>min</span></div>
+        <div class="box" style="background:var(--gold); color:var(--black);"><b data-c="s">00</b><span>seg</span></div>
+      </div>
+    </div>
+    <div class="text-center" style="margin-top:28px;">
+      <a href="https://wa.link/b84jh" target="_blank" rel="noopener" class="btn btn-primary">👉 Quero ajudar</a>
+    </div>
+  </div>
+</section>
+
+<div data-site-footer></div>
+
+<script type="module">
+  import { watchCampori } from "./assets/js/store.js";
+  import { iniciarContagem } from "./assets/js/main.js";
+  const el = document.querySelector("[data-countdown-campori]");
+  let intervalo;
+  watchCampori((campori) => {
+    clearInterval(intervalo);
+    intervalo = iniciarContagem(el, campori.data);
+  });
+</script>
+<script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

@@ -2,14 +2,14 @@
    Painel da Liderança
    ========================================================= */
 
-import { RS_UNIDADES, RS_CRITERIOS } from "./data.js";
+import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO } from "./data.js";
 import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
-  watchVagas, garantirVagasSeeded, criarVaga, fecharVaga, reabrirVaga, excluirVaga,
+  watchLavaJato, deleteRegistroLavaJato,
   watchMembros, deleteMembro,
-  watchAvaliacoes, deleteAvaliacao,
-  watchMeta, setMeta,
-  watchGaleria, addAlbum, deleteAlbum,
+  watchTopicos, garantirTopicosSeeded, addTopico, toggleTopico, deleteTopico,
+  watchMidia, addPastaMidia, deletePastaMidia,
+  watchCampori, setCamporiData,
   exportarBackup,
 } from "./store.js";
 import { mostrarToast } from "./main.js";
@@ -21,110 +21,100 @@ exigirSessao("lideranca", (sessao) => {
 
 document.getElementById("btn-sair").addEventListener("click", logout);
 
-function unidadeNome(id) {
-  const u = RS_UNIDADES.find((x) => x.id === id);
-  return u ? u.nome : "—";
-}
-function mediaAvaliacao(a) {
-  const soma = RS_CRITERIOS.reduce((acc, c) => acc + Number(a[c.id] || 0), 0);
-  return soma / RS_CRITERIOS.length;
+function fmtData(ts) {
+  if (!ts) return "—";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
 function iniciarPainel() {
   const estado = {
-    vagas: [],
+    lavajato: [],
     membrosPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
-    avaliacoesPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
-    meta: { arrecadado: 0, alvo: 1 },
-    galeria: [],
+    topicosPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
+    midia: [],
   };
+  const idsJaNotificados = new Set();
+  let primeiraLeitura = true;
 
-  garantirVagasSeeded();
+  RS_UNIDADES.forEach((u) => garantirTopicosSeeded(u.id));
 
-  watchVagas((vagas) => { estado.vagas = vagas; renderVagas(estado); renderStats(estado); });
-  RS_UNIDADES.forEach((u) => {
-    watchMembros(u.id, (membros) => {
-      estado.membrosPorUnidade[u.id] = membros;
-      renderDesbravadores(estado);
-      renderDesempenho(estado);
-      renderStats(estado);
-    });
-    watchAvaliacoes(u.id, (avaliacoes) => {
-      estado.avaliacoesPorUnidade[u.id] = avaliacoes;
-      renderDesempenho(estado);
-    });
+  /* ---------------- Lava Jato ---------------- */
+  watchLavaJato((lista) => {
+    // detecta cancelamentos novos pra notificar a liderança
+    if (!primeiraLeitura) {
+      lista.forEach((r) => {
+        if (r.cancelado && !idsJaNotificados.has(r.id) && !estado.lavajato.some((old) => old.id === r.id && old.cancelado)) {
+          notificarCancelamento(r);
+        }
+      });
+    }
+    lista.forEach((r) => { if (r.cancelado) idsJaNotificados.add(r.id); });
+    primeiraLeitura = false;
+
+    estado.lavajato = lista;
+    renderLavaJato();
+    renderStats();
   });
-  watchMeta((meta) => { estado.meta = meta; renderStats(estado); preencherMeta(meta); });
-  watchGaleria((galeria) => { estado.galeria = galeria; renderGaleria(estado); });
 
-  /* ---------------- Vagas ---------------- */
-  function renderVagas(estado) {
-    const tbody = document.getElementById("tbody-vagas");
-    const vazio = document.getElementById("vagas-vazio");
-    const vagasOrdenadas = estado.vagas.slice().sort((a, b) => (a.data > b.data ? 1 : -1));
+  function notificarCancelamento(registro) {
+    mostrarToast(`⚠️ ${registro.nome} cancelou o atendimento do Lava Jato.`);
+    if (typeof Notification !== "undefined") {
+      if (Notification.permission === "granted") {
+        new Notification("Cancelamento no Lava Jato", { body: `${registro.nome} (${registro.placa}) cancelou o atendimento.` });
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission();
+      }
+    }
+  }
+
+  function renderLavaJato() {
+    const tbody = document.getElementById("tbody-lavajato");
+    const vazio = document.getElementById("lavajato-vazio");
     tbody.innerHTML = "";
-    vazio.style.display = vagasOrdenadas.length ? "none" : "block";
+    vazio.style.display = estado.lavajato.length ? "none" : "block";
 
-    vagasOrdenadas.forEach((v) => {
-      const fechada = !!v.unidadeId;
+    estado.lavajato.forEach((r) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${v.data}</td>
-        <td>${v.horario}</td>
-        <td>${v.vagas}</td>
-        <td>${fechada ? unidadeNome(v.unidadeId) : "—"}</td>
-        <td>${v.responsavel || "—"}</td>
-        <td><span class="pill ${fechada ? "pill-closed" : "pill-open"}">${fechada ? "Fechada" : "Aberta"}</span></td>
-        <td class="row-actions">
-          ${fechada ? `<button data-reabrir="${v.id}">Reabrir</button>` : ""}
-          <button data-excluir="${v.id}" class="danger">Excluir</button>
-        </td>`;
+        <td>${r.nome}</td>
+        <td>${r.telefone}</td>
+        <td>${r.placa}</td>
+        <td>${r.modelo}</td>
+        <td>${r.cor}</td>
+        <td><span class="pill ${r.cancelado ? "pill-closed" : "pill-open"}">${r.cancelado ? "Cancelado" : "Ativo"}</span></td>
+        <td class="row-actions"><button class="danger" data-del="${r.id}">Excluir</button></td>`;
       tbody.appendChild(tr);
     });
 
-    tbody.querySelectorAll("[data-reabrir]").forEach((btn) =>
+    tbody.querySelectorAll("[data-del]").forEach((btn) =>
       btn.addEventListener("click", async () => {
-        await reabrirVaga(btn.dataset.reabrir);
-        mostrarToast("Vaga reaberta.");
+        if (!confirm("Excluir este cadastro do Lava Jato?")) return;
+        await deleteRegistroLavaJato(btn.dataset.del);
+        mostrarToast("Cadastro excluído.");
       })
     );
-    tbody.querySelectorAll("[data-excluir]").forEach((btn) =>
-      btn.addEventListener("click", async () => {
-        if (!confirm("Excluir esta vaga? Essa ação não pode ser desfeita.")) return;
-        await excluirVaga(btn.dataset.excluir);
-        mostrarToast("Vaga excluída.");
-      })
-    );
+
+    document.getElementById("lavajato-atualizado").textContent =
+      "Atualizado em " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+    const cancelados = estado.lavajato.filter((r) => r.cancelado).length;
+    const badge = document.getElementById("badge-cancelados");
+    badge.textContent = cancelados;
+    badge.style.display = cancelados ? "inline-block" : "none";
   }
 
-  const modalVaga = document.getElementById("modal-vaga");
-  document.getElementById("btn-nova-vaga").addEventListener("click", () => modalVaga.classList.add("show"));
-  document.getElementById("btn-cancelar-vaga").addEventListener("click", () => modalVaga.classList.remove("show"));
-  document.getElementById("form-vaga").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    await criarVaga({
-      data: document.getElementById("vaga-data").value.trim(),
-      horario: document.getElementById("vaga-horario").value.trim(),
-      vagas: Number(document.getElementById("vaga-qtd").value) || 1,
-      unidadeId: null,
-      membros: [],
-      responsavel: "",
-    });
-    modalVaga.classList.remove("show");
-    e.target.reset();
-    document.getElementById("vaga-qtd").value = 4;
-    mostrarToast("Vaga criada.");
-  });
-
-  /* ---------------- Desbravadores ---------------- */
-  function renderDesbravadores(estado) {
+  /* ---------------- Unidades / desbravadores / tópicos ---------------- */
+  function renderDesbravadores() {
     const wrap = document.getElementById("desbravadores-lista");
     wrap.innerHTML = "";
     RS_UNIDADES.forEach((u) => {
       const membros = estado.membrosPorUnidade[u.id] || [];
+      const topicos = estado.topicosPorUnidade[u.id] || [];
+      const feitos = topicos.filter((t) => t.realizado).length;
       const det = document.createElement("details");
       det.className = "month-acc";
-      const linhas = membros
+      const linhasMembros = membros
         .map(
           (m) => `<tr>
             <td>${m.nome}</td><td>${m.nascimento || "—"}</td><td>${m.classe || "—"}</td>
@@ -133,12 +123,17 @@ function iniciarPainel() {
           </tr>`
         )
         .join("");
+      const linhasTopicos = topicos
+        .map((t) => `<li>${t.realizado ? "✅" : "⬜️"} ${t.nome}</li>`)
+        .join("");
       det.innerHTML = `
-        <summary>${u.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${membros.length})</span></summary>
+        <summary>${u.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${membros.length} desbravador(es) · ${feitos}/${topicos.length} atividades)</span></summary>
         <div style="padding:14px 20px 18px;">
           ${membros.length ? `<div class="table-wrap"><table class="data-table">
             <thead><tr><th>Nome</th><th>Nascimento</th><th>Classe</th><th>Responsável</th><th>Telefone</th><th></th></tr></thead>
-            <tbody>${linhas}</tbody></table></div>` : `<p class="empty-state">Nenhum desbravador cadastrado por esta unidade ainda.</p>`}
+            <tbody>${linhasMembros}</tbody></table></div>` : `<p class="empty-state">Nenhum desbravador cadastrado por esta unidade ainda.</p>`}
+          <h3 style="margin-top:18px; font-size:.95rem;">Atividades / requisitos</h3>
+          <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px;">${linhasTopicos || "<li class='muted'>Nenhum tópico cadastrado.</li>"}</ul>
         </div>`;
       wrap.appendChild(det);
     });
@@ -153,106 +148,70 @@ function iniciarPainel() {
     );
   }
 
-  /* ---------------- Desempenho semanal ---------------- */
-  function renderDesempenho(estado) {
-    const linhas = [];
-    RS_UNIDADES.forEach((u) => {
-      const membros = estado.membrosPorUnidade[u.id] || [];
-      const nomePorId = Object.fromEntries(membros.map((m) => [m.id, m.nome]));
-      const avaliacoes = estado.avaliacoesPorUnidade[u.id] || [];
-      const porMembro = {};
-      avaliacoes.forEach((a) => {
-        if (!porMembro[a.membroId]) porMembro[a.membroId] = [];
-        porMembro[a.membroId].push(mediaAvaliacao(a));
-      });
-      Object.keys(porMembro).forEach((membroId) => {
-        const medias = porMembro[membroId];
-        const mediaGeral = medias.reduce((a, b) => a + b, 0) / medias.length;
-        linhas.push({ nome: nomePorId[membroId] || "(removido)", unidade: u.nome, qtd: medias.length, media: mediaGeral });
-      });
-    });
-    linhas.sort((a, b) => b.media - a.media);
+  RS_UNIDADES.forEach((u) => {
+    watchMembros(u.id, (membros) => { estado.membrosPorUnidade[u.id] = membros; renderDesbravadores(); renderStats(); });
+    watchTopicos(u.id, (topicos) => { estado.topicosPorUnidade[u.id] = topicos; renderDesbravadores(); });
+  });
 
-    const tbody = document.getElementById("tbody-desempenho");
-    const vazio = document.getElementById("desempenho-vazio");
-    tbody.innerHTML = linhas
-      .map((l) => `<tr><td>${l.nome}</td><td>${l.unidade}</td><td>${l.qtd}</td><td><strong>${l.media.toFixed(1)}</strong></td></tr>`)
-      .join("");
-    vazio.style.display = linhas.length ? "none" : "block";
-  }
+  /* ---------------- Mídia ---------------- */
+  watchMidia((pastas) => { estado.midia = pastas; renderMidia(); renderStats(); });
 
-  /* ---------------- Galeria ---------------- */
-  function renderGaleria(estado) {
-    const eventos = estado.galeria.slice().sort((a, b) => (a.data < b.data ? 1 : -1));
-    const tbody = document.getElementById("tbody-galeria");
-    const vazio = document.getElementById("galeria-vazio");
-    tbody.innerHTML = eventos
+  function renderMidia() {
+    const tbody = document.getElementById("tbody-midia");
+    const vazio = document.getElementById("midia-vazio");
+    tbody.innerHTML = estado.midia
       .map(
-        (ev) => `<tr>
-          <td>${ev.evento}</td>
-          <td>${ev.data ? new Date(ev.data + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</td>
-          <td><a href="${ev.link}" target="_blank" rel="noopener">Abrir álbum ↗</a></td>
-          <td class="row-actions"><button class="danger" data-del-album="${ev.id}">Excluir</button></td>
+        (p) => `<tr>
+          <td>📁 ${p.nome}</td>
+          <td><a href="${p.link}" target="_blank" rel="noopener">Abrir ↗</a></td>
+          <td class="row-actions"><button class="danger" data-del-pasta="${p.id}">Excluir</button></td>
         </tr>`
       )
       .join("");
-    vazio.style.display = eventos.length ? "none" : "block";
+    vazio.style.display = estado.midia.length ? "none" : "block";
 
-    tbody.querySelectorAll("[data-del-album]").forEach((btn) =>
+    tbody.querySelectorAll("[data-del-pasta]").forEach((btn) =>
       btn.addEventListener("click", async () => {
-        if (!confirm("Excluir este álbum da galeria pública?")) return;
-        await deleteAlbum(btn.dataset.delAlbum);
-        mostrarToast("Álbum removido.");
+        if (!confirm("Excluir esta pasta da página pública de Mídia?")) return;
+        await deletePastaMidia(btn.dataset.delPasta);
+        mostrarToast("Pasta removida.");
       })
     );
   }
 
-  const modalAlbum = document.getElementById("modal-album");
-  document.getElementById("btn-novo-album").addEventListener("click", () => modalAlbum.classList.add("show"));
-  document.getElementById("btn-cancelar-album").addEventListener("click", () => modalAlbum.classList.remove("show"));
-  document.getElementById("form-album").addEventListener("submit", async (e) => {
+  const modalPasta = document.getElementById("modal-pasta");
+  document.getElementById("btn-nova-pasta").addEventListener("click", () => modalPasta.classList.add("show"));
+  document.getElementById("btn-cancelar-pasta").addEventListener("click", () => modalPasta.classList.remove("show"));
+  document.getElementById("form-pasta").addEventListener("submit", async (e) => {
     e.preventDefault();
-    await addAlbum({
-      evento: document.getElementById("al-evento").value.trim(),
-      data: document.getElementById("al-data").value,
-      link: document.getElementById("al-link").value.trim(),
-      descricao: document.getElementById("al-descricao").value.trim(),
-      capa: document.getElementById("al-capa").value.trim(),
-    });
-    modalAlbum.classList.remove("show");
+    await addPastaMidia(document.getElementById("pa-nome").value.trim(), document.getElementById("pa-link").value.trim());
+    modalPasta.classList.remove("show");
     e.target.reset();
-    mostrarToast("Álbum publicado no site!");
+    mostrarToast("Link salvo com sucesso! A pasta já está na página pública de Mídia.");
+  });
+
+  /* ---------------- Campori ---------------- */
+  watchCampori((campori) => {
+    const input = document.getElementById("campori-data");
+    if (document.activeElement !== input) input.value = campori.data || RS_CAMPORI_DATA_PADRAO;
+  });
+  document.getElementById("form-campori").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    await setCamporiData(document.getElementById("campori-data").value);
+    mostrarToast("Data do Campori atualizada.");
   });
 
   /* ---------------- Estatísticas ---------------- */
-  function renderStats(estado) {
+  function renderStats() {
     const totalMembros = RS_UNIDADES.reduce((acc, u) => acc + (estado.membrosPorUnidade[u.id] || []).length, 0);
-    const abertas = estado.vagas.filter((v) => !v.unidadeId).length;
-    const fechadas = estado.vagas.length - abertas;
-    const pct = estado.meta.alvo ? Math.min(100, Math.round((estado.meta.arrecadado / estado.meta.alvo) * 100)) : 0;
+    const ativos = estado.lavajato.filter((r) => !r.cancelado).length;
+    const cancelados = estado.lavajato.filter((r) => r.cancelado).length;
 
     document.getElementById("s-membros").textContent = totalMembros;
-    document.getElementById("s-vagas-abertas").textContent = abertas;
-    document.getElementById("s-vagas-fechadas").textContent = fechadas;
-    document.getElementById("s-meta-pct").textContent = pct + "%";
+    document.getElementById("s-lavajato-ativos").textContent = ativos;
+    document.getElementById("s-lavajato-cancelados").textContent = cancelados;
+    document.getElementById("s-midia").textContent = estado.midia.length;
   }
-
-  /* ---------------- Meta ---------------- */
-  function preencherMeta(meta) {
-    const arrecadadoInput = document.getElementById("meta-arrecadado");
-    const alvoInput = document.getElementById("meta-alvo");
-    if (document.activeElement === arrecadadoInput || document.activeElement === alvoInput) return;
-    arrecadadoInput.value = meta.arrecadado;
-    alvoInput.value = meta.alvo;
-  }
-  document.getElementById("form-meta").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    await setMeta({
-      arrecadado: Number(document.getElementById("meta-arrecadado").value) || 0,
-      alvo: Number(document.getElementById("meta-alvo").value) || 1,
-    });
-    mostrarToast("Meta atualizada.");
-  });
 
   /* ---------------- Backup ---------------- */
   document.getElementById("btn-exportar-tudo").addEventListener("click", async (e) => {

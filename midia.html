@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mídia — Raízes do Sertão</title>
+<meta name="theme-color" content="#E97305">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div data-site-header></div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Registros</span>
+      <h1>Mídia</h1>
+      <p>Fotos e vídeos dos nossos eventos, acampamentos e edições do Lava Jato — organizados em pastas pela diretoria.</p>
+    </div>
+    <div class="media-carousel" data-midia></div>
+  </div>
+</section>
+
+<div data-site-footer></div>
+
+<script type="module">
+  import { watchMidia } from "./assets/js/store.js";
+  const el = document.querySelector("[data-midia]");
+  watchMidia((pastas) => {
+    if (!pastas.length) {
+      el.innerHTML = `<div class="empty-state">Ainda não há pastas publicadas. A diretoria pode adicionar pelo painel da liderança.</div>`;
+      return;
+    }
+    el.innerHTML = pastas.map((p) => `
+      <a class="folder-card" href="${p.link}" target="_blank" rel="noopener">
+        <div class="folder-icon">📁</div>
+        <h3>${p.nome}</h3>
+      </a>`).join("");
+  });
+</script>
+<script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

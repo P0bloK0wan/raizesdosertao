@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lava Jato — Raízes do Sertão</title>
+<meta name="theme-color" content="#E97305">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div data-site-header></div>
+
+<section class="hero">
+  <div class="container" style="text-align:center; max-width:680px; margin:0 auto;">
+    <div class="hero-tag" style="margin-inline:auto;">🚗 Todo domingo · 7h às 11h</div>
+    <h1>Lava Jato R.S</h1>
+    <p class="lead" style="margin-inline:auto;">Traga seu carro, apoie o clube e ajude nossos desbravadores a chegar no Campori DSA 2027. Valor único: <strong>R$ 50,00</strong>, pago na hora.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="card" style="max-width:520px; margin:0 auto;" id="bloco-cadastro">
+      <span class="eyebrow">Cadastro</span>
+      <h2>Cadastrar meu carro</h2>
+      <div class="alert alert-error" id="erro"></div>
+
+      <form id="form-cadastro">
+        <div class="field"><label>Seu nome</label><input type="text" id="lj-nome" required></div>
+        <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="lj-telefone" placeholder="(87) 9XXXX-XXXX" required></div>
+        <div class="field"><label>Placa do carro</label><input type="text" id="lj-placa" placeholder="ABC-1D23" required style="text-transform:uppercase;"></div>
+        <div class="field"><label>Modelo do carro</label><input type="text" id="lj-modelo" required></div>
+        <div class="field"><label>Cor do carro</label><input type="text" id="lj-cor" required></div>
+        <button class="btn btn-primary btn-block" type="submit">Cadastrar atendimento</button>
+      </form>
+      <p class="form-note">O pagamento (R$ 50,00) é feito na hora, no dia do Lava Jato.</p>
+    </div>
+
+    <div class="card text-center" style="max-width:520px; margin:20px auto 0; display:none;" id="bloco-confirmado">
+      <div style="font-size:2.4rem;">✅</div>
+      <h2>Cadastro feito!</h2>
+      <p>Anotamos o carro <strong id="conf-modelo"></strong> (<span id="conf-placa"></span>) em nome de <strong id="conf-nome"></strong>. Te esperamos no domingo!</p>
+      <button class="btn btn-outline btn-block" id="btn-cancelar-meu">Cancelar meu atendimento</button>
+    </div>
+  </div>
+</section>
+
+<div data-site-footer></div>
+
+<script type="module">
+  import { criarRegistroLavaJato, cancelarRegistroLavaJato } from "./assets/js/store.js";
+
+  const LS_KEY = "rs_meu_lavajato";
+  const blocoCadastro = document.getElementById("bloco-cadastro");
+  const blocoConfirmado = document.getElementById("bloco-confirmado");
+  const erro = document.getElementById("erro");
+
+  function mostrarConfirmado(dados) {
+    blocoCadastro.style.display = "none";
+    blocoConfirmado.style.display = "block";
+    document.getElementById("conf-nome").textContent = dados.nome;
+    document.getElementById("conf-modelo").textContent = dados.modelo;
+    document.getElementById("conf-placa").textContent = dados.placa;
+  }
+
+  const salvo = localStorage.getItem(LS_KEY);
+  if (salvo) {
+    try { mostrarConfirmado(JSON.parse(salvo)); } catch (e) { localStorage.removeItem(LS_KEY); }
+  }
+
+  document.getElementById("form-cadastro").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    erro.classList.remove("show");
+    const btn = e.target.querySelector("button[type=submit]");
+    btn.disabled = true;
+    const dados = {
+      nome: document.getElementById("lj-nome").value.trim(),
+      telefone: document.getElementById("lj-telefone").value.trim(),
+      placa: document.getElementById("lj-placa").value.trim().toUpperCase(),
+      modelo: document.getElementById("lj-modelo").value.trim(),
+      cor: document.getElementById("lj-cor").value.trim(),
+    };
+    try {
+      const ref = await criarRegistroLavaJato(dados);
+      localStorage.setItem(LS_KEY, JSON.stringify({ ...dados, id: ref.id }));
+      mostrarConfirmado(dados);
+    } catch (err) {
+      erro.textContent = "Não deu pra cadastrar agora. Tente de novo em instantes.";
+      erro.classList.add("show");
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById("btn-cancelar-meu").addEventListener("click", async () => {
+    if (!confirm("Cancelar seu atendimento no Lava Jato?")) return;
+    const dados = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+    if (!dados.id) return;
+    try {
+      await cancelarRegistroLavaJato(dados.id);
+      localStorage.removeItem(LS_KEY);
+      blocoConfirmado.style.display = "none";
+      blocoCadastro.style.display = "block";
+      document.getElementById("form-cadastro").reset();
+    } catch (err) {
+      alert("Não deu pra cancelar agora. Tente de novo em instantes.");
+    }
+  });
+</script>
+<script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

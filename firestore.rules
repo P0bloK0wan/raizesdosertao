@@ -22,23 +22,35 @@ service cloud.firestore {
       return estaLogado() && request.auth.token.email == unidadeId + '@raizesdosertao.app';
     }
 
-    // Vagas do Lava Jato — qualquer conta logada (liderança ou
-    // unidade) pode ver e fechar/liberar vagas.
-    match /vagas/{vagaId} {
-      allow read, write: if estaLogado();
-    }
-
-    // Meta de arrecadação — pública pra aparecer na home, mas só
-    // a liderança pode alterar.
+    // Configurações públicas (ex.: data do Campori) — qualquer
+    // visitante pode ler, só a liderança pode alterar.
     match /config/{docId} {
       allow read: if true;
       allow write: if eLideranca();
     }
 
-    // Galeria de fotos/vídeos — pública, só a liderança publica.
-    match /galeria/{albumId} {
+    // Pastas de mídia (links do Google Drive/Fotos) — públicas
+    // pra leitura, só a liderança publica/edita/remove.
+    match /midia/{pastaId} {
       allow read: if true;
       allow write: if eLideranca();
+    }
+
+    // Lava Jato: qualquer visitante pode criar um cadastro (não
+    // precisa estar logado). Só a liderança lê a lista completa
+    // (protege telefone/placa dos clientes de ficarem públicos).
+    // Cancelamento: liberado pra quem tiver o ID do próprio
+    // cadastro (guardado no navegador de quem se cadastrou) OU
+    // pela liderança — mas só pode alterar os campos de
+    // cancelamento, nada mais.
+    match /lavajato/{registroId} {
+      allow create: if true;
+      allow read: if eLideranca();
+      allow update: if eLideranca() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelado', 'canceladoEm']) &&
+        request.resource.data.cancelado == true
+      );
+      allow delete: if eLideranca();
     }
 
     // Desbravadores de cada unidade — a própria unidade e a
@@ -48,8 +60,8 @@ service cloud.firestore {
       allow write: if eLideranca() || eDaUnidade(unidadeId);
     }
 
-    // Avaliações semanais — mesma regra dos membros.
-    match /unidades/{unidadeId}/avaliacoes/{avaliacaoId} {
+    // Atividades/requisitos de cada unidade — mesma regra dos membros.
+    match /unidades/{unidadeId}/topicos/{topicoId} {
       allow read: if estaLogado();
       allow write: if eLideranca() || eDaUnidade(unidadeId);
     }

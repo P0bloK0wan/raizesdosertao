@@ -27,8 +27,7 @@
     <ul class="app-nav">
       <li><a href="#visao-geral">📊 Visão geral</a></li>
       <li><a href="#membros">🧑‍🤝‍🧑 Meus desbravadores</a></li>
-      <li><a href="#avaliacao">📝 Avaliação semanal</a></li>
-      <li><a href="#vagas">🧽 Vagas do Lava Jato</a></li>
+      <li><a href="#topicos">📝 Atividades / requisitos</a></li>
       <li><a href="#config">⚙️ Configurações</a></li>
       <li><a href="index.html">🌐 Ver site público</a></li>
     </ul>
@@ -46,7 +45,7 @@
 
     <section class="stat-row">
       <div class="stat"><b id="s-membros">0</b><span>Desbravadores da unidade</span></div>
-      <div class="stat"><b id="s-vagas-fechadas">0</b><span>Vagas que sua unidade fechou</span></div>
+      <div class="stat"><b id="s-topicos">0/0</b><span>Atividades concluídas</span></div>
     </section>
 
     <section class="panel-block" id="membros">
@@ -63,30 +62,14 @@
       <div class="empty-state" id="membros-vazio" style="display:none;">Nenhum desbravador cadastrado ainda. Clique em "Cadastrar desbravador".</div>
     </section>
 
-    <section class="panel-block" id="avaliacao">
+    <section class="panel-block" id="topicos">
       <div class="block-head">
-        <h2>Avaliação semanal</h2>
-        <button class="btn btn-primary btn-sm" id="btn-nova-avaliacao">+ Lançar avaliação</button>
+        <h2>Atividades / requisitos</h2>
+        <button class="btn btn-primary btn-sm" id="btn-novo-topico">+ Nova atividade</button>
       </div>
-      <p class="muted">Registre, semana a semana, como cada desbravador está indo em pontualidade, Bíblia/lição, uniforme, participação e comportamento (notas de 0 a 10).</p>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Desbravador</th><th>Data</th><th>Pontual.</th><th>Bíblia</th><th>Uniforme</th><th>Particip.</th><th>Comport.</th><th>Média</th><th></th></tr></thead>
-          <tbody id="tbody-avaliacoes"></tbody>
-        </table>
-      </div>
-      <div class="empty-state" id="avaliacoes-vazio" style="display:none;">Nenhuma avaliação lançada ainda.</div>
-    </section>
-
-    <section class="panel-block" id="vagas">
-      <div class="block-head"><h2>Vagas do Lava Jato</h2></div>
-      <p class="muted">Feche uma vaga para o turno que sua unidade vai assumir no dia do Lava Jato.</p>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Data</th><th>Horário</th><th>Vagas</th><th>Status</th><th>Ações</th></tr></thead>
-          <tbody id="tbody-vagas"></tbody>
-        </table>
-      </div>
+      <p class="muted">Marque o que já foi realizado pela unidade. Você pode editar ou remover qualquer item.</p>
+      <ul class="topico-list" id="lista-topicos"></ul>
+      <div class="empty-state" id="topicos-vazio" style="display:none;">Nenhuma atividade cadastrada ainda.</div>
     </section>
 
     <section class="panel-block" id="config">
@@ -126,37 +109,14 @@
   </div>
 </div>
 
-<div class="modal-backdrop" id="modal-avaliacao">
+<div class="modal-backdrop" id="modal-topico">
   <div class="modal">
-    <h2>Lançar avaliação semanal</h2>
-    <form id="form-avaliacao">
-      <div class="field"><label>Desbravador</label><select id="av-membro" required></select></div>
-      <div class="field"><label>Data</label><input type="date" id="av-data" required></div>
-      <div class="field"><label>Pontualidade (0–10)</label><input type="number" id="av-pontualidade" min="0" max="10" value="10" required></div>
-      <div class="field"><label>Bíblia / Lição (0–10)</label><input type="number" id="av-biblia" min="0" max="10" value="10" required></div>
-      <div class="field"><label>Uniforme (0–10)</label><input type="number" id="av-uniforme" min="0" max="10" value="10" required></div>
-      <div class="field"><label>Participação (0–10)</label><input type="number" id="av-participacao" min="0" max="10" value="10" required></div>
-      <div class="field"><label>Comportamento (0–10)</label><input type="number" id="av-comportamento" min="0" max="10" value="10" required></div>
+    <h2>Nova atividade / requisito</h2>
+    <form id="form-topico">
+      <div class="field"><label>Nome da atividade</label><input type="text" id="tp-nome" placeholder="ex.: Acampamento de unidade" required></div>
       <div class="modal-actions">
-        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-avaliacao">Cancelar</button>
+        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-topico">Cancelar</button>
         <button type="submit" class="btn btn-primary btn-block">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="modal-fechar-vaga">
-  <div class="modal">
-    <h2>Fechar vaga</h2>
-    <form id="form-fechar-vaga">
-      <div class="field"><label>Responsável pelo turno</label><input type="text" id="fv-responsavel" placeholder="Nome de quem vai coordenar" required></div>
-      <div class="field"><label>Desbravadores escalados</label>
-        <select id="fv-membros" multiple size="6"></select>
-        <p class="muted" style="font-size:.78rem; margin-top:6px;">Segure Ctrl (ou Cmd no Mac) para selecionar mais de um.</p>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-fechar">Cancelar</button>
-        <button type="submit" class="btn btn-green btn-block">Confirmar</button>
       </div>
     </form>
   </div>
