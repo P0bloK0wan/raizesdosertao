@@ -1,5 +1,5 @@
 /* =========================================================
-   Configuração do Firebase — projeto Raízes do Sertão
+   FIREBASE — RAÍZES DO SERTÃO
    ========================================================= */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
@@ -16,7 +16,7 @@ import {
 
 
 /* =========================================================
-   CONFIGURAÇÃO DO PROJETO
+   CONFIGURAÇÃO
    ========================================================= */
 
 export const firebaseConfig = {
@@ -30,16 +30,11 @@ export const firebaseConfig = {
 
 
 /* =========================================================
-   STATUS
+   FIREBASE
    ========================================================= */
 
 export const firebaseConfigurado = true;
 
-
-/* =========================================================
-   INICIALIZAÇÃO
-   ========================================================= */
-
 export const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
@@ -48,99 +43,12 @@ export const db = getFirestore(app);
 
 
 /* =========================================================
-   EMULADORES LOCAIS
-
-   Ativação:
-
-   http://localhost:5500/?emulator=1
-
-   O modo normal do site NÃO usa emuladores.
+   EMULADOR LOCAL
    ========================================================= */
 
 const usandoEmulador =
   typeof window !== "undefined" &&
-  new URLSearchParams(window.location.search).get("emulator") === "1";
-
-
-if (usandoEmulador) {
-
-  connectAuthEmulator(
-    auth,
-    "http://127.0.0.1:9099",
-    {
-      disableWarnings: true
-    }
-  );
-
-  connectFirestoreEmulator(
-    db,
-    "127.0.0.1",
-    8080
-  );
-
-  console.log("Firebase Emulator ativado.");
-
-}  projectId: "raizes-do-sertao-7d82c",
-  storageBucket: "raizes-do-sertao-7d82c.firebasestorage.app",
-  messagingSenderId: "983565125063",
-  appId: "1:983565125063:web:2611f8afd77d652b8505e2"
-};
-
-
-/* =========================================================
-   VERIFICAÇÃO DA CONFIGURAÇÃO
-   ========================================================= */
-
-export const firebaseConfigurado = Boolean(
-  firebaseConfig.apiKey &&
-  firebaseConfig.authDomain &&
-  firebaseConfig.projectId &&
-  firebaseConfig.appId
-);
-
-
-/* =========================================================
-   INICIALIZAÇÃO DO FIREBASE
-   ========================================================= */
-
-export const app = initializeApp(firebaseConfig);
-
-
-/* =========================================================
-   FIREBASE AUTHENTICATION
-   ========================================================= */
-
-export const auth = getAuth(app);
-
-
-/* =========================================================
-   CLOUD FIRESTORE
-   ========================================================= */
-
-export const db = getFirestore(app);
-
-
-/* =========================================================
-   MODO EMULADOR LOCAL
-
-   Para ativar, abra o site com:
-
-   ?emulator=1
-
-   Exemplo:
-
-   http://localhost:5500/?emulator=1
-
-   ou:
-
-   http://127.0.0.1:5500/?emulator=1
-
-   No site publicado normalmente, os emuladores NÃO serão usados.
-   ========================================================= */
-
-const usandoEmulador =
-  typeof window !== "undefined" &&
-  new URLSearchParams(window.location.search).get("emulator") === "1";
+  new URLSearchParams(window.location.search).has("emulator");
 
 
 if (usandoEmulador) {
@@ -155,40 +63,21 @@ if (usandoEmulador) {
       }
     );
 
-
     connectFirestoreEmulator(
       db,
       "127.0.0.1",
       8080
     );
 
-
-    console.log(
-      "Firebase conectado aos emuladores locais."
-    );
+    console.log("Firebase Emulator ativado.");
 
   } catch (erro) {
 
     console.warn(
-      "Não foi possível conectar aos emuladores locais:",
+      "Erro ao conectar aos emuladores:",
       erro
     );
 
   }
+
 }
-
-
-/* =========================================================
-   EXPORTAÇÃO FINAL
-
-   Os seguintes itens podem ser importados em outros arquivos:
-
-   import {
-     app,
-     auth,
-     db,
-     firebaseConfig,
-     firebaseConfigurado
-   } from "./firebase.js";
-
-   ========================================================= */
