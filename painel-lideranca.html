@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel da Liderança — Raízes do Sertão</title>
+<meta name="theme-color" content="#060403">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="mobile-topbar">
+  <button class="icon-btn" data-sidebar-toggle aria-label="Abrir menu">☰</button>
+  <strong>Painel da Liderança</strong>
+  <button class="icon-btn" data-theme-toggle aria-label="Alternar tema"><span data-theme-icon>🌙</span></button>
+</div>
+<div class="sidebar-overlay" data-sidebar-overlay></div>
+
+<div class="app-shell">
+  <aside class="app-sidebar" data-sidebar>
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.png" alt="Raízes do Sertão" style="height:40px;">
+      <span>Raízes do Sertão<small>Painel da Liderança</small></span>
+    </a>
+    <ul class="app-nav">
+      <li><a href="#visao-geral">📊 Visão geral</a></li>
+      <li><a href="#vagas">🧽 Vagas do Lava Jato</a></li>
+      <li><a href="#desbravadores">🧑‍🤝‍🧑 Desbravadores</a></li>
+      <li><a href="#desempenho">📝 Desempenho semanal</a></li>
+      <li><a href="#meta">🎯 Meta de arrecadação</a></li>
+      <li><a href="#galeria">📷 Fotos e vídeos</a></li>
+      <li><a href="#dados">📁 Importar / Exportar</a></li>
+      <li><a href="#config">⚙️ Configurações</a></li>
+      <li><a href="index.html">🌐 Ver site público</a></li>
+    </ul>
+    <div class="who">
+      Logado como<br><strong id="quem" style="color:#fff;">—</strong><br>
+      <button class="btn btn-sm btn-outline" style="margin-top:10px; border-color:#8c8367; color:#f2eddc;" id="btn-sair">Sair</button>
+    </div>
+  </aside>
+
+  <main class="app-main">
+    <div class="app-topbar">
+      <h1 id="visao-geral">Visão geral</h1>
+      <button class="icon-btn hide-mobile" data-theme-toggle aria-label="Alternar tema"><span data-theme-icon>🌙</span></button>
+    </div>
+
+    <section class="stat-row">
+      <div class="stat"><b id="s-membros">0</b><span>Desbravadores cadastrados</span></div>
+      <div class="stat"><b id="s-vagas-abertas">0</b><span>Vagas em aberto</span></div>
+      <div class="stat"><b id="s-vagas-fechadas">0</b><span>Vagas fechadas</span></div>
+      <div class="stat"><b id="s-meta-pct">0%</b><span>Da meta de arrecadação</span></div>
+    </section>
+
+    <section class="panel-block" id="vagas">
+      <div class="block-head">
+        <h2>Vagas do Lava Jato</h2>
+        <button class="btn btn-primary btn-sm" id="btn-nova-vaga">+ Nova vaga</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Data</th><th>Horário</th><th>Vagas</th><th>Unidade</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-vagas"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="vagas-vazio" style="display:none;">Nenhuma vaga cadastrada ainda.</div>
+    </section>
+
+    <section class="panel-block" id="desbravadores">
+      <div class="block-head"><h2>Desbravadores por unidade</h2></div>
+      <div id="desbravadores-lista"></div>
+    </section>
+
+    <section class="panel-block" id="desempenho">
+      <div class="block-head"><h2>Desempenho semanal dos desbravadores</h2></div>
+      <p class="muted">Média das avaliações lançadas pelas unidades (pontualidade, Bíblia/lição, uniforme, participação e comportamento).</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Desbravador</th><th>Unidade</th><th>Avaliações</th><th>Média geral</th></tr></thead>
+          <tbody id="tbody-desempenho"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="desempenho-vazio" style="display:none;">Nenhuma avaliação lançada pelas unidades ainda.</div>
+    </section>
+
+    <section class="panel-block" id="meta">
+      <div class="block-head"><h2>Meta de arrecadação</h2></div>
+      <form class="inline-form" id="form-meta">
+        <div class="field">
+          <label for="meta-arrecadado">Valor arrecadado (R$)</label>
+          <input type="number" min="0" step="0.01" id="meta-arrecadado" required>
+        </div>
+        <div class="field">
+          <label for="meta-alvo">Meta total (R$)</label>
+          <input type="number" min="0" step="0.01" id="meta-alvo" required>
+        </div>
+        <button class="btn btn-gold" type="submit">Salvar meta</button>
+      </form>
+      <p class="muted" style="margin-top:14px;">Este valor aparece na barra de progresso da página inicial do site.</p>
+    </section>
+
+    <section class="panel-block" id="galeria">
+      <div class="block-head">
+        <h2>Fotos e vídeos</h2>
+        <button class="btn btn-primary btn-sm" id="btn-novo-album">+ Novo álbum</button>
+      </div>
+      <p class="muted">Suba as fotos/vídeos num álbum do Google Fotos ou Drive (compartilhamento "qualquer pessoa com o link"), depois cole o link aqui. Aparece na aba "Fotos" do site para todo mundo ver.</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Evento</th><th>Data</th><th>Link</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-galeria"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="galeria-vazio" style="display:none;">Nenhum álbum publicado ainda.</div>
+    </section>
+
+    <section class="panel-block" id="dados">
+      <div class="block-head"><h2>Importar / Exportar dados</h2></div>
+      <p class="muted">Como os dados ficam salvos no navegador de cada aparelho, use estes botões para juntar as informações de todas as unidades no computador da liderança.</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:14px;">
+        <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+          📥 Importar arquivo de uma unidade
+          <input type="file" accept="application/json" id="input-importar" style="display:none;">
+        </label>
+        <button class="btn btn-outline btn-sm" id="btn-exportar-tudo">📦 Exportar backup completo</button>
+      </div>
+    </section>
+
+    <section class="panel-block" id="config">
+      <div class="block-head"><h2>Configurações</h2></div>
+      <h3 style="font-size:1rem;">Trocar minha senha</h3>
+      <div class="alert alert-error" id="senha-erro"></div>
+      <div class="alert alert-ok" id="senha-ok"></div>
+      <form class="inline-form" id="form-senha">
+        <div class="field"><label>Senha atual</label><input type="password" id="senha-atual" required></div>
+        <div class="field"><label>Nova senha</label><input type="password" id="senha-nova" minlength="6" required></div>
+        <button class="btn btn-outline" type="submit">Atualizar senha</button>
+      </form>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modal-vaga">
+  <div class="modal">
+    <h2>Nova vaga do Lava Jato</h2>
+    <form id="form-vaga">
+      <div class="field"><label>Data</label><input type="text" id="vaga-data" placeholder="ex.: 05/07" required></div>
+      <div class="field"><label>Horário</label><input type="text" id="vaga-horario" placeholder="ex.: 07:00 – 09:00" required></div>
+      <div class="field"><label>Vagas necessárias</label><input type="number" id="vaga-qtd" min="1" value="4" required></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-vaga">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-album">
+  <div class="modal">
+    <h2>Novo álbum de fotos/vídeos</h2>
+    <form id="form-album">
+      <div class="field"><label>Nome do evento</label><input type="text" id="al-evento" placeholder="ex.: Acampamento 2026" required></div>
+      <div class="field"><label>Data</label><input type="date" id="al-data"></div>
+      <div class="field"><label>Link do álbum (Google Fotos, Drive, etc.)</label><input type="url" id="al-link" placeholder="https://..." required></div>
+      <div class="field"><label>Descrição (opcional)</label><input type="text" id="al-descricao"></div>
+      <div class="field"><label>Imagem de capa (opcional, link direto)</label><input type="url" id="al-capa" placeholder="https://..."></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-album">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block">Publicar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/painel-lideranca.js"></script>
+</body>
+</html>

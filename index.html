@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Raízes do Sertão — Clube de Desbravadores</title>
+<meta name="description" content="Clube de Desbravadores Raízes do Sertão — Lava Jato solidário, história do clube, unidades, agenda e adote um desbravador. Ajude a gente a chegar no Campori DSA 2027.">
+<meta name="theme-color" content="#E97305">
+<link rel="icon" href="assets/img/logo.png">
+<link rel="apple-touch-icon" href="assets/img/logo.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/img/logo.png" alt="Emblema Raízes do Sertão">
+      <span>Raízes do Sertão<small>Clube de Desbravadores</small></span>
+    </a>
+
+    <nav class="nav-links" data-nav-links>
+      <a href="#historia">História</a>
+      <a href="#unidades">Unidades</a>
+      <a href="#lavajato">Lava Jato</a>
+      <a href="#agenda">Agenda</a>
+      <a href="#ajude">Nos Ajude</a>
+      <a href="#adote">Adote</a>
+      <a href="#fotos">Fotos</a>
+      <a href="#contato">Contato</a>
+      <a href="login-unidade.html">Unidade ↗</a>
+      <a href="login-lideranca.html">Liderança ↗</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-btn" data-theme-toggle aria-label="Alternar tema claro/escuro"><span data-theme-icon>🌙</span></button>
+      <button class="nav-toggle" data-nav-toggle aria-label="Abrir menu" aria-expanded="false"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <div class="hero-tag">🌵 Sede Vila Eduardo · Região 13 · 4º Distrito</div>
+      <h1>Clube Raízes do Sertão</h1>
+      <p class="lead">Desde 2004 formando o caráter de crianças e adolescentes através da aventura, do serviço e da fé. Todo domingo (até dezembro) a gente se une no Lava Jato solidário para juntar fundos rumo ao Campori DSA 2027.</p>
+      <div class="hero-actions">
+        <a href="#historia" class="btn btn-gold">Conheça o clube</a>
+        <a href="#lavajato" class="btn btn-outline">Ver o Lava Jato</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><b>22+</b><span>anos de história</span></div>
+        <div class="hero-stat"><b>4</b><span>unidades ativas</span></div>
+        <div class="hero-stat"><b>2004</b><span>ano de fundação</span></div>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <p style="color:#fff; font-weight:800; font-family:'Baloo 2',sans-serif; margin-bottom:4px;">Contagem regressiva para o próximo Lava Jato</p>
+      <div class="countdown" data-countdown="auto-lavajato">
+        <div class="box"><b data-c="d">00</b><span>dias</span></div>
+        <div class="box"><b data-c="h">00</b><span>horas</span></div>
+        <div class="box"><b data-c="m">00</b><span>min</span></div>
+        <div class="box"><b data-c="s">00</b><span>seg</span></div>
+      </div>
+      <p style="color:rgba(255,255,255,.85); font-size:.8rem; margin-top:12px;">* Data conforme planejamento do clube — pode ser alterada pela diretoria a qualquer momento.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HISTÓRIA -->
+<section class="section" id="historia">
+  <div class="container history-block">
+    <div>
+      <span class="eyebrow">Nossa história</span>
+      <h2>Raízes do Sertão</h2>
+      <p style="white-space:pre-line" id="historia-texto"></p>
+      <p class="muted">Fundado em <strong>04/04/2004</strong>, o clube iniciou sua trajetória com quatro unidades: Carcará, Águia, Flor do Mandacaru e Andorinha.</p>
+    </div>
+    <div>
+      <h3>Diretores ao longo dos anos</h3>
+      <ul class="timeline" data-diretores></ul>
+    </div>
+  </div>
+</section>
+
+<!-- UNIDADES -->
+<section class="section section-alt" id="unidades">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Unidades</span>
+      <h2>Nossas unidades</h2>
+      <p>Cada desbravador pertence a uma unidade — pequenos grupos que competem, aprendem e crescem juntos.</p>
+    </div>
+    <div class="grid grid-4" data-unidades></div>
+  </div>
+</section>
+
+<!-- LAVA JATO -->
+<section class="section" id="lavajato">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Ação solidária · todo domingo até dezembro</span>
+      <h2>Lava Jato R.S</h2>
+      <p>Das 7h às 11h, todo domingo até o fim de dezembro. Todo lucro é revertido para a viagem do clube ao Campori DSA 2027. As unidades se revezam nos turnos de trabalho — a diretoria acompanha tudo pelo painel da liderança.</p>
+    </div>
+
+    <div class="access-grid">
+      <div class="access-card unidade">
+        <h3>🧽 Sou desbravador(a) / unidade</h3>
+        <p>Entre com o login da sua unidade para fechar um turno de trabalho no Lava Jato e cadastrar os desbravadores da sua unidade.</p>
+        <a href="login-unidade.html" class="btn btn-primary" style="margin-top:14px;">Login da Unidade</a>
+      </div>
+      <div class="access-card lideranca">
+        <h3>📋 Sou da diretoria / liderança</h3>
+        <p>Acompanhe em tempo real quais turnos já foram fechados, por qual unidade, e gerencie a meta de arrecadação.</p>
+        <a href="login-lideranca.html" class="btn btn-gold" style="margin-top:14px;">Login da Liderança</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NOS AJUDE -->
+<section class="section section-alt" id="ajude">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Nos ajude</span>
+      <h2>Formas de ajudar o clube</h2>
+      <p>Não precisa ser desbravador pra fazer parte dessa jornada. Escolha a forma que combina com você:</p>
+    </div>
+    <div class="grid grid-4">
+      <div class="card text-center">
+        <div class="emoji" style="font-size:2rem;">🚗</div>
+        <h3>Lave seu carro com a gente</h3>
+        <p>Apareça em um domingo, lave seu carro e ajude a arrecadar fundos.</p>
+        <a href="#contato" class="btn btn-outline btn-sm">Combinar horário</a>
+      </div>
+      <div class="card text-center">
+        <div class="emoji" style="font-size:2rem;">🧡</div>
+        <h3>Adote um desbravador</h3>
+        <p>Apadrinhe uniforme, material ou viagem de um desbravador.</p>
+        <a href="#adote" class="btn btn-outline btn-sm">Ver como</a>
+      </div>
+      <div class="card text-center">
+        <div class="emoji" style="font-size:2rem;">🎁</div>
+        <h3>Doe direto</h3>
+        <p>Contribua com qualquer valor direto pelo WhatsApp da liderança.</p>
+        <a href="#contato" class="btn btn-outline btn-sm">Fazer doação</a>
+      </div>
+      <div class="card text-center">
+        <div class="emoji" style="font-size:2rem;">📣</div>
+        <h3>Divulgue</h3>
+        <p>Compartilhe esta página com amigos e familiares.</p>
+        <button class="btn btn-outline btn-sm" data-share>Compartilhar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- META -->
+<section class="section">
+  <div class="container">
+    <div class="card goal-card" data-meta style="max-width:640px; margin:0 auto;">
+      <span class="eyebrow">Rumo ao Campori DSA 2027</span>
+      <h2>Ajude nosso clube a ir pro Campori DSA 2027</h2>
+      <p>Cada carro lavado, cada apadrinhamento e cada doação aproxima nossos desbravadores desse sonho. Acompanhe aqui o quanto já conquistamos juntos!</p>
+      <div class="progress"><div data-meta-bar style="width:0%"></div></div>
+      <div class="goal-numbers">
+        <div><span data-meta-arrecadado>R$ 0</span><small>Arrecadado</small></div>
+        <div><span data-meta-pct>0%</span><small>Da meta</small></div>
+        <div><span data-meta-alvo>R$ 0</span><small>Meta total</small></div>
+      </div>
+      <a href="#contato" class="btn btn-primary" style="margin-top:20px;">Quero contribuir</a>
+    </div>
+  </div>
+</section>
+
+<!-- AGENDA -->
+<section class="section" id="agenda">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Planejamento</span>
+      <h2>Agenda do clube — 2º semestre</h2>
+      <p>Classes bíblicas, reuniões, folgas e eventos especiais. Toque em um mês para expandir.</p>
+    </div>
+    <div style="max-width:720px; margin:0 auto;" data-calendario></div>
+    <p class="cal-note">Observação: as datas podem ser alteradas a qualquer momento pela diretoria.</p>
+  </div>
+</section>
+
+<!-- ADOTE UM DESBRAVADOR -->
+<section class="section section-alt" id="adote">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Apadrinhamento</span>
+      <h2>Adote um Desbravador</h2>
+      <p>Nem toda família consegue arcar com uniforme, taxas e viagens. "Adotar" um desbravador é apadrinhar essa criança ou adolescente, ajudando a cobrir esses custos e permitindo que ninguém fique de fora.</p>
+    </div>
+    <div class="adote-grid">
+      <div class="card adote-card">
+        <div class="emoji">🎒</div>
+        <h3>Apadrinhe um uniforme</h3>
+        <p>Ajude a custear o uniforme oficial de um desbravador da nossa unidade.</p>
+      </div>
+      <div class="card adote-card">
+        <div class="emoji">🏕️</div>
+        <h3>Apadrinhe uma viagem</h3>
+        <p>Contribua com a inscrição de acampamentos, campori e excursões do clube.</p>
+      </div>
+      <div class="card adote-card">
+        <div class="emoji">📖</div>
+        <h3>Apadrinhe o material</h3>
+        <p>Financie manuais de classe, especialidades e materiais de estudo.</p>
+      </div>
+    </div>
+    <div class="text-center" style="margin-top:30px;">
+      <a href="#contato" class="btn btn-green">Quero apadrinhar</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOTOS -->
+<section class="section" id="fotos">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Registros</span>
+      <h2>Fotos e vídeos</h2>
+      <p>Álbuns dos nossos eventos, acampamentos e edições do Lava Jato — publicados pela diretoria.</p>
+    </div>
+    <div class="grid grid-3" data-galeria></div>
+  </div>
+</section>
+
+<!-- CONTATO -->
+<section class="section" id="contato">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Fale conosco</span>
+      <h2>Contato</h2>
+      <p>Fale direto com a liderança do clube pelo WhatsApp — dúvidas, doações, apadrinhamento ou parcerias com o Lava Jato.</p>
+    </div>
+    <div class="card text-center" style="max-width:480px; margin:0 auto;">
+      <h3 data-whatsapp-numero>—</h3>
+      <p class="muted">Pablo Kawan Farias Cavalcante</p>
+      <a class="btn btn-primary btn-block" data-whatsapp-link target="_blank" rel="noopener">
+        Chamar no WhatsApp
+      </a>
+      <button class="btn btn-outline btn-block" style="margin-top:10px;" data-share>Compartilhar esta página</button>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a href="index.html" class="brand" style="margin-bottom:10px;">
+        <img src="assets/img/logo.png" alt="Emblema Raízes do Sertão">
+        <span>Raízes do Sertão</span>
+      </a>
+      <p style="opacity:.75; max-width:34ch;">Clube de Desbravadores — Região 13, 4º Distrito, APeC. Sede: Vila Eduardo.</p>
+    </div>
+    <div>
+      <h4>Navegação</h4>
+      <ul>
+        <li><a href="#historia">História</a></li>
+        <li><a href="#unidades">Unidades</a></li>
+        <li><a href="#agenda">Agenda</a></li>
+        <li><a href="#ajude">Nos Ajude</a></li>
+        <li><a href="#adote">Adote um Desbravador</a></li>
+        <li><a href="#fotos">Fotos</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Acesso</h4>
+      <ul>
+        <li><a href="login-unidade.html">Login da Unidade</a></li>
+        <li><a href="login-lideranca.html">Login da Liderança</a></li>
+        <li><a data-whatsapp-link target="_blank" rel="noopener">WhatsApp</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">© <span data-ano></span> Raízes do Sertão — feito com 🌵 pelo clube.</div>
+</footer>
+
+<a class="float-whatsapp" data-whatsapp-link target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.001 3.2c-7.07 0-12.8 5.73-12.8 12.8 0 2.26.6 4.44 1.73 6.37L3.2 28.8l6.6-1.7a12.75 12.75 0 0 0 6.2 1.6h.001c7.07 0 12.8-5.73 12.8-12.8s-5.73-12.7-12.8-12.7zm0 23.13c-1.94 0-3.83-.52-5.48-1.5l-.39-.23-3.92 1.02 1.05-3.82-.25-.4a10.5 10.5 0 0 1-1.61-5.6c0-5.83 4.75-10.58 10.6-10.58 2.83 0 5.49 1.1 7.49 3.11a10.5 10.5 0 0 1 3.1 7.48c0 5.84-4.75 10.52-10.59 10.52zm5.8-7.88c-.32-.16-1.88-.93-2.17-1.03-.29-.11-.5-.16-.72.16-.21.32-.82 1.03-1 1.24-.19.21-.37.24-.69.08-.32-.16-1.34-.5-2.55-1.58-.94-.84-1.58-1.87-1.76-2.19-.19-.32-.02-.49.14-.65.14-.14.32-.37.48-.55.16-.19.21-.32.32-.53.11-.21.05-.4-.03-.56-.08-.16-.72-1.75-.99-2.39-.26-.63-.53-.54-.72-.55h-.61c-.21 0-.56.08-.85.4-.29.32-1.11 1.08-1.11 2.64s1.14 3.06 1.3 3.27c.16.21 2.24 3.42 5.43 4.8.76.33 1.35.53 1.81.67.76.24 1.45.21 2 .13.61-.09 1.88-.77 2.14-1.51.27-.74.27-1.38.19-1.51-.08-.13-.29-.21-.61-.37z"/></svg>
+</a>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/storage.js"></script>
+<script src="assets/js/main.js"></script>
+<script>
+  document.getElementById("historia-texto").textContent = RS_HISTORIA;
+</script>
+</body>
+</html>
