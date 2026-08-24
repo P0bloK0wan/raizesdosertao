@@ -15,7 +15,7 @@
     <a href="index.html" class="back-link">← Voltar ao site</a>
     <div class="brand"><img src="assets/img/logo.png" alt="Raízes do Sertão" style="height:52px;"></div>
     <h1>Login da Unidade</h1>
-    <p class="sub muted">Cadastre os desbravadores da sua unidade e feche vagas do Lava Jato.</p>
+    <p class="sub muted">Cadastre os desbravadores da sua unidade e feche vagas do Lava Jato, de qualquer aparelho.</p>
 
     <div class="alert alert-error" id="erro"></div>
 
@@ -31,35 +31,47 @@
       <button class="btn btn-green btn-block" type="submit">Entrar</button>
     </form>
 
-    <p class="form-note">É da diretoria? <a href="login-lideranca.html" style="color:var(--orange); font-weight:700;">Entre por aqui</a>.<br>Senha padrão de demonstração: <code>sertao123</code></p>
+    <p class="form-note">É da diretoria? <a href="login-lideranca.html" style="color:var(--orange); font-weight:700;">Entre por aqui</a>.</p>
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
-<script src="assets/js/storage.js"></script>
-<script src="assets/js/auth.js"></script>
-<script src="assets/js/main.js"></script>
-<script>
+<script type="module">
+  import "./assets/js/main.js";
+  import { RS_UNIDADES, emailDaUnidade } from "./assets/js/data.js";
+  import { loginUnidade, mensagemErroFirebase, firebaseConfigurado } from "./assets/js/auth.js";
+  import { auth } from "./assets/js/firebase.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
   const select = document.getElementById("unidade");
   select.innerHTML = RS_UNIDADES.map((u) => `<option value="${u.id}">${u.nome}</option>`).join("");
 
   const form = document.getElementById("form-login");
   const erro = document.getElementById("erro");
 
-  const sessaoAtual = RS.getSession();
-  if (sessaoAtual && sessaoAtual.papel === "unidade") {
-    window.location.href = "painel-unidade.html";
+  if (!firebaseConfigurado) {
+    erro.textContent = "O site ainda não foi configurado com as chaves do Firebase (veja o README.md).";
+    erro.classList.add("show");
   }
+
+  const emailsDeUnidade = RS_UNIDADES.map((u) => emailDaUnidade(u.id));
+  onAuthStateChanged(auth, (user) => {
+    if (user && emailsDeUnidade.includes(user.email)) {
+      window.location.href = "painel-unidade.html";
+    }
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     erro.classList.remove("show");
+    const btn = form.querySelector("button[type=submit]");
+    btn.disabled = true;
     try {
-      await RS_AUTH.loginUnidade(select.value, form.senha.value);
+      await loginUnidade(select.value, form.senha.value);
       window.location.href = "painel-unidade.html";
     } catch (err) {
-      erro.textContent = err.message;
+      erro.textContent = mensagemErroFirebase(err);
       erro.classList.add("show");
+      btn.disabled = false;
     }
   });
 </script>

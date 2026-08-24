@@ -1,7 +1,7 @@
 /* Service worker simples — cache do "app shell" para o site
    abrir rápido e funcionar offline depois da primeira visita. */
 
-const CACHE_NAME = "raizes-do-sertao-v1";
+const CACHE_NAME = "raizes-do-sertao-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -13,7 +13,8 @@ const APP_SHELL = [
   "./manifest.json",
   "./assets/css/style.css",
   "./assets/js/data.js",
-  "./assets/js/storage.js",
+  "./assets/js/store.js",
+  "./assets/js/firebase.js",
   "./assets/js/auth.js",
   "./assets/js/main.js",
   "./assets/js/painel-lideranca.js",
@@ -46,6 +47,9 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  // Só cuida dos arquivos do próprio site — deixa passar direto
+  // qualquer chamada pro Firebase, fontes do Google, etc.
+  if (new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const network = fetch(event.request)

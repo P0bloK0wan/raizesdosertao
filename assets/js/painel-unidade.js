@@ -2,29 +2,47 @@
    Painel da Unidade
    ========================================================= */
 
-(function () {
-  const sessao = RS_AUTH.exigirSessao("unidade");
-  if (!sessao) return;
+import { RS_UNIDADES, RS_CRITERIOS } from "./data.js";
+import { exigirSessao, logout, trocarSenha } from "./auth.js";
+import {
+  watchVagas, garantirVagasSeeded, fecharVaga, reabrirVaga,
+  watchMembros, addMembro, deleteMembro,
+  watchAvaliacoes, addAvaliacao, deleteAvaliacao,
+} from "./store.js";
+import { mostrarToast } from "./main.js";
 
-  const unidadeId = sessao.unidadeId;
-  const unidade = RS_UNIDADES.find((u) => u.id === unidadeId);
-
+exigirSessao("unidade", (sessao) => {
+  const unidade = RS_UNIDADES.find((u) => u.id === sessao.unidadeId);
   document.getElementById("quem").textContent = sessao.nome;
   document.getElementById("unidade-nome").textContent = "Unidade " + unidade.nome;
   document.getElementById("mobile-title").textContent = "Unidade " + unidade.nome;
-  document.getElementById("btn-sair").addEventListener("click", RS_AUTH.logout);
+  iniciarPainel(sessao.unidadeId);
+});
 
-  function uid() { return "m" + Date.now() + Math.floor(Math.random() * 1000); }
+document.getElementById("btn-sair").addEventListener("click", logout);
+
+function mediaAvaliacao(a) {
+  const soma = RS_CRITERIOS.reduce((acc, c) => acc + Number(a[c.id] || 0), 0);
+  return (soma / RS_CRITERIOS.length).toFixed(1);
+}
+
+function iniciarPainel(unidadeId) {
+  const estado = { vagas: [], membros: [], avaliacoes: [] };
+
+  garantirVagasSeeded();
+
+  watchVagas((vagas) => { estado.vagas = vagas; renderVagas(); });
+  watchMembros(unidadeId, (membros) => { estado.membros = membros; renderMembros(); renderAvaliacoes(); });
+  watchAvaliacoes(unidadeId, (avaliacoes) => { estado.avaliacoes = avaliacoes; renderAvaliacoes(); });
 
   /* ---------------- Membros ---------------- */
   function renderMembros() {
-    const membros = RS.getMembros(unidadeId);
     const tbody = document.getElementById("tbody-membros");
     const vazio = document.getElementById("membros-vazio");
     tbody.innerHTML = "";
-    vazio.style.display = membros.length ? "none" : "block";
+    vazio.style.display = estado.membros.length ? "none" : "block";
 
-    membros.forEach((m) => {
+    estado.membros.forEach((m) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${m.nome}</td>
@@ -37,48 +55,37 @@
     });
 
     tbody.querySelectorAll("[data-del]").forEach((btn) =>
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         if (!confirm("Excluir este desbravador?")) return;
-        RS.setMembros(unidadeId, RS.getMembros(unidadeId).filter((m) => m.id !== btn.dataset.del));
-        renderTudo();
+        await deleteMembro(unidadeId, btn.dataset.del);
         mostrarToast("Desbravador removido.");
       })
     );
 
-    document.getElementById("s-membros").textContent = membros.length;
+    document.getElementById("s-membros").textContent = estado.membros.length;
   }
 
   const modalMembro = document.getElementById("modal-membro");
   document.getElementById("btn-novo-membro").addEventListener("click", () => modalMembro.classList.add("show"));
   document.getElementById("btn-cancelar-membro").addEventListener("click", () => modalMembro.classList.remove("show"));
-  document.getElementById("form-membro").addEventListener("submit", (e) => {
+  document.getElementById("form-membro").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const membros = RS.getMembros(unidadeId);
-    membros.push({
-      id: uid(),
+    await addMembro(unidadeId, {
       nome: document.getElementById("m-nome").value.trim(),
       nascimento: document.getElementById("m-nascimento").value,
       classe: document.getElementById("m-classe").value,
       responsavel: document.getElementById("m-responsavel").value.trim(),
       telefone: document.getElementById("m-telefone").value.trim(),
     });
-    RS.setMembros(unidadeId, membros);
     modalMembro.classList.remove("show");
     e.target.reset();
-    renderTudo();
     mostrarToast("Desbravador cadastrado.");
   });
 
   /* ---------------- Avaliação semanal ---------------- */
-  function mediaAvaliacao(a) {
-    const soma = RS_CRITERIOS.reduce((acc, c) => acc + Number(a[c.id] || 0), 0);
-    return (soma / RS_CRITERIOS.length).toFixed(1);
-  }
-
   function renderAvaliacoes() {
-    const membros = RS.getMembros(unidadeId);
-    const nomePorId = Object.fromEntries(membros.map((m) => [m.id, m.nome]));
-    const avaliacoes = RS.getAvaliacoes(unidadeId).slice().sort((a, b) => (a.data < b.data ? 1 : -1));
+    const nomePorId = Object.fromEntries(estado.membros.map((m) => [m.id, m.nome]));
+    const avaliacoes = estado.avaliacoes.slice().sort((a, b) => (a.data < b.data ? 1 : -1));
     const tbody = document.getElementById("tbody-avaliacoes");
     const vazio = document.getElementById("avaliacoes-vazio");
     tbody.innerHTML = "";
@@ -96,10 +103,9 @@
     });
 
     tbody.querySelectorAll("[data-del-av]").forEach((btn) =>
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         if (!confirm("Excluir esta avaliação?")) return;
-        RS.setAvaliacoes(unidadeId, RS.getAvaliacoes(unidadeId).filter((a) => a.id !== btn.dataset.delAv));
-        renderTudo();
+        await deleteAvaliacao(unidadeId, btn.dataset.delAv);
         mostrarToast("Avaliação removida.");
       })
     );
@@ -107,24 +113,21 @@
 
   const modalAvaliacao = document.getElementById("modal-avaliacao");
   document.getElementById("btn-nova-avaliacao").addEventListener("click", () => {
-    const membros = RS.getMembros(unidadeId);
     const select = document.getElementById("av-membro");
-    if (!membros.length) {
+    if (!estado.membros.length) {
       select.innerHTML = `<option disabled>Cadastre desbravadores primeiro</option>`;
     } else {
-      select.innerHTML = membros.map((m) => `<option value="${m.id}">${m.nome}</option>`).join("");
+      select.innerHTML = estado.membros.map((m) => `<option value="${m.id}">${m.nome}</option>`).join("");
     }
     document.getElementById("av-data").value = new Date().toISOString().slice(0, 10);
     modalAvaliacao.classList.add("show");
   });
   document.getElementById("btn-cancelar-avaliacao").addEventListener("click", () => modalAvaliacao.classList.remove("show"));
-  document.getElementById("form-avaliacao").addEventListener("submit", (e) => {
+  document.getElementById("form-avaliacao").addEventListener("submit", async (e) => {
     e.preventDefault();
     const membroId = document.getElementById("av-membro").value;
     if (!membroId) return;
-    const avaliacoes = RS.getAvaliacoes(unidadeId);
-    avaliacoes.push({
-      id: uid(),
+    await addAvaliacao(unidadeId, {
       membroId,
       data: document.getElementById("av-data").value,
       pontualidade: Number(document.getElementById("av-pontualidade").value),
@@ -133,20 +136,18 @@
       participacao: Number(document.getElementById("av-participacao").value),
       comportamento: Number(document.getElementById("av-comportamento").value),
     });
-    RS.setAvaliacoes(unidadeId, avaliacoes);
     modalAvaliacao.classList.remove("show");
-    renderTudo();
     mostrarToast("Avaliação salva.");
   });
 
   /* ---------------- Vagas ---------------- */
   let vagaAlvo = null;
   function renderVagas() {
-    const vagas = RS.getVagas();
     const tbody = document.getElementById("tbody-vagas");
     tbody.innerHTML = "";
+    const vagasOrdenadas = estado.vagas.slice().sort((a, b) => (a.data > b.data ? 1 : -1));
 
-    vagas.forEach((v) => {
+    vagasOrdenadas.forEach((v) => {
       const minhaVaga = v.unidadeId === unidadeId;
       const fechadaPorOutro = v.unidadeId && !minhaVaga;
       const tr = document.createElement("tr");
@@ -169,53 +170,37 @@
       btn.addEventListener("click", () => abrirModalFechar(btn.dataset.fechar))
     );
     tbody.querySelectorAll("[data-liberar]").forEach((btn) =>
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         if (!confirm("Liberar esta vaga para outra unidade?")) return;
-        const lista = RS.getVagas();
-        const v = lista.find((x) => x.id === btn.dataset.liberar);
-        if (v) { v.unidadeId = null; v.membros = []; v.responsavel = ""; }
-        RS.setVagas(lista);
-        renderTudo();
+        await reabrirVaga(btn.dataset.liberar);
         mostrarToast("Vaga liberada.");
       })
     );
 
-    const fechadasPelaUnidade = vagas.filter((v) => v.unidadeId === unidadeId).length;
+    const fechadasPelaUnidade = estado.vagas.filter((v) => v.unidadeId === unidadeId).length;
     document.getElementById("s-vagas-fechadas").textContent = fechadasPelaUnidade;
   }
 
   const modalFechar = document.getElementById("modal-fechar-vaga");
   function abrirModalFechar(vagaId) {
     vagaAlvo = vagaId;
-    const membros = RS.getMembros(unidadeId);
     const select = document.getElementById("fv-membros");
-    if (!membros.length) {
+    if (!estado.membros.length) {
       select.innerHTML = `<option disabled>Cadastre desbravadores primeiro</option>`;
     } else {
-      select.innerHTML = membros.map((m) => `<option value="${m.nome}">${m.nome}</option>`).join("");
+      select.innerHTML = estado.membros.map((m) => `<option value="${m.nome}">${m.nome}</option>`).join("");
     }
     document.getElementById("fv-responsavel").value = "";
     modalFechar.classList.add("show");
   }
   document.getElementById("btn-cancelar-fechar").addEventListener("click", () => modalFechar.classList.remove("show"));
-  document.getElementById("form-fechar-vaga").addEventListener("submit", (e) => {
+  document.getElementById("form-fechar-vaga").addEventListener("submit", async (e) => {
     e.preventDefault();
     const selecionados = Array.from(document.getElementById("fv-membros").selectedOptions).map((o) => o.value);
-    const lista = RS.getVagas();
-    const v = lista.find((x) => x.id === vagaAlvo);
-    if (v) {
-      v.unidadeId = unidadeId;
-      v.responsavel = document.getElementById("fv-responsavel").value.trim();
-      v.membros = selecionados;
-    }
-    RS.setVagas(lista);
+    await fecharVaga(vagaAlvo, unidadeId, document.getElementById("fv-responsavel").value.trim(), selecionados);
     modalFechar.classList.remove("show");
-    renderTudo();
     mostrarToast("Vaga fechada para sua unidade!");
   });
-
-  /* ---------------- Exportar ---------------- */
-  document.getElementById("btn-exportar").addEventListener("click", () => RS.exportarUnidade(unidadeId));
 
   /* ---------------- Trocar senha ---------------- */
   document.getElementById("form-senha").addEventListener("submit", async (e) => {
@@ -224,7 +209,7 @@
     const ok = document.getElementById("senha-ok");
     erro.classList.remove("show"); ok.classList.remove("show");
     try {
-      await RS_AUTH.trocarSenha(sessao.usuario, document.getElementById("senha-atual").value, document.getElementById("senha-nova").value);
+      await trocarSenha(document.getElementById("senha-atual").value, document.getElementById("senha-nova").value);
       ok.textContent = "Senha atualizada com sucesso!";
       ok.classList.add("show");
       e.target.reset();
@@ -233,11 +218,4 @@
       erro.classList.add("show");
     }
   });
-
-  function renderTudo() {
-    renderMembros();
-    renderAvaliacoes();
-    renderVagas();
-  }
-  renderTudo();
-})();
+}

@@ -1,0 +1,57 @@
+rules_version = '2';
+
+/* Regras de segurança do Firestore para o site Raízes do Sertão.
+   Cole este conteúdo em: Console do Firebase → Firestore Database
+   → Regras (Rules) → Publicar.
+
+   Como funciona: cada conta (liderança e cada unidade) é um
+   e-mail "sintético" do tipo <usuario>@raizesdosertao.app criado
+   no Authentication. As regras conferem esse e-mail pra decidir
+   quem pode escrever em cada coleção. */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estaLogado() {
+      return request.auth != null;
+    }
+    function eLideranca() {
+      return estaLogado() && request.auth.token.email == 'lideranca@raizesdosertao.app';
+    }
+    function eDaUnidade(unidadeId) {
+      return estaLogado() && request.auth.token.email == unidadeId + '@raizesdosertao.app';
+    }
+
+    // Vagas do Lava Jato — qualquer conta logada (liderança ou
+    // unidade) pode ver e fechar/liberar vagas.
+    match /vagas/{vagaId} {
+      allow read, write: if estaLogado();
+    }
+
+    // Meta de arrecadação — pública pra aparecer na home, mas só
+    // a liderança pode alterar.
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if eLideranca();
+    }
+
+    // Galeria de fotos/vídeos — pública, só a liderança publica.
+    match /galeria/{albumId} {
+      allow read: if true;
+      allow write: if eLideranca();
+    }
+
+    // Desbravadores de cada unidade — a própria unidade e a
+    // liderança podem ler e escrever; outras unidades não.
+    match /unidades/{unidadeId}/membros/{membroId} {
+      allow read: if estaLogado();
+      allow write: if eLideranca() || eDaUnidade(unidadeId);
+    }
+
+    // Avaliações semanais — mesma regra dos membros.
+    match /unidades/{unidadeId}/avaliacoes/{avaliacaoId} {
+      allow read: if estaLogado();
+      allow write: if eLideranca() || eDaUnidade(unidadeId);
+    }
+  }
+}

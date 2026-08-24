@@ -2,27 +2,70 @@
    Painel da Liderança
    ========================================================= */
 
-(function () {
-  const sessao = RS_AUTH.exigirSessao("lideranca");
-  if (!sessao) return;
+import { RS_UNIDADES, RS_CRITERIOS } from "./data.js";
+import { exigirSessao, logout, trocarSenha } from "./auth.js";
+import {
+  watchVagas, garantirVagasSeeded, criarVaga, fecharVaga, reabrirVaga, excluirVaga,
+  watchMembros, deleteMembro,
+  watchAvaliacoes, deleteAvaliacao,
+  watchMeta, setMeta,
+  watchGaleria, addAlbum, deleteAlbum,
+  exportarBackup,
+} from "./store.js";
+import { mostrarToast } from "./main.js";
 
+exigirSessao("lideranca", (sessao) => {
   document.getElementById("quem").textContent = sessao.nome;
-  document.getElementById("btn-sair").addEventListener("click", RS_AUTH.logout);
+  iniciarPainel();
+});
 
-  function unidadeNome(id) {
-    const u = RS_UNIDADES.find((x) => x.id === id);
-    return u ? u.nome : "—";
-  }
+document.getElementById("btn-sair").addEventListener("click", logout);
+
+function unidadeNome(id) {
+  const u = RS_UNIDADES.find((x) => x.id === id);
+  return u ? u.nome : "—";
+}
+function mediaAvaliacao(a) {
+  const soma = RS_CRITERIOS.reduce((acc, c) => acc + Number(a[c.id] || 0), 0);
+  return soma / RS_CRITERIOS.length;
+}
+
+function iniciarPainel() {
+  const estado = {
+    vagas: [],
+    membrosPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
+    avaliacoesPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
+    meta: { arrecadado: 0, alvo: 1 },
+    galeria: [],
+  };
+
+  garantirVagasSeeded();
+
+  watchVagas((vagas) => { estado.vagas = vagas; renderVagas(estado); renderStats(estado); });
+  RS_UNIDADES.forEach((u) => {
+    watchMembros(u.id, (membros) => {
+      estado.membrosPorUnidade[u.id] = membros;
+      renderDesbravadores(estado);
+      renderDesempenho(estado);
+      renderStats(estado);
+    });
+    watchAvaliacoes(u.id, (avaliacoes) => {
+      estado.avaliacoesPorUnidade[u.id] = avaliacoes;
+      renderDesempenho(estado);
+    });
+  });
+  watchMeta((meta) => { estado.meta = meta; renderStats(estado); preencherMeta(meta); });
+  watchGaleria((galeria) => { estado.galeria = galeria; renderGaleria(estado); });
 
   /* ---------------- Vagas ---------------- */
-  function renderVagas() {
-    const vagas = RS.getVagas();
+  function renderVagas(estado) {
     const tbody = document.getElementById("tbody-vagas");
     const vazio = document.getElementById("vagas-vazio");
+    const vagasOrdenadas = estado.vagas.slice().sort((a, b) => (a.data > b.data ? 1 : -1));
     tbody.innerHTML = "";
-    vazio.style.display = vagas.length ? "none" : "block";
+    vazio.style.display = vagasOrdenadas.length ? "none" : "block";
 
-    vagas.forEach((v) => {
+    vagasOrdenadas.forEach((v) => {
       const fechada = !!v.unidadeId;
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -40,21 +83,15 @@
     });
 
     tbody.querySelectorAll("[data-reabrir]").forEach((btn) =>
-      btn.addEventListener("click", () => {
-        const lista = RS.getVagas();
-        const v = lista.find((x) => x.id === btn.dataset.reabrir);
-        if (v) { v.unidadeId = null; v.membros = []; v.responsavel = ""; }
-        RS.setVagas(lista);
-        renderTudo();
+      btn.addEventListener("click", async () => {
+        await reabrirVaga(btn.dataset.reabrir);
         mostrarToast("Vaga reaberta.");
       })
     );
     tbody.querySelectorAll("[data-excluir]").forEach((btn) =>
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         if (!confirm("Excluir esta vaga? Essa ação não pode ser desfeita.")) return;
-        const lista = RS.getVagas().filter((x) => x.id !== btn.dataset.excluir);
-        RS.setVagas(lista);
-        renderTudo();
+        await excluirVaga(btn.dataset.excluir);
         mostrarToast("Vaga excluída.");
       })
     );
@@ -63,11 +100,9 @@
   const modalVaga = document.getElementById("modal-vaga");
   document.getElementById("btn-nova-vaga").addEventListener("click", () => modalVaga.classList.add("show"));
   document.getElementById("btn-cancelar-vaga").addEventListener("click", () => modalVaga.classList.remove("show"));
-  document.getElementById("form-vaga").addEventListener("submit", (e) => {
+  document.getElementById("form-vaga").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const lista = RS.getVagas();
-    lista.push({
-      id: "v" + Date.now(),
+    await criarVaga({
       data: document.getElementById("vaga-data").value.trim(),
       horario: document.getElementById("vaga-horario").value.trim(),
       vagas: Number(document.getElementById("vaga-qtd").value) || 1,
@@ -75,20 +110,18 @@
       membros: [],
       responsavel: "",
     });
-    RS.setVagas(lista);
     modalVaga.classList.remove("show");
     e.target.reset();
     document.getElementById("vaga-qtd").value = 4;
-    renderTudo();
     mostrarToast("Vaga criada.");
   });
 
   /* ---------------- Desbravadores ---------------- */
-  function renderDesbravadores() {
+  function renderDesbravadores(estado) {
     const wrap = document.getElementById("desbravadores-lista");
     wrap.innerHTML = "";
     RS_UNIDADES.forEach((u) => {
-      const membros = RS.getMembros(u.id);
+      const membros = estado.membrosPorUnidade[u.id] || [];
       const det = document.createElement("details");
       det.className = "month-acc";
       const linhas = membros
@@ -111,29 +144,22 @@
     });
 
     wrap.querySelectorAll("[data-del-membro]").forEach((btn) =>
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         const [uid, mid] = btn.dataset.delMembro.split(":");
         if (!confirm("Excluir este desbravador?")) return;
-        const lista = RS.getMembros(uid).filter((m) => m.id !== mid);
-        RS.setMembros(uid, lista);
-        renderTudo();
+        await deleteMembro(uid, mid);
         mostrarToast("Desbravador removido.");
       })
     );
   }
 
   /* ---------------- Desempenho semanal ---------------- */
-  function mediaAvaliacao(a) {
-    const soma = RS_CRITERIOS.reduce((acc, c) => acc + Number(a[c.id] || 0), 0);
-    return soma / RS_CRITERIOS.length;
-  }
-
-  function renderDesempenho() {
+  function renderDesempenho(estado) {
     const linhas = [];
     RS_UNIDADES.forEach((u) => {
-      const membros = RS.getMembros(u.id);
+      const membros = estado.membrosPorUnidade[u.id] || [];
       const nomePorId = Object.fromEntries(membros.map((m) => [m.id, m.nome]));
-      const avaliacoes = RS.getAvaliacoes(u.id);
+      const avaliacoes = estado.avaliacoesPorUnidade[u.id] || [];
       const porMembro = {};
       avaliacoes.forEach((a) => {
         if (!porMembro[a.membroId]) porMembro[a.membroId] = [];
@@ -142,12 +168,7 @@
       Object.keys(porMembro).forEach((membroId) => {
         const medias = porMembro[membroId];
         const mediaGeral = medias.reduce((a, b) => a + b, 0) / medias.length;
-        linhas.push({
-          nome: nomePorId[membroId] || "(removido)",
-          unidade: u.nome,
-          qtd: medias.length,
-          media: mediaGeral,
-        });
+        linhas.push({ nome: nomePorId[membroId] || "(removido)", unidade: u.nome, qtd: medias.length, media: mediaGeral });
       });
     });
     linhas.sort((a, b) => b.media - a.media);
@@ -160,9 +181,9 @@
     vazio.style.display = linhas.length ? "none" : "block";
   }
 
-  /* ---------------- Galeria de fotos/vídeos ---------------- */
-  function renderGaleria() {
-    const eventos = RS.getGaleria().slice().sort((a, b) => (a.data < b.data ? 1 : -1));
+  /* ---------------- Galeria ---------------- */
+  function renderGaleria(estado) {
+    const eventos = estado.galeria.slice().sort((a, b) => (a.data < b.data ? 1 : -1));
     const tbody = document.getElementById("tbody-galeria");
     const vazio = document.getElementById("galeria-vazio");
     tbody.innerHTML = eventos
@@ -178,10 +199,9 @@
     vazio.style.display = eventos.length ? "none" : "block";
 
     tbody.querySelectorAll("[data-del-album]").forEach((btn) =>
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         if (!confirm("Excluir este álbum da galeria pública?")) return;
-        RS.setGaleria(RS.getGaleria().filter((ev) => ev.id !== btn.dataset.delAlbum));
-        renderTudo();
+        await deleteAlbum(btn.dataset.delAlbum);
         mostrarToast("Álbum removido.");
       })
     );
@@ -190,32 +210,26 @@
   const modalAlbum = document.getElementById("modal-album");
   document.getElementById("btn-novo-album").addEventListener("click", () => modalAlbum.classList.add("show"));
   document.getElementById("btn-cancelar-album").addEventListener("click", () => modalAlbum.classList.remove("show"));
-  document.getElementById("form-album").addEventListener("submit", (e) => {
+  document.getElementById("form-album").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const lista = RS.getGaleria();
-    lista.push({
-      id: "g" + Date.now(),
+    await addAlbum({
       evento: document.getElementById("al-evento").value.trim(),
       data: document.getElementById("al-data").value,
       link: document.getElementById("al-link").value.trim(),
       descricao: document.getElementById("al-descricao").value.trim(),
       capa: document.getElementById("al-capa").value.trim(),
     });
-    RS.setGaleria(lista);
     modalAlbum.classList.remove("show");
     e.target.reset();
-    renderTudo();
     mostrarToast("Álbum publicado no site!");
   });
 
   /* ---------------- Estatísticas ---------------- */
-  function renderStats() {
-    const vagas = RS.getVagas();
-    const totalMembros = RS_UNIDADES.reduce((acc, u) => acc + RS.getMembros(u.id).length, 0);
-    const abertas = vagas.filter((v) => !v.unidadeId).length;
-    const fechadas = vagas.length - abertas;
-    const meta = RS.getMeta();
-    const pct = meta.alvo ? Math.min(100, Math.round((meta.arrecadado / meta.alvo) * 100)) : 0;
+  function renderStats(estado) {
+    const totalMembros = RS_UNIDADES.reduce((acc, u) => acc + (estado.membrosPorUnidade[u.id] || []).length, 0);
+    const abertas = estado.vagas.filter((v) => !v.unidadeId).length;
+    const fechadas = estado.vagas.length - abertas;
+    const pct = estado.meta.alvo ? Math.min(100, Math.round((estado.meta.arrecadado / estado.meta.alvo) * 100)) : 0;
 
     document.getElementById("s-membros").textContent = totalMembros;
     document.getElementById("s-vagas-abertas").textContent = abertas;
@@ -224,34 +238,33 @@
   }
 
   /* ---------------- Meta ---------------- */
-  function preencherMeta() {
-    const meta = RS.getMeta();
-    document.getElementById("meta-arrecadado").value = meta.arrecadado;
-    document.getElementById("meta-alvo").value = meta.alvo;
+  function preencherMeta(meta) {
+    const arrecadadoInput = document.getElementById("meta-arrecadado");
+    const alvoInput = document.getElementById("meta-alvo");
+    if (document.activeElement === arrecadadoInput || document.activeElement === alvoInput) return;
+    arrecadadoInput.value = meta.arrecadado;
+    alvoInput.value = meta.alvo;
   }
-  document.getElementById("form-meta").addEventListener("submit", (e) => {
+  document.getElementById("form-meta").addEventListener("submit", async (e) => {
     e.preventDefault();
-    RS.setMeta({
+    await setMeta({
       arrecadado: Number(document.getElementById("meta-arrecadado").value) || 0,
       alvo: Number(document.getElementById("meta-alvo").value) || 1,
     });
-    renderStats();
     mostrarToast("Meta atualizada.");
   });
 
-  /* ---------------- Importar / Exportar ---------------- */
-  document.getElementById("btn-exportar-tudo").addEventListener("click", () => RS.exportarTudo());
-  document.getElementById("input-importar").addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  /* ---------------- Backup ---------------- */
+  document.getElementById("btn-exportar-tudo").addEventListener("click", async (e) => {
+    const btn = e.target;
+    btn.disabled = true;
+    btn.textContent = "Gerando backup...";
     try {
-      const resumo = await RS.importarArquivo(file);
-      renderTudo();
-      mostrarToast("Importado: " + resumo);
-    } catch (err) {
-      alert(err.message);
+      await exportarBackup();
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "📦 Exportar backup completo";
     }
-    e.target.value = "";
   });
 
   /* ---------------- Trocar senha ---------------- */
@@ -261,7 +274,7 @@
     const ok = document.getElementById("senha-ok");
     erro.classList.remove("show"); ok.classList.remove("show");
     try {
-      await RS_AUTH.trocarSenha(sessao.usuario, document.getElementById("senha-atual").value, document.getElementById("senha-nova").value);
+      await trocarSenha(document.getElementById("senha-atual").value, document.getElementById("senha-nova").value);
       ok.textContent = "Senha atualizada com sucesso!";
       ok.classList.add("show");
       e.target.reset();
@@ -270,15 +283,4 @@
       erro.classList.add("show");
     }
   });
-
-  function renderTudo() {
-    renderVagas();
-    renderDesbravadores();
-    renderDesempenho();
-    renderGaleria();
-    renderStats();
-  }
-
-  renderTudo();
-  preencherMeta();
-})();
+}

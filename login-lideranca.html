@@ -15,15 +15,11 @@
     <a href="index.html" class="back-link">← Voltar ao site</a>
     <div class="brand"><img src="assets/img/logo.png" alt="Raízes do Sertão" style="height:52px;"></div>
     <h1>Área da Liderança</h1>
-    <p class="sub muted">Acompanhe as vagas do Lava Jato e os desbravadores de todas as unidades.</p>
+    <p class="sub muted">Acompanhe as vagas do Lava Jato e os desbravadores de todas as unidades, de qualquer aparelho.</p>
 
     <div class="alert alert-error" id="erro"></div>
 
     <form id="form-login">
-      <div class="field">
-        <label for="usuario">Usuário</label>
-        <input id="usuario" name="usuario" type="text" autocomplete="username" value="lideranca" required>
-      </div>
       <div class="field">
         <label for="senha">Senha</label>
         <input id="senha" name="senha" type="password" autocomplete="current-password" required>
@@ -31,34 +27,42 @@
       <button class="btn btn-gold btn-block" type="submit">Entrar</button>
     </form>
 
-    <p class="form-note">É de uma unidade? <a href="login-unidade.html" style="color:var(--orange); font-weight:700;">Entre por aqui</a>.<br>Senha padrão de demonstração: <code>raizes2026</code></p>
+    <p class="form-note">É de uma unidade? <a href="login-unidade.html" style="color:var(--orange); font-weight:700;">Entre por aqui</a>.</p>
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
-<script src="assets/js/storage.js"></script>
-<script src="assets/js/auth.js"></script>
-<script src="assets/js/main.js"></script>
-<script>
+<script type="module">
+  import "./assets/js/main.js";
+  import { loginLideranca, mensagemErroFirebase, firebaseConfigurado } from "./assets/js/auth.js";
+  import { auth } from "./assets/js/firebase.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
   const form = document.getElementById("form-login");
   const erro = document.getElementById("erro");
 
-  const sessaoAtual = RS.getSession();
-  if (sessaoAtual && sessaoAtual.papel === "lideranca") {
-    window.location.href = "painel-lideranca.html";
+  if (!firebaseConfigurado) {
+    erro.textContent = "O site ainda não foi configurado com as chaves do Firebase (veja o README.md).";
+    erro.classList.add("show");
   }
+
+  onAuthStateChanged(auth, (user) => {
+    if (user && user.email === "lideranca@raizesdosertao.app") {
+      window.location.href = "painel-lideranca.html";
+    }
+  });
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     erro.classList.remove("show");
-    const usuario = form.usuario.value;
-    const senha = form.senha.value;
+    const btn = form.querySelector("button[type=submit]");
+    btn.disabled = true;
     try {
-      await RS_AUTH.loginLideranca(usuario, senha);
+      await loginLideranca(form.senha.value);
       window.location.href = "painel-lideranca.html";
     } catch (err) {
-      erro.textContent = err.message;
+      erro.textContent = mensagemErroFirebase(err);
       erro.classList.add("show");
+      btn.disabled = false;
     }
   });
 </script>

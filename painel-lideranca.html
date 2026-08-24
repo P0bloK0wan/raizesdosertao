@@ -117,13 +117,9 @@
     </section>
 
     <section class="panel-block" id="dados">
-      <div class="block-head"><h2>Importar / Exportar dados</h2></div>
-      <p class="muted">Como os dados ficam salvos no navegador de cada aparelho, use estes botões para juntar as informações de todas as unidades no computador da liderança.</p>
-      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:14px;">
-        <label class="btn btn-outline btn-sm" style="cursor:pointer;">
-          📥 Importar arquivo de uma unidade
-          <input type="file" accept="application/json" id="input-importar" style="display:none;">
-        </label>
+      <div class="block-head"><h2>Backup</h2></div>
+      <p class="muted">Os dados já ficam salvos automaticamente na nuvem (Firebase) e sincronizados entre todos os aparelhos. Este botão só baixa uma cópia de segurança em .json.</p>
+      <div style="margin-top:14px;">
         <button class="btn btn-outline btn-sm" id="btn-exportar-tudo">📦 Exportar backup completo</button>
       </div>
     </section>
@@ -174,10 +170,7 @@
   </div>
 </div>
 
-<script src="assets/js/data.js"></script>
-<script src="assets/js/storage.js"></script>
-<script src="assets/js/auth.js"></script>
-<script src="assets/js/main.js"></script>
-<script src="assets/js/painel-lideranca.js"></script>
+<script type="module" src="assets/js/main.js"></script>
+<script type="module" src="assets/js/painel-lideranca.js"></script>
 </body>
 </html>

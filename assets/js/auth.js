@@ -1,69 +1,77 @@
 /* =========================================================
-   Autenticação simples do lado do cliente.
+   Autenticação — Firebase Authentication de verdade.
 
-   Aviso importante: como o site é 100% estático (sem servidor),
-   este login serve para ORGANIZAR o acesso das unidades e da
-   liderança — não é um sistema de segurança à prova de invasão.
-   Não recomendamos usar senhas que a diretoria usa em outros
-   lugares (banco, e-mail etc.).
+   Cada unidade e a liderança têm uma conta (e-mail "sintético" +
+   senha) criada uma única vez no Console do Firebase. O site
+   nunca vê nem guarda a senha de ninguém — quem cuida disso é o
+   Firebase.
    ========================================================= */
 
-const RS_AUTH = (() => {
-  async function loginLideranca(usuario, senha) {
-    const conta = RS_CONTAS.lideranca;
-    if (usuario.trim().toLowerCase() !== conta.usuario) {
-      throw new Error("Usuário não encontrado.");
+import { auth, firebaseConfigurado } from "./firebase.js";
+import { RS_UNIDADES, RS_EMAIL_LIDERANCA, RS_NOME_LIDERANCA, emailDaUnidade } from "./data.js";
+import {
+  signInWithEmailAndPassword, onAuthStateChanged, signOut,
+  EmailAuthProvider, reauthenticateWithCredential, updatePassword,
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+export { firebaseConfigurado };
+
+export function loginLideranca(senha) {
+  return signInWithEmailAndPassword(auth, RS_EMAIL_LIDERANCA, senha);
+}
+
+export function loginUnidade(unidadeId, senha) {
+  return signInWithEmailAndPassword(auth, emailDaUnidade(unidadeId), senha);
+}
+
+export function logout() {
+  return signOut(auth).then(() => { window.location.href = "index.html"; });
+}
+
+export function papelDoUsuario(user) {
+  if (!user || !user.email) return null;
+  if (user.email === RS_EMAIL_LIDERANCA) {
+    return { papel: "lideranca", usuario: user.email, nome: RS_NOME_LIDERANCA };
+  }
+  const unidade = RS_UNIDADES.find((u) => emailDaUnidade(u.id) === user.email);
+  if (unidade) {
+    return { papel: "unidade", usuario: user.email, unidadeId: unidade.id, nome: unidade.nome };
+  }
+  return null;
+}
+
+/* Protege uma página: chama onOk(sessao) quando confirmar o papel
+   esperado ("lideranca" ou "unidade"), ou redireciona pro login. */
+export function exigirSessao(papelEsperado, onOk) {
+  return onAuthStateChanged(auth, (user) => {
+    const info = papelDoUsuario(user);
+    if (!info || info.papel !== papelEsperado) {
+      window.location.href = papelEsperado === "lideranca" ? "login-lideranca.html" : "login-unidade.html";
+      return;
     }
-    const hash = await RS.sha256(senha);
-    const hashValido = RS.getPasswordHash(conta.usuario) || conta.passwordHash;
-    if (hash !== hashValido) throw new Error("Senha incorreta.");
+    onOk(info);
+  });
+}
 
-    RS.setSession({ papel: "lideranca", usuario: conta.usuario, nome: conta.nome });
-    return true;
-  }
+export async function trocarSenha(senhaAtual, senhaNova) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Sessão expirada. Saia e entre novamente.");
+  if (senhaNova.length < 6) throw new Error("A nova senha precisa ter pelo menos 6 caracteres.");
+  const credencial = EmailAuthProvider.credential(user.email, senhaAtual);
+  await reauthenticateWithCredential(user, credencial);
+  await updatePassword(user, senhaNova);
+}
 
-  async function loginUnidade(unidadeId, senha) {
-    const conta = RS_CONTAS.unidades[unidadeId];
-    if (!conta) throw new Error("Selecione uma unidade válida.");
-    const hash = await RS.sha256(senha);
-    const hashValido = RS.getPasswordHash(conta.usuario) || conta.passwordHash;
-    if (hash !== hashValido) throw new Error("Senha incorreta.");
-
-    RS.setSession({ papel: "unidade", usuario: conta.usuario, unidadeId, nome: conta.nome });
-    return true;
-  }
-
-  async function trocarSenha(usuario, senhaAtual, senhaNova) {
-    const contas = [RS_CONTAS.lideranca, ...Object.values(RS_CONTAS.unidades)];
-    const conta = contas.find((c) => c.usuario === usuario);
-    if (!conta) throw new Error("Conta não encontrada.");
-
-    const hashAtual = await RS.sha256(senhaAtual);
-    const hashValido = RS.getPasswordHash(conta.usuario) || conta.passwordHash;
-    if (hashAtual !== hashValido) throw new Error("Senha atual incorreta.");
-    if (senhaNova.length < 6) throw new Error("A nova senha precisa ter pelo menos 6 caracteres.");
-
-    const novoHash = await RS.sha256(senhaNova);
-    RS.setPasswordHash(conta.usuario, novoHash);
-    return true;
-  }
-
-  function logout() {
-    RS.clearSession();
-    window.location.href = "index.html";
-  }
-
-  /* Protege uma página: redireciona se não estiver logado com o
-     papel esperado ("lideranca" ou "unidade"). Retorna a sessão. */
-  function exigirSessao(papelEsperado) {
-    const sessao = RS.getSession();
-    if (!sessao || sessao.papel !== papelEsperado) {
-      const destino = papelEsperado === "lideranca" ? "login-lideranca.html" : "login-unidade.html";
-      window.location.href = destino;
-      return null;
-    }
-    return sessao;
-  }
-
-  return { loginLideranca, loginUnidade, trocarSenha, logout, exigirSessao };
-})();
+export function mensagemErroFirebase(err) {
+  const codigo = err && err.code;
+  const mapa = {
+    "auth/invalid-credential": "Usuário ou senha incorretos.",
+    "auth/invalid-login-credentials": "Usuário ou senha incorretos.",
+    "auth/wrong-password": "Senha incorreta.",
+    "auth/user-not-found": "Conta não encontrada. Ela já foi criada no Firebase?",
+    "auth/too-many-requests": "Muitas tentativas seguidas. Aguarde um pouco e tente de novo.",
+    "auth/network-request-failed": "Sem conexão com a internet.",
+    "auth/invalid-api-key": "O site ainda não foi configurado com as chaves do Firebase.",
+  };
+  return mapa[codigo] || (err && err.message) || "Não foi possível entrar. Tente novamente.";
+}

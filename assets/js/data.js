@@ -1,14 +1,8 @@
 /* =========================================================
-   Dados fixos do clube (não sensíveis) + credenciais padrão.
-   Tudo roda 100% no navegador — sem servidor, sem custo.
-
-   Para trocar as senhas padrão, gere um novo hash SHA-256 no
-   console do navegador com:
-     await RS.sha256("novaSenha")
-   e substitua o valor de passwordHash abaixo.
+   Dados fixos do clube (não sensíveis).
    ========================================================= */
 
-const RS_CLUBE = {
+export const RS_CLUBE = {
   nome: "Raízes do Sertão",
   sede: "Vila Eduardo",
   regiao: "Região 13 — 4º Distrito — APeC",
@@ -19,14 +13,14 @@ const RS_CLUBE = {
   logo: "assets/img/logo.png",
 };
 
-const RS_UNIDADES = [
+export const RS_UNIDADES = [
   { id: "tarantula", nome: "Tarântula", img: "assets/img/unit_tarantula.png" },
   { id: "andorinha", nome: "Andorinha", img: "assets/img/unit_andorinha2.png" },
   { id: "carcara",   nome: "Carcará",   img: "assets/img/unit_carcara.png" },
   { id: "raposa",    nome: "Raposa",    img: "assets/img/unit_raposa.png" },
 ];
 
-const RS_DIRETORES = [
+export const RS_DIRETORES = [
   { periodo: "2004",       nome: "Edílson Leitão", nota: "Fundador do clube (in memoriam)" },
   { periodo: "2005",       nome: "Saulo Rubens" },
   { periodo: "2006–2009",  nome: "Rogilmar Simplício" },
@@ -42,13 +36,13 @@ const RS_DIRETORES = [
   { periodo: "2025–atual", nome: "Edmar" },
 ];
 
-const RS_HISTORIA = `Com certeza Deus planejou a fundação desse clube e até aqui ele tem nos ajudado a cumprir a nossa missão. Todos que passam pelo clube deixam sua marca e estarão em nossos corações.
+export const RS_HISTORIA = `Com certeza Deus planejou a fundação desse clube e até aqui ele tem nos ajudado a cumprir a nossa missão. Todos que passam pelo clube deixam sua marca e estarão em nossos corações.
 
 Fundado no dia 04 de abril de 2004, pelo diretor da época Edílson Leitão (in memoriam) e seus associados Viviane Ribeiro e Saulo Rubens, o clube iniciou sua trajetória com quatro unidades: Carcará, Águia, Flor do Mandacaru e Andorinha.
 
 Durante os 22 anos de existência do clube, vários diretores deram sua contribuição — cada um deixando um pouco de si na história do Raízes do Sertão.`;
 
-const RS_CALENDARIO = [
+export const RS_CALENDARIO = [
   {
     mes: "Julho",
     itens: [
@@ -116,15 +110,15 @@ const RS_CALENDARIO = [
   },
 ];
 
-/* Metas de arrecadação exibidas na home — a liderança pode
-   atualizar pelo painel (fica salvo em localStorage). */
-const RS_META_PADRAO = { alvo: 15000, arrecadado: 4200 };
+/* Meta de arrecadação padrão, usada só se ainda não existir
+   nenhuma configurada no Firestore. */
+export const RS_META_PADRAO = { alvo: 15000, arrecadado: 4200 };
 
 /* O Lava Jato acontece todo domingo, até o fim de dezembro.
    Esta função gera automaticamente uma vaga para cada domingo
    entre hoje e 31/12 — a liderança pode ajustar horário/vagas
    ou adicionar datas extras pelo painel. */
-function rsGerarVagasPadrao() {
+export function rsGerarVagasPadrao() {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
   const cursor = new Date(hoje);
@@ -149,7 +143,7 @@ function rsGerarVagasPadrao() {
 
 /* Critérios avaliados semanalmente pela unidade para cada
    desbravador (nota de 0 a 10 em cada um). */
-const RS_CRITERIOS = [
+export const RS_CRITERIOS = [
   { id: "pontualidade", label: "Pontualidade" },
   { id: "biblia", label: "Bíblia / Lição" },
   { id: "uniforme", label: "Uniforme" },
@@ -157,23 +151,17 @@ const RS_CRITERIOS = [
   { id: "comportamento", label: "Comportamento" },
 ];
 
-/* Contas padrão (senha em texto puro só existe aqui, no seu
-   código-fonte — nunca é salva em lugar nenhum). O login compara
-   o hash SHA-256 do que a pessoa digita com o hash abaixo.
-     lideranca  -> raizes2026
-     <unidade>  -> sertao123   (ex.: usuário "carcara") */
-const RS_CONTAS = {
-  lideranca: {
-    usuario: "lideranca",
-    nome: "Diretoria — Raízes do Sertão",
-    passwordHash: "f46955679c74beb0ef3e2edf9ea1a7b5879ad44b2fd97c0aa4457008ca2e5cd2",
-  },
-  unidades: RS_UNIDADES.reduce((acc, u) => {
-    acc[u.id] = {
-      usuario: u.id,
-      nome: u.nome,
-      passwordHash: "7d9faca6ba46f7f763064d858bfdfd7892b149d588eec119e10cba221b2592dd",
-    };
-    return acc;
-  }, {}),
-};
+/* =========================================================
+   Contas de acesso.
+
+   O login usa o Firebase Authentication de verdade — cada conta
+   é um e-mail "sintético" criado uma única vez no Console do
+   Firebase (veja o README). O site nunca guarda senha nenhuma.
+   ========================================================= */
+export const RS_DOMINIO_CONTAS = "raizesdosertao.app";
+export const RS_EMAIL_LIDERANCA = `lideranca@${RS_DOMINIO_CONTAS}`;
+export const RS_NOME_LIDERANCA = "Diretoria — Raízes do Sertão";
+
+export function emailDaUnidade(unidadeId) {
+  return `${unidadeId}@${RS_DOMINIO_CONTAS}`;
+}
