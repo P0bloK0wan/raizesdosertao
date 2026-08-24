@@ -53,8 +53,9 @@ export const RS_LINHA_DO_TEMPO = [
   { periodo: "2025–atual", diretor: "Edmar", texto: "Está à frente da direção do clube, escrevendo o próximo capítulo dessa história." },
 ];
 
-/* Tópicos/atividades padrão de cada unidade — ponto de partida
-   editável: a própria unidade pode renomear, adicionar ou remover. */
+/* Critérios padrão usados como sugestão ao lançar um registro de
+   requisito pra um desbravador (a unidade também pode digitar
+   outro, via a opção "Outro..."). */
 export const RS_TOPICOS_PADRAO = [
   "Pontualidade",
   "Bíblia / Lição",

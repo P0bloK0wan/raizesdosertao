@@ -5,7 +5,7 @@
    ========================================================= */
 
 import { db } from "./firebase.js";
-import { RS_UNIDADES, RS_TOPICOS_PADRAO, RS_CAMPORI_DATA_PADRAO } from "./data.js";
+import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO } from "./data.js";
 import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDoc, getDocs,
   onSnapshot, serverTimestamp, orderBy, query,
@@ -32,32 +32,23 @@ export function deleteMembro(unidadeId, membroId) {
   return deleteDoc(doc(db, "unidades", unidadeId, "membros", membroId));
 }
 
-/* ---------- tópicos / atividades por unidade ---------- */
-export function watchTopicos(unidadeId, cb) {
-  return onSnapshot(collection(db, "unidades", unidadeId, "topicos"), (snap) => {
-    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-  });
-}
-export async function garantirTopicosSeeded(unidadeId) {
-  const snap = await getDocs(collection(db, "unidades", unidadeId, "topicos"));
-  if (!snap.empty) return;
-  await Promise.all(
-    RS_TOPICOS_PADRAO.map((nome) =>
-      addDoc(collection(db, "unidades", unidadeId, "topicos"), { nome, realizado: false })
-    )
+/* ---------- registros de requisitos por desbravador ----------
+   Cada desbravador acumula um histórico de lançamentos avulsos
+   (ex.: "Bíblia / Lição" em 12/08/2026). Não é uma lista única
+   por unidade — é por aluno, quantos registros a unidade quiser. */
+export function watchRegistrosMembro(unidadeId, membroId, cb) {
+  return onSnapshot(
+    query(collection(db, "unidades", unidadeId, "membros", membroId, "registros"), orderBy("data", "desc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
   );
 }
-export function addTopico(unidadeId, nome) {
-  return addDoc(collection(db, "unidades", unidadeId, "topicos"), { nome, realizado: false });
+export function addRegistro(unidadeId, membroId, { criterio, data }) {
+  return addDoc(collection(db, "unidades", unidadeId, "membros", membroId, "registros"), {
+    criterio, data, criadoEm: serverTimestamp(),
+  });
 }
-export function toggleTopico(unidadeId, topicoId, realizado) {
-  return updateDoc(doc(db, "unidades", unidadeId, "topicos", topicoId), { realizado });
-}
-export function renomearTopico(unidadeId, topicoId, nome) {
-  return updateDoc(doc(db, "unidades", unidadeId, "topicos", topicoId), { nome });
-}
-export function deleteTopico(unidadeId, topicoId) {
-  return deleteDoc(doc(db, "unidades", unidadeId, "topicos", topicoId));
+export function deleteRegistro(unidadeId, membroId, registroId) {
+  return deleteDoc(doc(db, "unidades", unidadeId, "membros", membroId, "registros", registroId));
 }
 
 /* ---------- Lava Jato: cadastros de atendimento ---------- */
@@ -112,12 +103,18 @@ export function setCamporiData(data) {
 /* ---------- backup (exportar tudo em .json, só leitura) ---------- */
 export async function exportarBackup() {
   const membros = {};
-  const topicos = {};
   for (const u of RS_UNIDADES) {
     const mSnap = await getDocs(collection(db, "unidades", u.id, "membros"));
-    membros[u.id] = mSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    const tSnap = await getDocs(collection(db, "unidades", u.id, "topicos"));
-    topicos[u.id] = tSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const lista = [];
+    for (const m of mSnap.docs) {
+      const rSnap = await getDocs(collection(db, "unidades", u.id, "membros", m.id, "registros"));
+      lista.push({
+        id: m.id,
+        ...m.data(),
+        registros: rSnap.docs.map((r) => ({ id: r.id, ...r.data() })),
+      });
+    }
+    membros[u.id] = lista;
   }
   const lavajatoSnap = await getDocs(collection(db, "lavajato"));
   const midiaSnap = await getDocs(collection(db, "midia"));
@@ -127,7 +124,6 @@ export async function exportarBackup() {
     tipo: "rs-backup-completo",
     exportadoEm: new Date().toISOString(),
     membros,
-    topicos,
     lavajato: lavajatoSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
     midia: midiaSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
     campori: camporiDoc.exists() ? camporiDoc.data() : null,

@@ -45,7 +45,7 @@
 
     <section class="stat-row">
       <div class="stat"><b id="s-membros">0</b><span>Desbravadores da unidade</span></div>
-      <div class="stat"><b id="s-topicos">0/0</b><span>Atividades concluídas</span></div>
+      <div class="stat"><b id="s-topicos">0</b><span>Registros de requisitos lançados</span></div>
     </section>
 
     <section class="panel-block" id="membros">
@@ -65,11 +65,10 @@
     <section class="panel-block" id="topicos">
       <div class="block-head">
         <h2>Atividades / requisitos</h2>
-        <button class="btn btn-primary btn-sm" id="btn-novo-topico">+ Nova atividade</button>
       </div>
-      <p class="muted">Marque o que já foi realizado pela unidade. Você pode editar ou remover qualquer item.</p>
-      <ul class="topico-list" id="lista-topicos"></ul>
-      <div class="empty-state" id="topicos-vazio" style="display:none;">Nenhuma atividade cadastrada ainda.</div>
+      <p class="muted">Cada desbravador tem seu próprio histórico. Abra o nome dele e lance quantos registros quiser (Bíblia/Lição, Uniforme, Pontualidade, Participação, Comportamento ou outro), cada um com a data em que foi cumprido.</p>
+      <div id="lista-requisitos"></div>
+      <div class="empty-state" id="requisitos-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar a lançar requisitos.</div>
     </section>
 
     <section class="panel-block" id="config">
@@ -103,19 +102,6 @@
       <div class="field"><label>Telefone</label><input type="tel" id="m-telefone" placeholder="(87) 9XXXX-XXXX"></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-membro">Cancelar</button>
-        <button type="submit" class="btn btn-primary btn-block">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="modal-topico">
-  <div class="modal">
-    <h2>Nova atividade / requisito</h2>
-    <form id="form-topico">
-      <div class="field"><label>Nome da atividade</label><input type="text" id="tp-nome" placeholder="ex.: Acampamento de unidade" required></div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-topico">Cancelar</button>
         <button type="submit" class="btn btn-primary btn-block">Salvar</button>
       </div>
     </form>

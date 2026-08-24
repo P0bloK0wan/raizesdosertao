@@ -15,7 +15,7 @@ O site foi reestruturado pra ficar mais simples e direto:
 - **Campori DSA 2027 — Versão Ômega** substituiu a antiga "meta de arrecadação": agora é uma página com explicação da campanha, um **cronômetro regressivo** (a liderança configura a data pelo painel) e um botão direto pro WhatsApp.
 - **Lava-Jato** deixou de ser um sistema de horários/vagas — agora é só um **cadastro simples** (nome, telefone, placa, modelo, cor do carro; R$ 50,00 pagos na hora, todo domingo). Quem se cadastra pode cancelar o próprio atendimento a qualquer momento; a liderança acompanha tudo em tempo real e é avisada quando alguém cancela.
 - **Unidades**: agora são 6 — Preá, Carcará, Tarântula, Andorinha, Raposa e Beija-Flor (antes eram 4).
-- A antiga "avaliação semanal com notas de 0 a 10" virou uma **lista de atividades/requisitos** por unidade, que a própria unidade edita e marca como realizado ou não. A liderança vê o andamento de todas as unidades.
+- A antiga "avaliação semanal com notas de 0 a 10" virou um **histórico de requisitos por desbravador**: dentro do painel da unidade, cada desbravador cadastrado tem sua própria lista de registros (Bíblia/Lição, Uniforme, Pontualidade, Participação, Comportamento ou outro requisito digitado à mão), cada um com a data em que foi cumprido — dá pra lançar quantos registros quiser, inclusive retroativos. A liderança vê o histórico de cada desbravador de todas as unidades.
 - **Login**: existe agora uma página `login.html` que serve como ponto de entrada único ("Sou de uma unidade" / "Sou da liderança").
 
 ## 🔧 Resolver problemas no Firebase (checklist)
@@ -117,7 +117,7 @@ O site não guarda arquivos (isso não caberia num site gratuito sem servidor de
 
 **Painel da unidade** (`painel-unidade.html`)
 - Cadastrar os desbravadores da unidade.
-- Criar, editar, marcar como realizada (ou não) e remover as atividades/requisitos da unidade.
+- Abrir o nome de cada desbravador e lançar quantos registros de requisito quiser (Bíblia/Lição, Uniforme, Pontualidade, Participação, Comportamento ou outro), cada um com a data em que foi cumprido — e excluir um registro se precisar corrigir.
 
 Tudo isso sincroniza automaticamente — uma unidade pode cadastrar pelo celular no meio da reunião e a liderança já vê no computador dela, em outro lugar, na hora.
 

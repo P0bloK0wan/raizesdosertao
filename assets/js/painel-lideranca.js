@@ -7,7 +7,7 @@ import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
   watchLavaJato, deleteRegistroLavaJato,
   watchMembros, deleteMembro,
-  watchTopicos, garantirTopicosSeeded, addTopico, toggleTopico, deleteTopico,
+  watchRegistrosMembro,
   watchMidia, addPastaMidia, deletePastaMidia,
   watchCampori, setCamporiData,
   exportarBackup,
@@ -26,18 +26,23 @@ function fmtData(ts) {
   const d = ts.toDate ? ts.toDate() : new Date(ts);
   return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
+function fmtDataBr(dataStr) {
+  if (!dataStr) return "—";
+  return new Date(dataStr + "T00:00:00").toLocaleDateString("pt-BR");
+}
 
 function iniciarPainel() {
   const estado = {
     lavajato: [],
     membrosPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
-    topicosPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
+    registrosPorMembro: {},
     midia: [],
   };
   const idsJaNotificados = new Set();
   let primeiraLeitura = true;
-
-  RS_UNIDADES.forEach((u) => garantirTopicosSeeded(u.id));
+  const unsubsRegistros = new Map(); // membroId -> unsub
+  const unidadesAbertas = new Set();
+  const membrosAbertos = new Set();
 
   /* ---------------- Lava Jato ---------------- */
   watchLavaJato((lista) => {
@@ -104,44 +109,62 @@ function iniciarPainel() {
     badge.style.display = cancelados ? "inline-block" : "none";
   }
 
-  /* ---------------- Unidades / desbravadores / tópicos ---------------- */
+  /* ---------------- Unidades / desbravadores / requisitos ---------------- */
   function renderDesbravadores() {
     const wrap = document.getElementById("desbravadores-lista");
     wrap.innerHTML = "";
     RS_UNIDADES.forEach((u) => {
       const membros = estado.membrosPorUnidade[u.id] || [];
-      const topicos = estado.topicosPorUnidade[u.id] || [];
-      const feitos = topicos.filter((t) => t.realizado).length;
+      const totalRegistros = membros.reduce((acc, m) => acc + (estado.registrosPorMembro[m.id] || []).length, 0);
       const det = document.createElement("details");
       det.className = "month-acc";
-      const linhasMembros = membros
-        .map(
-          (m) => `<tr>
-            <td>${m.nome}</td><td>${m.nascimento || "—"}</td><td>${m.classe || "—"}</td>
-            <td>${m.responsavel || "—"}</td><td>${m.telefone || "—"}</td>
-            <td class="row-actions"><button class="danger" data-del-membro="${u.id}:${m.id}">Excluir</button></td>
-          </tr>`
-        )
-        .join("");
-      const linhasTopicos = topicos
-        .map((t) => `<li>${t.realizado ? "✅" : "⬜️"} ${t.nome}</li>`)
+      det.dataset.unidadeAcc = u.id;
+      if (unidadesAbertas.has(u.id)) det.open = true;
+      const blocosMembros = membros
+        .map((m) => {
+          const regs = estado.registrosPorMembro[m.id] || [];
+          const linhasRegs = regs
+            .map((r) => `<li><span class="rg-criterio">${r.criterio}</span><span class="rg-data">${fmtDataBr(r.data)}</span></li>`)
+            .join("");
+          return `
+          <details class="month-acc" style="margin-top:8px;" data-membro-acc="${m.id}"${membrosAbertos.has(m.id) ? " open" : ""}>
+            <summary>${m.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${m.classe || "sem classe"} · ${regs.length} registro(s))</span>
+              <button class="danger" data-del-membro="${u.id}:${m.id}" style="margin-left:auto;">Excluir</button>
+            </summary>
+            <div style="padding:14px 20px 18px;">
+              <p class="muted" style="margin:0 0 8px;">Nascimento: ${m.nascimento || "—"} · Responsável: ${m.responsavel || "—"} · Telefone: ${m.telefone || "—"}</p>
+              <ul class="registro-list">${linhasRegs || "<li class='muted' style='border:none;'>Nenhum registro lançado ainda.</li>"}</ul>
+            </div>
+          </details>`;
+        })
         .join("");
       det.innerHTML = `
-        <summary>${u.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${membros.length} desbravador(es) · ${feitos}/${topicos.length} atividades)</span></summary>
+        <summary>${u.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${membros.length} desbravador(es) · ${totalRegistros} registro(s) de requisitos)</span></summary>
         <div style="padding:14px 20px 18px;">
-          ${membros.length ? `<div class="table-wrap"><table class="data-table">
-            <thead><tr><th>Nome</th><th>Nascimento</th><th>Classe</th><th>Responsável</th><th>Telefone</th><th></th></tr></thead>
-            <tbody>${linhasMembros}</tbody></table></div>` : `<p class="empty-state">Nenhum desbravador cadastrado por esta unidade ainda.</p>`}
-          <h3 style="margin-top:18px; font-size:.95rem;">Atividades / requisitos</h3>
-          <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px;">${linhasTopicos || "<li class='muted'>Nenhum tópico cadastrado.</li>"}</ul>
+          ${membros.length ? blocosMembros : `<p class="empty-state">Nenhum desbravador cadastrado por esta unidade ainda.</p>`}
         </div>`;
       wrap.appendChild(det);
     });
 
+    wrap.querySelectorAll("[data-unidade-acc]").forEach((det) =>
+      det.addEventListener("toggle", () => {
+        if (det.open) unidadesAbertas.add(det.dataset.unidadeAcc);
+        else unidadesAbertas.delete(det.dataset.unidadeAcc);
+      })
+    );
+    wrap.querySelectorAll("[data-membro-acc]").forEach((det) =>
+      det.addEventListener("toggle", () => {
+        if (det.open) membrosAbertos.add(det.dataset.membroAcc);
+        else membrosAbertos.delete(det.dataset.membroAcc);
+      })
+    );
+
     wrap.querySelectorAll("[data-del-membro]").forEach((btn) =>
-      btn.addEventListener("click", async () => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const [uid, mid] = btn.dataset.delMembro.split(":");
-        if (!confirm("Excluir este desbravador?")) return;
+        if (!confirm("Excluir este desbravador? Todo o histórico de requisitos dele também será perdido.")) return;
         await deleteMembro(uid, mid);
         mostrarToast("Desbravador removido.");
       })
@@ -149,8 +172,29 @@ function iniciarPainel() {
   }
 
   RS_UNIDADES.forEach((u) => {
-    watchMembros(u.id, (membros) => { estado.membrosPorUnidade[u.id] = membros; renderDesbravadores(); renderStats(); });
-    watchTopicos(u.id, (topicos) => { estado.topicosPorUnidade[u.id] = topicos; renderDesbravadores(); });
+    watchMembros(u.id, (membros) => {
+      estado.membrosPorUnidade[u.id] = membros;
+
+      const idsGlobais = new Set(Object.values(estado.membrosPorUnidade).flat().map((m) => m.id));
+      for (const [mid, unsub] of unsubsRegistros) {
+        if (!idsGlobais.has(mid)) {
+          unsub();
+          unsubsRegistros.delete(mid);
+          delete estado.registrosPorMembro[mid];
+        }
+      }
+      membros.forEach((m) => {
+        if (unsubsRegistros.has(m.id)) return;
+        const unsub = watchRegistrosMembro(u.id, m.id, (regs) => {
+          estado.registrosPorMembro[m.id] = regs;
+          renderDesbravadores();
+        });
+        unsubsRegistros.set(m.id, unsub);
+      });
+
+      renderDesbravadores();
+      renderStats();
+    });
   });
 
   /* ---------------- Mídia ---------------- */

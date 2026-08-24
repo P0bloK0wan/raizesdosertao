@@ -60,8 +60,9 @@ service cloud.firestore {
       allow write: if eLideranca() || eDaUnidade(unidadeId);
     }
 
-    // Atividades/requisitos de cada unidade — mesma regra dos membros.
-    match /unidades/{unidadeId}/topicos/{topicoId} {
+    // Registros de requisitos por desbravador (histórico de
+    // lançamentos individuais) — mesma regra dos membros.
+    match /unidades/{unidadeId}/membros/{membroId}/registros/{registroId} {
       allow read: if estaLogado();
       allow write: if eLideranca() || eDaUnidade(unidadeId);
     }
