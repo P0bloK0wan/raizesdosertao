@@ -152,98 +152,105 @@ service cloud.firestore {
         eLideranca()
         ||
         eDaUnidade(unidadeId);
+rules_version = '2';
 
+service cloud.firestore {
+
+  match /databases/{database}/documents {
+
+    function estaLogado() {
+      return request.auth != null;
+    }
+
+    function eLideranca() {
+      return estaLogado()
+        && request.auth.token.email == 'lideranca@raizesdosertao.app';
+    }
+
+    function eDaUnidade(unidadeId) {
+      return estaLogado()
+        && request.auth.token.email == unidadeId + '@raizesdosertao.app';
     }
 
 
-    /* =====================================================
-       TODO O RESTANTE É NEGADO
-       ===================================================== */
+    /* CONFIGURAÇÕES */
 
-    match /{document=**} {
-
-      allow read, write: if false;
-
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if eLideranca();
     }
 
-  }
 
-}
-export const app = initializeApp(firebaseConfig);
+    /* MÍDIA */
 
-export const auth = getAuth(app);
-
-export const db = getFirestore(app);
-
-
-/* =========================================================
-   EMULADOR LOCAL
-
-   Ative usando:
-
-   ?emulator=1
-   ========================================================= */
-
-const usandoEmulador =
-  typeof window !== "undefined" &&
-  new URLSearchParams(window.location.search).get("emulator") === "1";
+    match /midia/{pastaId} {
+      allow read: if true;
+      allow write: if eLideranca();
+    }
 
 
-if (usandoEmulador) {
-  try {
-    connectAuthEmulator(
-      auth,
-      "http://127.0.0.1:9099",
-      {
-        disableWarnings: true
-      }
-    );
+    /* LAVA JATO */
 
-    connectFirestoreEmulator(
-      db,
-      "127.0.0.1",
-      8080
-    );
-
-    console.log("Firebase conectado aos emuladores.");
-
-  } catch (erro) {
-    console.warn(
-      "Erro ao conectar aos emuladores:",
-      erro
-    );
-  }
-}    }
-
-    // Lava Jato: qualquer visitante pode criar um cadastro (não
-    // precisa estar logado). Só a liderança lê a lista completa
-    // (protege telefone/placa dos clientes de ficarem públicos).
-    // Cancelamento: liberado pra quem tiver o ID do próprio
-    // cadastro (guardado no navegador de quem se cadastrou) OU
-    // pela liderança — mas só pode alterar os campos de
-    // cancelamento, nada mais.
     match /lavajato/{registroId} {
+
       allow create: if true;
+
       allow read: if eLideranca();
-      allow update: if eLideranca() || (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelado', 'canceladoEm']) &&
-        request.resource.data.cancelado == true
-      );
+
+      allow update: if
+        eLideranca()
+        ||
+        (
+          request.resource.data.diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              'cancelado',
+              'canceladoEm'
+            ])
+          &&
+          request.resource.data.cancelado == true
+        );
+
       allow delete: if eLideranca();
     }
 
-    // Desbravadores de cada unidade — a própria unidade e a
-    // liderança podem ler e escrever; outras unidades não.
+
+    /* MEMBROS */
+
     match /unidades/{unidadeId}/membros/{membroId} {
-      allow read: if estaLogado();
-      allow write: if eLideranca() || eDaUnidade(unidadeId);
+
+      allow read, write:
+        if eLideranca()
+        || eDaUnidade(unidadeId);
     }
 
-    // Registros de requisitos por desbravador (histórico de
-    // lançamentos individuais) — mesma regra dos membros.
+
+    /* REGISTROS */
+
     match /unidades/{unidadeId}/membros/{membroId}/registros/{registroId} {
-      allow read: if estaLogado();
-      allow write: if eLideranca() || eDaUnidade(unidadeId);
+
+      allow read, write:
+        if eLideranca()
+        || eDaUnidade(unidadeId);
     }
+
+
+    /* TÓPICOS */
+
+    match /unidades/{unidadeId}/topicos/{topicoId} {
+
+      allow read, write:
+        if eLideranca()
+        || eDaUnidade(unidadeId);
+    }
+
+
+    /* BLOQUEIO PADRÃO */
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
   }
+
 }
