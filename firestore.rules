@@ -1,40 +1,85 @@
-rules_version = '2';
+/* =========================================================
+   Configuração do Firebase — projeto Raízes do Sertão
+   ========================================================= */
 
-/* Regras de segurança do Firestore para o site Raízes do Sertão.
-   Cole este conteúdo em: Console do Firebase → Firestore Database
-   → Regras (Rules) → Publicar.
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 
-   Como funciona: cada conta (liderança e cada unidade) é um
-   e-mail "sintético" do tipo <usuario>@raizesdosertao.app criado
-   no Authentication. As regras conferem esse e-mail pra decidir
-   quem pode escrever em cada coleção. */
+import {
+  getAuth,
+  connectAuthEmulator
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
-service cloud.firestore {
-  match /databases/{database}/documents {
+import {
+  getFirestore,
+  connectFirestoreEmulator
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-    function estaLogado() {
-      return request.auth != null;
-    }
-    function eLideranca() {
-      return estaLogado() && request.auth.token.email == 'lideranca@raizesdosertao.app';
-    }
-    function eDaUnidade(unidadeId) {
-      return estaLogado() && request.auth.token.email == unidadeId + '@raizesdosertao.app';
-    }
 
-    // Configurações públicas (ex.: data do Campori) — qualquer
-    // visitante pode ler, só a liderança pode alterar.
-    match /config/{docId} {
-      allow read: if true;
-      allow write: if eLideranca();
-    }
+export const firebaseConfig = {
+  apiKey: "AIzaSyBPqAi0WzOzACn-heh6tNo73cdhzTaWjDA",
+  authDomain: "raizes-do-sertao-7d82c.firebaseapp.com",
+  projectId: "raizes-do-sertao-7d82c",
+  storageBucket: "raizes-do-sertao-7d82c.firebasestorage.app",
+  messagingSenderId: "983565125063",
+  appId: "1:983565125063:web:2611f8afd77d652b8505e2"
+};
 
-    // Pastas de mídia (links do Google Drive/Fotos) — públicas
-    // pra leitura, só a liderança publica/edita/remove.
-    match /midia/{pastaId} {
-      allow read: if true;
-      allow write: if eLideranca();
-    }
+
+export const firebaseConfigurado = Boolean(
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId &&
+  firebaseConfig.appId
+);
+
+
+export const app = initializeApp(firebaseConfig);
+
+export const auth = getAuth(app);
+
+export const db = getFirestore(app);
+
+
+/* =========================================================
+   EMULADOR LOCAL
+
+   Ative usando:
+
+   ?emulator=1
+   ========================================================= */
+
+const usandoEmulador =
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.search).get("emulator") === "1";
+
+
+if (usandoEmulador) {
+  try {
+    connectAuthEmulator(
+      auth,
+      "http://127.0.0.1:9099",
+      {
+        disableWarnings: true
+      }
+    );
+
+    connectFirestoreEmulator(
+      db,
+      "127.0.0.1",
+      8080
+    );
+
+    console.log("Firebase conectado aos emuladores.");
+
+  } catch (erro) {
+    console.warn(
+      "Erro ao conectar aos emuladores:",
+      erro
+    );
+  }
+}    }
 
     // Lava Jato: qualquer visitante pode criar um cadastro (não
     // precisa estar logado). Só a liderança lê a lista completa
