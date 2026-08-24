@@ -68,6 +68,55 @@ export const RS_TOPICOS_PADRAO = [
 export const RS_CAMPORI_DATA_PADRAO = "2027-07-15";
 
 /* =========================================================
+   Lava Jato: agenda de domingos.
+   ========================================================= */
+
+/* Só aceitamos esse tanto de carros por domingo. */
+export const RS_LAVAJATO_VAGAS_POR_DOMINGO = 5;
+
+/* Gera os próximos N domingos (a partir de hoje, incluindo hoje se
+   for domingo) no formato "AAAA-MM-DD", pra montar a agenda. */
+export function rsProximosDomingos(qtd = 8) {
+  const domingos = [];
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const proximo = new Date(hoje);
+  proximo.setDate(hoje.getDate() + ((7 - hoje.getDay()) % 7));
+  for (let i = 0; i < qtd; i++) {
+    const d = new Date(proximo);
+    d.setDate(proximo.getDate() + i * 7);
+    domingos.push(d.toISOString().slice(0, 10));
+  }
+  return domingos;
+}
+
+/* =========================================================
+   Desbravadores: tipo sanguíneo (informação opcional).
+   ========================================================= */
+export const RS_TIPOS_SANGUINEOS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+/* =========================================================
+   Mídia: exibição automática das fotos de uma pasta do Google
+   Drive, usando a API pública do Drive (Drive API v3).
+
+   Pra funcionar, é preciso: (1) criar uma chave de API no Google
+   Cloud Console com a Drive API ativada (veja o README), e (2)
+   colar essa chave abaixo. Sem isso, a página de Mídia ainda
+   funciona — só mostra um link "Abrir no Drive" em vez das fotos. */
+export const RS_GOOGLE_DRIVE_API_KEY = "";
+
+/* Extrai o ID da pasta a partir de um link do Google Drive
+   (ex.: https://drive.google.com/drive/folders/<ID>?usp=sharing).
+   Se o texto colado já for só o ID, devolve ele mesmo. */
+export function extrairIdPastaDrive(link) {
+  if (!link) return "";
+  const m = link.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  const m2 = link.match(/^[a-zA-Z0-9_-]{10,}$/);
+  return m2 ? link.trim() : "";
+}
+
+/* =========================================================
    Contas de acesso.
 
    O login usa o Firebase Authentication de verdade — cada conta

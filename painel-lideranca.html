@@ -55,12 +55,20 @@
 
     <section class="panel-block" id="lavajato">
       <div class="block-head">
+        <h2>Lava Jato — agenda</h2>
+      </div>
+      <p class="muted">Clique num domingo pra fechar ou reabrir. Só aceitamos 5 carros por dia — fechando um domingo, o pessoal já consegue se agendar pro próximo.</p>
+      <div class="agenda-grid" id="lideranca-agenda"></div>
+    </section>
+
+    <section class="panel-block" id="lavajato-atendimentos">
+      <div class="block-head">
         <h2>Lava Jato — atendimentos</h2>
         <span class="muted" id="lavajato-atualizado" style="font-size:.78rem;"></span>
       </div>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Nome</th><th>Telefone</th><th>Placa</th><th>Modelo</th><th>Cor</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th>Domingo</th><th>Nome</th><th>Telefone</th><th>Placa</th><th>Modelo</th><th>Cor</th><th>Status</th><th></th></tr></thead>
           <tbody id="tbody-lavajato"></tbody>
         </table>
       </div>
@@ -78,7 +86,7 @@
         <h2>Mídia</h2>
         <button class="btn btn-primary btn-sm" id="btn-nova-pasta">+ Nova pasta</button>
       </div>
-      <p class="muted">Crie uma pasta com o link do Google Drive (ou Google Fotos) do evento. Ela aparece automaticamente na página pública de Mídia.</p>
+      <p class="muted">Crie uma pasta com o link do Google Drive do evento (compartilhada como "qualquer pessoa com o link"). As fotos aparecem automaticamente na página pública de Mídia, sem precisar sair do site.</p>
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr><th>Pasta</th><th>Link</th><th></th></tr></thead>

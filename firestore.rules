@@ -53,6 +53,35 @@ service cloud.firestore {
       allow delete: if eLideranca();
     }
 
+    // Agenda pública do Lava Jato: um documento por domingo (ID =
+    // "AAAA-MM-DD") com só o resumo — vagas ocupadas de um total
+    // fixo de 5, e se a liderança fechou o dia. Qualquer visitante
+    // pode ler (pra ver a agenda) e reservar/liberar 1 vaga por vez
+    // (ao cadastrar ou cancelar um atendimento); só a liderança
+    // pode abrir/fechar um domingo ou mudar o total de vagas.
+    match /lavajato_domingos/{data} {
+      allow read: if true;
+      allow write: if eLideranca();
+
+      allow create: if
+        request.resource.data.keys().hasOnly(['fechado', 'vagasTotal', 'vagasOcupadas']) &&
+        request.resource.data.fechado == false &&
+        request.resource.data.vagasTotal == 5 &&
+        request.resource.data.vagasOcupadas == 1;
+
+      allow update: if
+        request.resource.data.fechado == resource.data.fechado &&
+        request.resource.data.vagasTotal == resource.data.vagasTotal &&
+        (
+          (
+            request.resource.data.vagasOcupadas == resource.data.vagasOcupadas + 1 &&
+            resource.data.fechado == false &&
+            resource.data.vagasOcupadas < resource.data.vagasTotal
+          ) ||
+          request.resource.data.vagasOcupadas == resource.data.vagasOcupadas - 1
+        );
+    }
+
     // Desbravadores de cada unidade — só a própria unidade e a
     // liderança podem ler e escrever; outras unidades não têm
     // acesso nenhum aos dados de uma unidade que não é a sua.

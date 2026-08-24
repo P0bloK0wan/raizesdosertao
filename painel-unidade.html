@@ -55,7 +55,7 @@
       </div>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Nome</th><th>Nascimento</th><th>Classe</th><th>Responsável</th><th>Telefone</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Nome</th><th>Nascimento</th><th>Classe</th><th>Responsável</th><th>Telefone</th><th>Tipo sang.</th><th>Ações</th></tr></thead>
           <tbody id="tbody-membros"></tbody>
         </table>
       </div>
@@ -100,6 +100,13 @@
       </div>
       <div class="field"><label>Responsável</label><input type="text" id="m-responsavel"></div>
       <div class="field"><label>Telefone</label><input type="tel" id="m-telefone" placeholder="(87) 9XXXX-XXXX"></div>
+      <div class="field"><label>Tipo sanguíneo <span class="muted" style="font-weight:400;">(opcional, mas bom sabermos)</span></label>
+        <select id="m-tipo-sanguineo">
+          <option value="">Não informado</option>
+          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+        </select>
+      </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-membro">Cancelar</button>
         <button type="submit" class="btn btn-primary btn-block">Salvar</button>

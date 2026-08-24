@@ -433,33 +433,78 @@ a { color: inherit; }
   .tl-left .tl-dot, .tl-right .tl-dot { left: 10px; right: auto; }
 }
 
-/* Carrossel horizontal de pastas de mídia */
-.media-carousel {
-  display: flex;
-  gap: 20px;
-  overflow-x: auto;
-  padding: 10px 4px 20px;
-  scroll-snap-type: x proximity;
-}
-.media-carousel::-webkit-scrollbar { height: 8px; }
-.media-carousel::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 999px; }
-.folder-card {
-  flex: 0 0 auto;
-  width: 220px;
-  scroll-snap-align: start;
+/* Pastas de mídia — cada uma mostra a grade de fotos buscadas do
+   Google Drive (ou um estado vazio com link, se não carregar). */
+.pasta-bloco {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 26px 20px;
-  text-align: center;
-  text-decoration: none;
-  color: var(--text);
+  padding: 20px;
+  margin-bottom: 22px;
   box-shadow: var(--shadow);
+}
+.pasta-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.pasta-cabecalho h3 { margin: 0; font-size: 1.05rem; }
+.foto-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.foto-thumb {
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  background: var(--bg);
   transition: transform .15s ease;
 }
-.folder-card:hover { transform: translateY(-3px); }
-.folder-card .folder-icon { font-size: 2.6rem; margin-bottom: 10px; }
-.folder-card h3 { font-size: 1rem; margin: 0; }
+.foto-thumb:hover { transform: scale(1.03); }
+.foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.lightbox-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  display: none; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+  background: rgba(6,4,3,.9);
+  padding: 24px;
+}
+.lightbox-backdrop.show { display: flex; }
+.lightbox-backdrop img { max-width: min(90vw, 900px); max-height: 70vh; border-radius: var(--radius-sm); object-fit: contain; }
+.lightbox-close {
+  position: absolute; top: 18px; right: 22px;
+  background: none; border: none; color: #fff; font-size: 1.6rem; cursor: pointer;
+}
+
+/* Agenda do Lava Jato — um quadrado por domingo */
+.agenda-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin: 14px 0 6px;
+}
+.agenda-dia {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 14px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-family: var(--font-title);
+  cursor: default;
+}
+button.agenda-dia { cursor: pointer; font: inherit; font-family: var(--font-title); }
+.agenda-dia .ag-data { font-weight: 700; font-size: .95rem; }
+.agenda-dia .ag-status { font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; }
+.agenda-dia .ag-motivo { font-size: .7rem; opacity: .85; text-align: center; }
+.agenda-dia.aberto { border-color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); }
+.agenda-dia.aberto .ag-status { color: #3c5a1c; }
+:root[data-theme="dark"] .agenda-dia.aberto .ag-status { color: #b9e08a; }
+.agenda-dia.lotado { border-color: var(--orange); background: color-mix(in srgb, var(--orange) 14%, transparent); }
+.agenda-dia.lotado .ag-status { color: var(--orange); }
+.agenda-dia.fechado { border-color: #9c2b21; background: color-mix(in srgb, #9c2b21 12%, transparent); }
+.agenda-dia.fechado .ag-status { color: #9c2b21; }
+:root[data-theme="dark"] .agenda-dia.fechado .ag-status { color: #ff9d8f; }
 
 .timeline {
   list-style: none;

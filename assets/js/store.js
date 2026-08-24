@@ -5,10 +5,10 @@
    ========================================================= */
 
 import { db } from "./firebase.js";
-import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO } from "./data.js";
+import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, extrairIdPastaDrive } from "./data.js";
 import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDoc, getDocs,
-  onSnapshot, serverTimestamp, orderBy, query,
+  onSnapshot, serverTimestamp, orderBy, query, runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 /* ---------- tema (só de exibição, pode ficar local) ---------- */
@@ -51,23 +51,111 @@ export function deleteRegistro(unidadeId, membroId, registroId) {
   return deleteDoc(doc(db, "unidades", unidadeId, "membros", membroId, "registros", registroId));
 }
 
-/* ---------- Lava Jato: cadastros de atendimento ---------- */
-export function criarRegistroLavaJato(dados) {
-  return addDoc(collection(db, "lavajato"), {
-    ...dados,
-    criadoEm: serverTimestamp(),
-    cancelado: false,
-    canceladoEm: null,
+/* ---------- Lava Jato: agenda de domingos + cadastros ----------
+   "lavajato_domingos" guarda só o resumo de cada domingo (vagas
+   ocupadas, se está fechado) — é pública pra leitura, pra qualquer
+   visitante ver a agenda sem expor dado pessoal de ninguém. Os
+   dados de cada cliente (nome, telefone, placa...) ficam em
+   "lavajato", que só a liderança pode ler. */
+export function watchDomingos(cb) {
+  return onSnapshot(collection(db, "lavajato_domingos"), (snap) => {
+    const porData = {};
+    snap.docs.forEach((d) => { porData[d.id] = d.data(); });
+    cb(porData);
   });
 }
-export function cancelarRegistroLavaJato(registroId) {
-  return updateDoc(doc(db, "lavajato", registroId), {
-    cancelado: true,
-    canceladoEm: serverTimestamp(),
+export function fecharDomingo(data, motivo) {
+  return setDoc(doc(db, "lavajato_domingos", data), {
+    fechado: true,
+    motivo: motivo || "",
+    vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO,
+    vagasOcupadas: 0,
+  }, { merge: true });
+}
+export function abrirDomingo(data) {
+  return setDoc(doc(db, "lavajato_domingos", data), {
+    fechado: false,
+    motivo: "",
+    vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO,
+    vagasOcupadas: 0,
+  }, { merge: true });
+}
+
+/* Cria o cadastro do cliente e ocupa uma vaga naquele domingo, os
+   dois numa transação — evita passar de 5 carros no mesmo dia
+   mesmo com gente cadastrando ao mesmo tempo. */
+export async function criarRegistroLavaJato(dados) {
+  const domingoRef = doc(db, "lavajato_domingos", dados.data);
+  const novoRegistroRef = doc(collection(db, "lavajato"));
+
+  await runTransaction(db, async (tx) => {
+    const domingoSnap = await tx.get(domingoRef);
+    const atual = domingoSnap.exists()
+      ? domingoSnap.data()
+      : { fechado: false, vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO, vagasOcupadas: 0 };
+
+    if (atual.fechado) throw new Error("Esse domingo está fechado pro Lava Jato.");
+    if (atual.vagasOcupadas >= atual.vagasTotal) throw new Error("Esse domingo já está lotado.");
+
+    tx.set(domingoRef, {
+      fechado: atual.fechado,
+      vagasTotal: atual.vagasTotal,
+      vagasOcupadas: atual.vagasOcupadas + 1,
+    });
+    tx.set(novoRegistroRef, {
+      ...dados,
+      criadoEm: serverTimestamp(),
+      cancelado: false,
+      canceladoEm: null,
+    });
+  });
+
+  return novoRegistroRef;
+}
+
+/* Cancelamento feito pelo próprio cliente (sem login) — o
+   navegador guarda o id do cadastro e a data do domingo. */
+export async function cancelarRegistroLavaJato(registroId, data) {
+  const domingoRef = doc(db, "lavajato_domingos", data);
+  await runTransaction(db, async (tx) => {
+    const domingoSnap = await tx.get(domingoRef);
+    if (domingoSnap.exists()) {
+      const atual = domingoSnap.data();
+      tx.set(domingoRef, {
+        fechado: atual.fechado,
+        vagasTotal: atual.vagasTotal,
+        vagasOcupadas: Math.max(0, (atual.vagasOcupadas || 0) - 1),
+      });
+    }
+    tx.update(doc(db, "lavajato", registroId), {
+      cancelado: true,
+      canceladoEm: serverTimestamp(),
+    });
   });
 }
-export function deleteRegistroLavaJato(registroId) {
-  return deleteDoc(doc(db, "lavajato", registroId));
+
+/* Exclusão feita pela liderança — libera a vaga de volta só se o
+   cadastro ainda não estava cancelado (senão a vaga já tinha sido
+   liberada no cancelamento). */
+export async function deleteRegistroLavaJato(registroId, data) {
+  const registroRef = doc(db, "lavajato", registroId);
+  const domingoRef = doc(db, "lavajato_domingos", data);
+  await runTransaction(db, async (tx) => {
+    const registroSnap = await tx.get(registroRef);
+    const jaCancelado = registroSnap.exists() && registroSnap.data().cancelado;
+    if (!jaCancelado) {
+      const domingoSnap = await tx.get(domingoRef);
+      if (domingoSnap.exists()) {
+        const atual = domingoSnap.data();
+        tx.set(domingoRef, {
+          fechado: atual.fechado,
+          vagasTotal: atual.vagasTotal,
+          vagasOcupadas: Math.max(0, (atual.vagasOcupadas || 0) - 1),
+        });
+      }
+    }
+    tx.delete(registroRef);
+  });
 }
 /* Só a liderança tem permissão de leitura desta coleção (ver
    firestore.rules) — por isso este watch é usado só no painel. */
@@ -77,14 +165,21 @@ export function watchLavaJato(cb) {
   });
 }
 
-/* ---------- Mídia: pastas com link do Google Drive/Fotos (pública) ---------- */
+/* ---------- Mídia: pastas do Google Drive (pública) ----------
+   As fotos de dentro da pasta são buscadas direto no navegador do
+   visitante via Drive API (ver assets/js/midia-drive.js). */
 export function watchMidia(cb) {
   return onSnapshot(query(collection(db, "midia"), orderBy("criadoEm", "asc")), (snap) => {
     cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   });
 }
 export function addPastaMidia(nome, link) {
-  return addDoc(collection(db, "midia"), { nome, link, criadoEm: serverTimestamp() });
+  return addDoc(collection(db, "midia"), {
+    nome,
+    link,
+    folderId: extrairIdPastaDrive(link),
+    criadoEm: serverTimestamp(),
+  });
 }
 export function deletePastaMidia(pastaId) {
   return deleteDoc(doc(db, "midia", pastaId));
@@ -117,6 +212,7 @@ export async function exportarBackup() {
     membros[u.id] = lista;
   }
   const lavajatoSnap = await getDocs(collection(db, "lavajato"));
+  const domingosSnap = await getDocs(collection(db, "lavajato_domingos"));
   const midiaSnap = await getDocs(collection(db, "midia"));
   const camporiDoc = await getDoc(doc(db, "config", "campori"));
 
@@ -125,6 +221,7 @@ export async function exportarBackup() {
     exportadoEm: new Date().toISOString(),
     membros,
     lavajato: lavajatoSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
+    lavajatoDomingos: domingosSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
     midia: midiaSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
     campori: camporiDoc.exists() ? camporiDoc.data() : null,
   };

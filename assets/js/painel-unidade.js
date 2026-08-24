@@ -76,6 +76,7 @@ function iniciarPainel(unidadeId) {
         <td>${m.classe || "—"}</td>
         <td>${m.responsavel || "—"}</td>
         <td>${m.telefone || "—"}</td>
+        <td>${m.tipoSanguineo || "—"}</td>
         <td class="row-actions"><button class="danger" data-del="${m.id}">Excluir</button></td>`;
       tbody.appendChild(tr);
     });
@@ -100,6 +101,7 @@ function iniciarPainel(unidadeId) {
       classe: document.getElementById("m-classe").value,
       responsavel: document.getElementById("m-responsavel").value.trim(),
       telefone: document.getElementById("m-telefone").value.trim(),
+      tipoSanguineo: document.getElementById("m-tipo-sanguineo").value,
     });
     modalMembro.classList.remove("show");
     e.target.reset();

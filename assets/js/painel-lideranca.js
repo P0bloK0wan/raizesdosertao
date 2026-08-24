@@ -2,10 +2,11 @@
    Painel da Liderança
    ========================================================= */
 
-import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO } from "./data.js";
+import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, rsProximosDomingos } from "./data.js";
 import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
   watchLavaJato, deleteRegistroLavaJato,
+  watchDomingos, fecharDomingo, abrirDomingo,
   watchMembros, deleteMembro,
   watchRegistrosMembro,
   watchMidia, addPastaMidia, deletePastaMidia,
@@ -34,6 +35,7 @@ function fmtDataBr(dataStr) {
 function iniciarPainel() {
   const estado = {
     lavajato: [],
+    domingos: {},
     membrosPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
     registrosPorMembro: {},
     midia: [],
@@ -79,23 +81,25 @@ function iniciarPainel() {
     tbody.innerHTML = "";
     vazio.style.display = estado.lavajato.length ? "none" : "block";
 
-    estado.lavajato.forEach((r) => {
+    const ordenados = [...estado.lavajato].sort((a, b) => (a.data || "").localeCompare(b.data || ""));
+    ordenados.forEach((r) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
+        <td>${fmtDataBr(r.data)}</td>
         <td>${r.nome}</td>
         <td>${r.telefone}</td>
         <td>${r.placa}</td>
         <td>${r.modelo}</td>
         <td>${r.cor}</td>
         <td><span class="pill ${r.cancelado ? "pill-closed" : "pill-open"}">${r.cancelado ? "Cancelado" : "Ativo"}</span></td>
-        <td class="row-actions"><button class="danger" data-del="${r.id}">Excluir</button></td>`;
+        <td class="row-actions"><button class="danger" data-del="${r.id}" data-del-data="${r.data}">Excluir</button></td>`;
       tbody.appendChild(tr);
     });
 
     tbody.querySelectorAll("[data-del]").forEach((btn) =>
       btn.addEventListener("click", async () => {
         if (!confirm("Excluir este cadastro do Lava Jato?")) return;
-        await deleteRegistroLavaJato(btn.dataset.del);
+        await deleteRegistroLavaJato(btn.dataset.del, btn.dataset.delData);
         mostrarToast("Cadastro excluído.");
       })
     );
@@ -107,6 +111,49 @@ function iniciarPainel() {
     const badge = document.getElementById("badge-cancelados");
     badge.textContent = cancelados;
     badge.style.display = cancelados ? "inline-block" : "none";
+  }
+
+  /* ---------------- Lava Jato: agenda ---------------- */
+  watchDomingos((dados) => { estado.domingos = dados; renderAgenda(); });
+
+  function fmtDataCurta(iso) {
+    return new Date(iso + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  }
+  function statusDoDia(iso) {
+    const info = estado.domingos[iso] || { fechado: false, vagasOcupadas: 0, vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO };
+    if (info.fechado) return { ...info, rotulo: "Fechado", classe: "fechado" };
+    if (info.vagasOcupadas >= info.vagasTotal) return { ...info, rotulo: "Lotado", classe: "lotado" };
+    return { ...info, rotulo: `${info.vagasOcupadas}/${info.vagasTotal}`, classe: "aberto" };
+  }
+
+  function renderAgenda() {
+    const wrap = document.getElementById("lideranca-agenda");
+    const domingos = rsProximosDomingos(8);
+    wrap.innerHTML = domingos.map((iso) => {
+      const s = statusDoDia(iso);
+      return `<button type="button" class="agenda-dia ${s.classe}" data-domingo="${iso}">
+        <span class="ag-data">${fmtDataCurta(iso)}</span>
+        <span class="ag-status">${s.rotulo}</span>
+        ${s.fechado && s.motivo ? `<span class="ag-motivo">${s.motivo}</span>` : ""}
+      </button>`;
+    }).join("");
+
+    wrap.querySelectorAll("[data-domingo]").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        const iso = btn.dataset.domingo;
+        const s = statusDoDia(iso);
+        if (s.fechado) {
+          if (!confirm(`Reabrir o domingo ${fmtDataBr(iso)} pro Lava Jato?`)) return;
+          await abrirDomingo(iso);
+          mostrarToast("Domingo reaberto.");
+        } else {
+          const motivo = prompt(`Fechar o domingo ${fmtDataBr(iso)}? Se quiser, escreva o motivo (opcional):`, "");
+          if (motivo === null) return;
+          await fecharDomingo(iso, motivo);
+          mostrarToast("Domingo fechado.");
+        }
+      })
+    );
   }
 
   /* ---------------- Unidades / desbravadores / requisitos ---------------- */
@@ -132,7 +179,7 @@ function iniciarPainel() {
               <button class="danger" data-del-membro="${u.id}:${m.id}" style="margin-left:auto;">Excluir</button>
             </summary>
             <div style="padding:14px 20px 18px;">
-              <p class="muted" style="margin:0 0 8px;">Nascimento: ${m.nascimento || "—"} · Responsável: ${m.responsavel || "—"} · Telefone: ${m.telefone || "—"}</p>
+              <p class="muted" style="margin:0 0 8px;">Nascimento: ${m.nascimento || "—"} · Responsável: ${m.responsavel || "—"} · Telefone: ${m.telefone || "—"} · Tipo sanguíneo: ${m.tipoSanguineo || "—"}</p>
               <ul class="registro-list">${linhasRegs || "<li class='muted' style='border:none;'>Nenhum registro lançado ainda.</li>"}</ul>
             </div>
           </details>`;

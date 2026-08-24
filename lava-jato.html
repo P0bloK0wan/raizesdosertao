@@ -17,11 +17,22 @@
   <div class="container" style="text-align:center; max-width:680px; margin:0 auto;">
     <div class="hero-tag" style="margin-inline:auto;">🚗 Todo domingo · 7h às 11h</div>
     <h1>Lava Jato R.S</h1>
-    <p class="lead" style="margin-inline:auto;">Traga seu carro, apoie o clube e ajude nossos desbravadores a chegar no Campori DSA 2027. Valor único: <strong>R$ 50,00</strong>, pago na hora.</p>
+    <p class="lead" style="margin-inline:auto;">Traga seu carro, apoie o clube e ajude nossos desbravadores a chegar no Campori DSA 2027. Valor único: <strong>R$ 50,00</strong>, pago na hora. Só aceitamos <strong>5 carros por domingo</strong> — confira a agenda e garanta sua vaga.</p>
   </div>
 </section>
 
 <section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Agenda</span>
+      <h2>Próximos domingos</h2>
+      <p>Cada quadrado é um domingo. Cinza = ainda tem vaga, laranja = lotado, vermelho = fechado nesse dia.</p>
+    </div>
+    <div class="agenda-grid" id="agenda-grid"></div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0;">
   <div class="container">
     <div class="card" style="max-width:520px; margin:0 auto;" id="bloco-cadastro">
       <span class="eyebrow">Cadastro</span>
@@ -29,6 +40,10 @@
       <div class="alert alert-error" id="erro"></div>
 
       <form id="form-cadastro">
+        <div class="field">
+          <label>Domingo</label>
+          <select id="lj-domingo" required></select>
+        </div>
         <div class="field"><label>Seu nome</label><input type="text" id="lj-nome" required></div>
         <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="lj-telefone" placeholder="(87) 9XXXX-XXXX" required></div>
         <div class="field"><label>Placa do carro</label><input type="text" id="lj-placa" placeholder="ABC-1D23" required style="text-transform:uppercase;"></div>
@@ -42,7 +57,7 @@
     <div class="card text-center" style="max-width:520px; margin:20px auto 0; display:none;" id="bloco-confirmado">
       <div style="font-size:2.4rem;">✅</div>
       <h2>Cadastro feito!</h2>
-      <p>Anotamos o carro <strong id="conf-modelo"></strong> (<span id="conf-placa"></span>) em nome de <strong id="conf-nome"></strong>. Te esperamos no domingo!</p>
+      <p>Anotamos o carro <strong id="conf-modelo"></strong> (<span id="conf-placa"></span>) em nome de <strong id="conf-nome"></strong> pro domingo <strong id="conf-data"></strong>. Te esperamos lá!</p>
       <button class="btn btn-outline btn-block" id="btn-cancelar-meu">Cancelar meu atendimento</button>
     </div>
   </div>
@@ -51,12 +66,61 @@
 <div data-site-footer></div>
 
 <script type="module">
-  import { criarRegistroLavaJato, cancelarRegistroLavaJato } from "./assets/js/store.js";
+  import { criarRegistroLavaJato, cancelarRegistroLavaJato, watchDomingos } from "./assets/js/store.js";
+  import { rsProximosDomingos, RS_LAVAJATO_VAGAS_POR_DOMINGO } from "./assets/js/data.js";
 
   const LS_KEY = "rs_meu_lavajato";
   const blocoCadastro = document.getElementById("bloco-cadastro");
   const blocoConfirmado = document.getElementById("bloco-confirmado");
   const erro = document.getElementById("erro");
+  const selectDomingo = document.getElementById("lj-domingo");
+  const agendaGrid = document.getElementById("agenda-grid");
+
+  const domingos = rsProximosDomingos(8);
+  let porData = {};
+
+  function fmtDataLonga(iso) {
+    return new Date(iso + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
+  }
+  function fmtDataCurta(iso) {
+    return new Date(iso + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  }
+
+  function statusDoDia(iso) {
+    const info = porData[iso] || { fechado: false, vagasOcupadas: 0, vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO };
+    if (info.fechado) return { ...info, rotulo: "Fechado", classe: "fechado" };
+    if (info.vagasOcupadas >= info.vagasTotal) return { ...info, rotulo: "Lotado", classe: "lotado" };
+    return { ...info, rotulo: `${info.vagasTotal - info.vagasOcupadas} vaga(s)`, classe: "aberto" };
+  }
+
+  function renderAgenda() {
+    agendaGrid.innerHTML = domingos.map((iso) => {
+      const s = statusDoDia(iso);
+      return `<div class="agenda-dia ${s.classe}">
+        <span class="ag-data">${fmtDataCurta(iso)}</span>
+        <span class="ag-status">${s.rotulo}</span>
+        ${s.fechado && s.motivo ? `<span class="ag-motivo">${s.motivo}</span>` : ""}
+      </div>`;
+    }).join("");
+  }
+
+  function renderSelect() {
+    const atual = selectDomingo.value;
+    selectDomingo.innerHTML = domingos.map((iso) => {
+      const s = statusDoDia(iso);
+      const disabled = s.classe !== "aberto";
+      return `<option value="${iso}" ${disabled ? "disabled" : ""}>${fmtDataLonga(iso)} — ${s.rotulo}</option>`;
+    }).join("");
+    if (atual && [...selectDomingo.options].some((o) => o.value === atual && !o.disabled)) {
+      selectDomingo.value = atual;
+    }
+  }
+
+  watchDomingos((dados) => {
+    porData = dados;
+    renderAgenda();
+    renderSelect();
+  });
 
   function mostrarConfirmado(dados) {
     blocoCadastro.style.display = "none";
@@ -64,6 +128,7 @@
     document.getElementById("conf-nome").textContent = dados.nome;
     document.getElementById("conf-modelo").textContent = dados.modelo;
     document.getElementById("conf-placa").textContent = dados.placa;
+    document.getElementById("conf-data").textContent = fmtDataLonga(dados.data);
   }
 
   const salvo = localStorage.getItem(LS_KEY);
@@ -77,6 +142,7 @@
     const btn = e.target.querySelector("button[type=submit]");
     btn.disabled = true;
     const dados = {
+      data: selectDomingo.value,
       nome: document.getElementById("lj-nome").value.trim(),
       telefone: document.getElementById("lj-telefone").value.trim(),
       placa: document.getElementById("lj-placa").value.trim().toUpperCase(),
@@ -88,7 +154,9 @@
       localStorage.setItem(LS_KEY, JSON.stringify({ ...dados, id: ref.id }));
       mostrarConfirmado(dados);
     } catch (err) {
-      erro.textContent = "Não deu pra cadastrar agora. Tente de novo em instantes.";
+      erro.textContent = err.message && err.message.includes("domingo")
+        ? err.message
+        : "Não deu pra cadastrar agora. Tente de novo em instantes.";
       erro.classList.add("show");
       btn.disabled = false;
     }
@@ -99,7 +167,7 @@
     const dados = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
     if (!dados.id) return;
     try {
-      await cancelarRegistroLavaJato(dados.id);
+      await cancelarRegistroLavaJato(dados.id, dados.data);
       localStorage.removeItem(LS_KEY);
       blocoConfirmado.style.display = "none";
       blocoCadastro.style.display = "block";
