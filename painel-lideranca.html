@@ -26,8 +26,13 @@
     </a>
     <ul class="app-nav">
       <li><a href="#visao-geral">📊 Visão geral</a></li>
+      <li><a href="#planejamento-unidades">📋 Planejamento das Unidades <span class="pill pill-pending" id="badge-pendentes" style="display:none;">0</span></a></li>
       <li><a href="#lavajato">🚗 Lava Jato <span class="pill pill-closed" id="badge-cancelados" style="display:none;">0</span></a></li>
       <li><a href="#desbravadores">🧑‍🤝‍🧑 Unidades e desbravadores</a></li>
+      <li><a href="#especialidades-lideranca">🎖️ Especialidades</a></li>
+      <li><a href="#compras">🛒 Lista de compras</a></li>
+      <li><a href="#responsaveis">📞 Responsáveis</a></li>
+      <li><a href="#planejamento-clube">📅 Planejamento do Clube</a></li>
       <li><a href="#midia">📸 Mídia</a></li>
       <li><a href="#campori">🏕️ Campori DSA 2027</a></li>
       <li><a href="#dados">📁 Backup</a></li>
@@ -43,14 +48,57 @@
   <main class="app-main">
     <div class="app-topbar">
       <h1 id="visao-geral">Visão geral</h1>
-      <button class="icon-btn hide-mobile" data-theme-toggle aria-label="Alternar tema"><span data-theme-icon>🌙</span></button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="notif-wrap">
+          <button class="icon-btn" id="btn-notif" aria-label="Notificações">🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span></button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-head">Notificações</div>
+            <div id="notif-lista"></div>
+            <div class="empty-state" id="notif-vazio" style="display:none;">Nenhuma notificação ainda.</div>
+          </div>
+        </div>
+        <button class="icon-btn hide-mobile" data-theme-toggle aria-label="Alternar tema"><span data-theme-icon>🌙</span></button>
+      </div>
     </div>
 
     <section class="stat-row">
-      <div class="stat"><b id="s-membros">0</b><span>Desbravadores cadastrados</span></div>
+      <div class="stat"><b id="s-unidades">6</b><span>Unidades</span></div>
+      <div class="stat"><b id="s-membros">0</b><span>Desbravadores</span></div>
+      <div class="stat"><b id="s-lideres">7</b><span>Contas de liderança/unidade</span></div>
       <div class="stat"><b id="s-lavajato-ativos">0</b><span>Atendimentos ativos no Lava Jato</span></div>
-      <div class="stat"><b id="s-lavajato-cancelados">0</b><span>Cancelamentos</span></div>
+    </section>
+    <section class="stat-row">
+      <div class="stat"><b id="s-plan-pendentes">0</b><span>Planejamentos pendentes</span></div>
+      <div class="stat"><b id="s-plan-aprovados">0</b><span>Planejamentos aprovados</span></div>
+      <div class="stat"><b id="s-plan-recusados">0</b><span>Planejamentos recusados</span></div>
       <div class="stat"><b id="s-midia">0</b><span>Pastas de mídia publicadas</span></div>
+    </section>
+    <section class="stat-row">
+      <div class="stat"><b id="s-esp-andamento">0</b><span>Especialidades em andamento</span></div>
+      <div class="stat"><b id="s-esp-concluidas">0</b><span>Especialidades concluídas</span></div>
+      <div class="stat"><b id="s-materiais-pendentes">0</b><span>Materiais a comprar</span></div>
+      <div class="stat"><b id="s-sem-especialidade">0</b><span>Desbravadores sem especialidade</span></div>
+    </section>
+    <section class="stat-row">
+      <div class="stat"><b id="s-cadastro-incompleto">0</b><span>Desbravadores c/ cadastro incompleto</span></div>
+      <div class="stat"><b id="s-resp-sem-telefone">0</b><span>Responsáveis sem telefone</span></div>
+    </section>
+
+    <section class="panel-block" id="planejamento-unidades">
+      <div class="block-head"><h2>Planejamento das Unidades</h2></div>
+      <div class="filtros-bar">
+        <select id="filtro-unidade"><option value="">Todas as unidades</option></select>
+        <select id="filtro-status">
+          <option value="">Todos os status</option>
+          <option value="pendente">Pendentes</option>
+          <option value="aprovado">Aprovados</option>
+          <option value="recusado">Recusados</option>
+        </select>
+        <input type="date" id="filtro-data" title="Filtrar por data">
+        <button type="button" class="btn btn-outline btn-sm" id="btn-limpar-filtros">Limpar filtros</button>
+      </div>
+      <div id="lista-planejamento-lideranca"></div>
+      <div class="empty-state" id="planejamento-lideranca-vazio" style="display:none;">Nenhuma proposta enviada ainda.</div>
     </section>
 
     <section class="panel-block" id="lavajato">
@@ -79,6 +127,49 @@
       <div class="block-head"><h2>Unidades e desbravadores</h2></div>
       <p class="muted">Membros, atividades/requisitos e andamento de cada unidade.</p>
       <div id="desbravadores-lista"></div>
+    </section>
+
+    <section class="panel-block" id="especialidades-lideranca">
+      <div class="block-head"><h2>Especialidades — visão geral</h2></div>
+      <p class="muted">Unidade → Desbravador → Especialidade → Progresso → Falta → Materiais, de todas as unidades, em tempo real.</p>
+      <div id="lista-especialidades-lideranca"></div>
+      <div class="empty-state" id="especialidades-lideranca-vazio" style="display:none;">Nenhuma especialidade cadastrada ainda.</div>
+    </section>
+
+    <section class="panel-block" id="compras">
+      <div class="block-head"><h2>Lista geral de compras</h2></div>
+      <p class="muted">Materiais que faltam comprar, de todos os desbravadores de todas as unidades.</p>
+      <div id="lista-compras-lideranca"></div>
+      <div class="empty-state" id="compras-vazio" style="display:none;">Nada pendente de compra no momento.</div>
+    </section>
+
+    <section class="panel-block" id="responsaveis">
+      <div class="block-head"><h2>Responsáveis</h2></div>
+      <p class="muted">Contatos dos responsáveis de cada desbravador, de todas as unidades.</p>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Desbravador</th><th>Unidade</th><th>Responsável</th><th>Parentesco</th><th>Telefone</th><th>2º responsável</th></tr></thead>
+          <tbody id="tbody-responsaveis"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel-block" id="planejamento-clube">
+      <div class="block-head">
+        <h2>Planejamento do Clube</h2>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-outline btn-sm" id="btn-seed-planejamento">Carregar planejamento padrão</button>
+          <button class="btn btn-primary btn-sm" id="btn-novo-evento">+ Novo evento</button>
+        </div>
+      </div>
+      <p class="muted">Só liderança e unidades logadas veem esse calendário — não é público.</p>
+      <div class="calendario-nav">
+        <button type="button" class="btn btn-sm btn-outline" id="cal-anterior">← Mês anterior</button>
+        <strong id="cal-mes-atual"></strong>
+        <button type="button" class="btn btn-sm btn-outline" id="cal-proximo">Próximo mês →</button>
+      </div>
+      <div class="calendario-grid" id="calendario-grid"></div>
+      <p class="cal-aviso">⚠️ Sujeito a mudanças. As datas e atividades podem ser alteradas pela liderança a qualquer momento.</p>
     </section>
 
     <section class="panel-block" id="midia">
@@ -139,6 +230,55 @@
       <div class="modal-actions">
         <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-pasta">Cancelar</button>
         <button type="submit" class="btn btn-primary btn-block">Publicar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-evento">
+  <div class="modal">
+    <h2 id="modal-evento-titulo">Novo evento</h2>
+    <form id="form-evento">
+      <div class="field"><label>Nome do evento</label><input type="text" id="ev-nome" required></div>
+      <div class="field"><label>Data</label><input type="date" id="ev-data" required></div>
+      <div class="field"><label>Data final (opcional, pra eventos de vários dias)</label><input type="date" id="ev-data-fim"></div>
+      <div class="field"><label>Horário</label><input type="time" id="ev-horario"></div>
+      <div class="field"><label>Categoria</label>
+        <select id="ev-categoria"></select>
+      </div>
+      <div class="field"><label>Descrição</label><textarea id="ev-descricao" rows="3"></textarea></div>
+      <div class="field"><label>Observações</label><textarea id="ev-observacoes" rows="2"></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-evento">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block">Salvar</button>
+      </div>
+    </form>
+    <button type="button" class="btn btn-sm" style="color:#c1443a; background:none; border:none; margin-top:8px; cursor:pointer;" id="btn-excluir-evento">Excluir este evento</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-evento-detalhe">
+  <div class="modal">
+    <h2 id="detalhe-nome"></h2>
+    <p id="detalhe-data" class="muted"></p>
+    <p><strong>Categoria:</strong> <span id="detalhe-categoria"></span></p>
+    <p id="detalhe-descricao"></p>
+    <p id="detalhe-observacoes" class="muted"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline btn-block" id="btn-fechar-detalhe">Fechar</button>
+      <button type="button" class="btn btn-primary btn-block" id="btn-editar-evento">Editar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-recusa">
+  <div class="modal">
+    <h2>Recusar proposta</h2>
+    <form id="form-recusa">
+      <div class="field"><label>Motivo da recusa (obrigatório)</label><textarea id="recusa-motivo" rows="3" required></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-recusa">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block">Confirmar recusa</button>
       </div>
     </form>
   </div>

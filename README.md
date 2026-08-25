@@ -1,10 +1,24 @@
 # Raízes do Sertão — site do clube
 
-Site do Clube de Desbravadores **Raízes do Sertão** (Vila Eduardo — Região 13, 4º Distrito, APeC): apresentação do clube, nossa história em linha do tempo, mídia (fotos/vídeos), campanha do Campori DSA 2027, cadastro do Lava Jato, redes sociais, e painéis de login para a liderança e para cada unidade.
+Site do Clube de Desbravadores **Raízes do Sertão** (Vila Eduardo — Região 13, 4º Distrito, APeC): apresentação do clube, nossa história em linha do tempo, mídia (fotos/vídeos), campanha do Campori DSA 2027, cadastro do Lava Jato, redes sociais, e painéis de login para a liderança e para cada unidade — com planejamento de atividades, especialidades, materiais e responsáveis dos desbravadores.
+
+Não existe login individual por desbravador: quem quiser ver as especialidades/planejamento autorizado de um desbravador específico usa o login da própria unidade dele (a mesma senha que os líderes já usam).
 
 HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pages**. Os dados (desbravadores, atividades, cadastros do Lava Jato, pastas de mídia, data do Campori) ficam sincronizados entre todos os aparelhos em tempo real, usando o **Firebase** (Firestore + Authentication) no plano gratuito do Google.
 
 ## 📝 O que mudou na última atualização
+
+Essa foi uma atualização grande — 6 áreas novas, pensadas pra dar mais autonomia pras unidades e uma visão central pra liderança:
+
+- **Planejamento das Unidades**: cada unidade cria propostas de planejamento (título, data, horário, local, objetivo, descrição, observações) e envia pra liderança aprovar. A liderança vê todas as propostas de todas as unidades, com filtros por unidade/status/data, e pode **Aprovar** ou **Recusar** (recusar exige escrever o motivo). A unidade recebe um aviso (sino de notificações) com o resultado — se for recusada, vê o motivo, corrige e reenvia (volta pra pendente); depois de aprovada, a proposta não pode mais ser editada.
+- **Especialidades**: cada unidade cadastra as especialidades que os desbravadores estão fazendo (nome, instrutor, data de início, status, o que já foi concluído, o que falta, materiais necessários, observações), editável quantas vezes precisar. A liderança vê tudo isso de todas as unidades em tempo real, sem precisar perguntar unidade por unidade.
+- **O que falta comprar**: dentro do cadastro de cada desbravador, a unidade lista os materiais que faltam pra ele concluir uma atividade ou especialidade, e marca como pendente/comprado. A liderança tem uma lista geral de compras juntando os itens de todo mundo.
+- **Cadastro de responsáveis**: agora é obrigatório informar pelo menos um responsável (nome + telefone) pra cadastrar um desbravador, com grau de parentesco; dá pra adicionar um segundo responsável (opcional) e observações. A liderança tem uma aba só de contatos de responsáveis, de todas as unidades.
+- **Planejamento do Clube**: um calendário privado (só liderança e unidades logadas veem — não aparece pra visitante) com os eventos do semestre, organizado por mês. A liderança adiciona, edita e exclui eventos (inclusive eventos de vários dias, tipo o acampamento), e pode carregar de uma vez o planejamento padrão do 2º semestre com um botão. Sempre aparece o aviso "sujeito a mudanças" no rodapé.
+- **Dashboard da liderança**: o painel da liderança ganhou vários indicadores novos (unidades, desbravadores, planejamentos pendentes/aprovados/recusados, especialidades em andamento/concluídas, materiais a comprar, desbravadores sem especialidade cadastrada, cadastros incompletos, responsáveis sem telefone) — tudo num lugar só, sem precisar entrar unidade por unidade.
+- **Notificações**: um sino no topo dos dois painéis mostra avisos (planejamento aprovado/recusado pra unidade, novo planejamento enviado pra liderança), com contador de não lidas. É só dentro do site (sem WhatsApp/e-mail de verdade — isso exigiria habilitar o plano pago do Firebase, o que sairia da promessa de "tudo de graça").
+
+### Rodada anterior
 
 - **Lava-Jato voltou a ter agenda**: a página mostra os próximos domingos num grid — cinza com o número de vagas livres, laranja quando lota (só aceitamos **5 carros por domingo**), vermelho quando a liderança fecha o dia. Quem for se cadastrar escolhe o domingo (só aparecem datas com vaga). No painel da liderança, clicar num domingo aberto fecha ele (com um motivo opcional, tipo "sem lavagem esse domingo") — e clicar de novo reabre. Isso já empurra o pessoal a se agendar pro próximo domingo em vez do que foi fechado.
 - **Desbravadores podem ter o tipo sanguíneo registrado** (campo opcional no cadastro, dentro do painel da unidade) — bom ter à mão, mas não é obrigatório preencher.
@@ -133,15 +147,25 @@ O site não guarda arquivos (isso não caberia num site gratuito sem servidor de
 ## O que dá pra fazer em cada painel
 
 **Painel da liderança** (`painel-lideranca.html`)
+- Ver e filtrar (por unidade/status/data) todas as propostas de Planejamento das Unidades, aprovar ou recusar (com motivo obrigatório).
+- Ver as especialidades de todos os desbravadores de todas as unidades, com progresso, o que falta e materiais necessários.
+- Ver a lista geral de compras (materiais pendentes de todos os desbravadores) e marcar como comprado.
+- Ver os contatos de todos os responsáveis, de todas as unidades.
+- Gerenciar o Planejamento do Clube: calendário privado por mês, adicionar/editar/excluir eventos, carregar o planejamento padrão do semestre com um clique.
 - Abrir/fechar domingos na agenda do Lava Jato (com motivo opcional) e ver, em tempo real e de qualquer aparelho, todos os cadastros — avisada (notificação + contador no menu) quando alguém cancela.
 - Ver os desbravadores (inclusive tipo sanguíneo) e o histórico de requisitos de cada uma das 6 unidades.
 - Publicar/remover pastas de Mídia.
 - Configurar a data do Campori DSA 2027 (alimenta o cronômetro da página pública).
+- Acompanhar um dashboard com os principais números do clube (planejamentos, especialidades, compras pendentes, cadastros incompletos etc.).
 - Baixar um backup completo em `.json`.
 
 **Painel da unidade** (`painel-unidade.html`)
-- Cadastrar os desbravadores da unidade (inclusive o tipo sanguíneo, opcional).
+- Cadastrar os desbravadores da unidade, com responsável (obrigatório, com telefone), segundo responsável opcional e tipo sanguíneo opcional.
 - Abrir o nome de cada desbravador e lançar quantos registros de requisito quiser (Bíblia/Lição, Uniforme, Pontualidade, Participação, Comportamento ou outro), cada um com a data em que foi cumprido — e excluir um registro se precisar corrigir.
+- Cadastrar e atualizar as especialidades de cada desbravador (progresso, o que falta, materiais necessários).
+- Listar o que falta comprar pra cada desbravador e marcar como comprado.
+- Enviar propostas de Planejamento pra liderança aprovar, acompanhar o status e — se for recusada — corrigir e reenviar.
+- Receber avisos (sino de notificações) quando a liderança aprova ou recusa uma proposta.
 
 Tudo isso sincroniza automaticamente — uma unidade pode cadastrar pelo celular no meio da reunião e a liderança já vê no computador dela, em outro lugar, na hora.
 

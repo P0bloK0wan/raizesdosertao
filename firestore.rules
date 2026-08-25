@@ -95,6 +95,57 @@ service cloud.firestore {
       allow read, write: if eLideranca() || eDaUnidade(unidadeId);
     }
 
+    // Especialidades e "o que falta comprar" de cada desbravador —
+    // mesma regra dos membros.
+    match /unidades/{unidadeId}/membros/{membroId}/especialidades/{espId} {
+      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+    }
+    match /unidades/{unidadeId}/membros/{membroId}/materiais/{itemId} {
+      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+    }
+
+    // Planejamento das Unidades: a unidade cria a proposta sempre
+    // como "pendente" (não pode se auto-aprovar). Só a liderança
+    // aprova/recusa. A unidade pode editar/reenviar enquanto não
+    // estiver aprovado — editar sempre devolve pra "pendente".
+    match /unidades/{unidadeId}/planejamentos/{planId} {
+      allow read: if estaLogado();
+      allow create: if eDaUnidade(unidadeId) &&
+        request.resource.data.status == 'pendente' &&
+        request.resource.data.keys().hasAll(['titulo', 'data', 'horario', 'local', 'objetivo', 'descricao', 'status']);
+      allow update: if eLideranca() || (
+        eDaUnidade(unidadeId) &&
+        resource.data.status != 'aprovado' &&
+        request.resource.data.status == 'pendente'
+      );
+      allow delete: if eLideranca() || (eDaUnidade(unidadeId) && resource.data.status != 'aprovado');
+    }
+
+    // Notificações pra unidade (aviso de planejamento aprovado ou
+    // recusado) — só a liderança cria, a própria unidade só lê e
+    // marca como lida.
+    match /unidades/{unidadeId}/notificacoes/{notifId} {
+      allow read, update: if eLideranca() || eDaUnidade(unidadeId);
+      allow create: if eLideranca();
+      allow delete: if eLideranca();
+    }
+
+    // Notificações pra liderança (aviso de novo planejamento
+    // enviado) — qualquer unidade logada pode criar (ao enviar um
+    // planejamento), só a liderança lê/gerencia.
+    match /notificacoesLideranca/{notifId} {
+      allow read, update, delete: if eLideranca();
+      allow create: if estaLogado();
+    }
+
+    // Planejamento do Clube (calendário privado) — qualquer conta
+    // logada (liderança ou unidade) pode ler; só a liderança
+    // adiciona, edita ou remove eventos.
+    match /planejamentoClube/{eventoId} {
+      allow read: if estaLogado();
+      allow write: if eLideranca();
+    }
+
     // Qualquer outra coleção não prevista acima fica bloqueada
     // por padrão.
     match /{document=**} {

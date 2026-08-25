@@ -28,6 +28,9 @@
       <li><a href="#visao-geral">📊 Visão geral</a></li>
       <li><a href="#membros">🧑‍🤝‍🧑 Meus desbravadores</a></li>
       <li><a href="#topicos">📝 Atividades / requisitos</a></li>
+      <li><a href="#especialidades">🎖️ Especialidades</a></li>
+      <li><a href="#materiais">🛒 O que falta comprar</a></li>
+      <li><a href="#planejamento">📋 Planejamento</a></li>
       <li><a href="#config">⚙️ Configurações</a></li>
       <li><a href="index.html">🌐 Ver site público</a></li>
     </ul>
@@ -40,12 +43,24 @@
   <main class="app-main">
     <div class="app-topbar">
       <h1 id="visao-geral">Visão geral</h1>
-      <button class="icon-btn hide-mobile" data-theme-toggle aria-label="Alternar tema"><span data-theme-icon>🌙</span></button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="notif-wrap">
+          <button class="icon-btn" id="btn-notif" aria-label="Notificações">🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span></button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-head">Notificações</div>
+            <div id="notif-lista"></div>
+            <div class="empty-state" id="notif-vazio" style="display:none;">Nenhuma notificação ainda.</div>
+          </div>
+        </div>
+        <button class="icon-btn hide-mobile" data-theme-toggle aria-label="Alternar tema"><span data-theme-icon>🌙</span></button>
+      </div>
     </div>
 
     <section class="stat-row">
       <div class="stat"><b id="s-membros">0</b><span>Desbravadores da unidade</span></div>
       <div class="stat"><b id="s-topicos">0</b><span>Registros de requisitos lançados</span></div>
+      <div class="stat"><b id="s-planejamentos">0</b><span>Propostas de planejamento</span></div>
+      <div class="stat"><b id="s-especialidades">0</b><span>Especialidades em andamento</span></div>
     </section>
 
     <section class="panel-block" id="membros">
@@ -69,6 +84,34 @@
       <p class="muted">Cada desbravador tem seu próprio histórico. Abra o nome dele e lance quantos registros quiser (Bíblia/Lição, Uniforme, Pontualidade, Participação, Comportamento ou outro), cada um com a data em que foi cumprido.</p>
       <div id="lista-requisitos"></div>
       <div class="empty-state" id="requisitos-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar a lançar requisitos.</div>
+    </section>
+
+    <section class="panel-block" id="especialidades">
+      <div class="block-head">
+        <h2>Especialidades</h2>
+      </div>
+      <p class="muted">Abra o nome do desbravador pra cadastrar as especialidades que ele está realizando, com progresso, o que falta e materiais necessários.</p>
+      <div id="lista-especialidades"></div>
+      <div class="empty-state" id="especialidades-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar.</div>
+    </section>
+
+    <section class="panel-block" id="materiais">
+      <div class="block-head">
+        <h2>O que falta comprar</h2>
+      </div>
+      <p class="muted">Liste os materiais que cada desbravador precisa comprar pras atividades ou especialidades, e marque como comprado quando resolver.</p>
+      <div id="lista-materiais"></div>
+      <div class="empty-state" id="materiais-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar.</div>
+    </section>
+
+    <section class="panel-block" id="planejamento">
+      <div class="block-head">
+        <h2>Planejamento</h2>
+        <button class="btn btn-primary btn-sm" id="btn-novo-planejamento">+ Nova proposta</button>
+      </div>
+      <p class="muted">Envie propostas de planejamento pra liderança aprovar. Você pode editar enquanto não for aprovado — se for recusado, corrija e reenvie.</p>
+      <div id="lista-planejamento"></div>
+      <div class="empty-state" id="planejamento-vazio" style="display:none;">Nenhuma proposta enviada ainda.</div>
     </section>
 
     <section class="panel-block" id="config">
@@ -98,8 +141,6 @@
           <option>Pioneiro</option><option>Excursionista</option><option>Guia</option>
         </select>
       </div>
-      <div class="field"><label>Responsável</label><input type="text" id="m-responsavel"></div>
-      <div class="field"><label>Telefone</label><input type="tel" id="m-telefone" placeholder="(87) 9XXXX-XXXX"></div>
       <div class="field"><label>Tipo sanguíneo <span class="muted" style="font-weight:400;">(opcional, mas bom sabermos)</span></label>
         <select id="m-tipo-sanguineo">
           <option value="">Não informado</option>
@@ -107,9 +148,37 @@
           <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
         </select>
       </div>
+      <hr style="border:none; border-top:1px solid var(--border); margin:6px 0;">
+      <p class="muted" style="margin:0 0 4px;">Responsável (obrigatório)</p>
+      <div class="field"><label>Nome do responsável</label><input type="text" id="m-responsavel" required></div>
+      <div class="field"><label>Grau de parentesco</label><input type="text" id="m-parentesco" placeholder="ex.: Mãe, Pai, Avó..."></div>
+      <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="m-telefone" placeholder="(87) 9XXXX-XXXX" required></div>
+      <p class="muted" style="margin:10px 0 4px;">Segundo responsável (opcional)</p>
+      <div class="field"><label>Nome</label><input type="text" id="m-responsavel2"></div>
+      <div class="field"><label>Telefone</label><input type="tel" id="m-telefone2" placeholder="(87) 9XXXX-XXXX"></div>
+      <div class="field"><label>Observações</label><textarea id="m-observacoes-responsavel" rows="2"></textarea></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-membro">Cancelar</button>
         <button type="submit" class="btn btn-primary btn-block">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-planejamento">
+  <div class="modal">
+    <h2 id="modal-planejamento-titulo">Nova proposta de planejamento</h2>
+    <form id="form-planejamento">
+      <div class="field"><label>Título</label><input type="text" id="pl-titulo" required></div>
+      <div class="field"><label>Data</label><input type="date" id="pl-data" required></div>
+      <div class="field"><label>Horário</label><input type="time" id="pl-horario" required></div>
+      <div class="field"><label>Local</label><input type="text" id="pl-local" required></div>
+      <div class="field"><label>Objetivo</label><input type="text" id="pl-objetivo" required></div>
+      <div class="field"><label>Descrição</label><textarea id="pl-descricao" rows="3" required></textarea></div>
+      <div class="field"><label>Observações</label><textarea id="pl-observacoes" rows="2"></textarea></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-planejamento">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block">Enviar pra aprovação</button>
       </div>
     </form>
   </div>

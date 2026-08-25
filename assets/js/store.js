@@ -51,6 +51,170 @@ export function deleteRegistro(unidadeId, membroId, registroId) {
   return deleteDoc(doc(db, "unidades", unidadeId, "membros", membroId, "registros", registroId));
 }
 
+/* ---------- especialidades por desbravador ---------- */
+export function watchEspecialidadesMembro(unidadeId, membroId, cb) {
+  return onSnapshot(
+    query(collection(db, "unidades", unidadeId, "membros", membroId, "especialidades"), orderBy("criadoEm", "desc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+}
+export function addEspecialidade(unidadeId, membroId, dados) {
+  return addDoc(collection(db, "unidades", unidadeId, "membros", membroId, "especialidades"), {
+    ...dados, criadoEm: serverTimestamp(),
+  });
+}
+export function updateEspecialidade(unidadeId, membroId, espId, dados) {
+  return updateDoc(doc(db, "unidades", unidadeId, "membros", membroId, "especialidades", espId), dados);
+}
+export function deleteEspecialidade(unidadeId, membroId, espId) {
+  return deleteDoc(doc(db, "unidades", unidadeId, "membros", membroId, "especialidades", espId));
+}
+
+/* ---------- "o que falta comprar" por desbravador ---------- */
+export function watchMateriaisMembro(unidadeId, membroId, cb) {
+  return onSnapshot(
+    query(collection(db, "unidades", unidadeId, "membros", membroId, "materiais"), orderBy("criadoEm", "desc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+}
+export function addMaterial(unidadeId, membroId, { nome, especialidade }) {
+  return addDoc(collection(db, "unidades", unidadeId, "membros", membroId, "materiais"), {
+    nome, especialidade: especialidade || "", status: "pendente", criadoEm: serverTimestamp(),
+  });
+}
+export function toggleMaterial(unidadeId, membroId, itemId, status) {
+  return updateDoc(doc(db, "unidades", unidadeId, "membros", membroId, "materiais", itemId), { status });
+}
+export function deleteMaterial(unidadeId, membroId, itemId) {
+  return deleteDoc(doc(db, "unidades", unidadeId, "membros", membroId, "materiais", itemId));
+}
+
+/* ---------- Planejamento das Unidades ---------- */
+export function watchPlanejamentos(unidadeId, cb) {
+  return onSnapshot(
+    query(collection(db, "unidades", unidadeId, "planejamentos"), orderBy("data", "asc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+}
+export function addPlanejamento(unidadeId, dados) {
+  return addDoc(collection(db, "unidades", unidadeId, "planejamentos"), {
+    ...dados,
+    status: "pendente",
+    motivoRecusa: "",
+    criadoEm: serverTimestamp(),
+    atualizadoEm: serverTimestamp(),
+  }).then((ref) => {
+    criarNotificacaoLideranca({
+      tipo: "novo_planejamento",
+      mensagem: `A unidade ${unidadeId} enviou uma nova proposta de planejamento: "${dados.titulo}".`,
+      unidadeId,
+      planId: ref.id,
+    });
+    return ref;
+  });
+}
+/* Editar sempre reenvia como "pendente" (nunca deixa a própria
+   unidade se auto-aprovar — a regra do Firestore também garante
+   isso do lado do servidor). */
+export function editarPlanejamento(unidadeId, planId, dados) {
+  return updateDoc(doc(db, "unidades", unidadeId, "planejamentos", planId), {
+    ...dados,
+    status: "pendente",
+    motivoRecusa: "",
+    atualizadoEm: serverTimestamp(),
+  });
+}
+export function aprovarPlanejamento(unidadeId, planId, titulo) {
+  return updateDoc(doc(db, "unidades", unidadeId, "planejamentos", planId), {
+    status: "aprovado",
+    motivoRecusa: "",
+    atualizadoEm: serverTimestamp(),
+  }).then(() =>
+    criarNotificacaoUnidade(unidadeId, {
+      tipo: "planejamento_aprovado",
+      mensagem: `Seu planejamento "${titulo}" foi aprovado!`,
+      motivo: "",
+      planId,
+    })
+  );
+}
+export function recusarPlanejamento(unidadeId, planId, titulo, motivo) {
+  return updateDoc(doc(db, "unidades", unidadeId, "planejamentos", planId), {
+    status: "recusado",
+    motivoRecusa: motivo,
+    atualizadoEm: serverTimestamp(),
+  }).then(() =>
+    criarNotificacaoUnidade(unidadeId, {
+      tipo: "planejamento_recusado",
+      mensagem: `Seu planejamento "${titulo}" foi recusado.`,
+      motivo,
+      planId,
+    })
+  );
+}
+export function deletePlanejamento(unidadeId, planId) {
+  return deleteDoc(doc(db, "unidades", unidadeId, "planejamentos", planId));
+}
+
+/* ---------- Notificações ---------- */
+export function watchNotificacoesUnidade(unidadeId, cb) {
+  return onSnapshot(
+    query(collection(db, "unidades", unidadeId, "notificacoes"), orderBy("criadoEm", "desc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+}
+function criarNotificacaoUnidade(unidadeId, dados) {
+  return addDoc(collection(db, "unidades", unidadeId, "notificacoes"), {
+    ...dados, lida: false, criadoEm: serverTimestamp(),
+  });
+}
+export function marcarNotificacoesUnidadeLidas(unidadeId, ids) {
+  return Promise.all(
+    ids.map((id) => updateDoc(doc(db, "unidades", unidadeId, "notificacoes", id), { lida: true }))
+  );
+}
+export function watchNotificacoesLideranca(cb) {
+  return onSnapshot(
+    query(collection(db, "notificacoesLideranca"), orderBy("criadoEm", "desc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+}
+function criarNotificacaoLideranca(dados) {
+  return addDoc(collection(db, "notificacoesLideranca"), {
+    ...dados, lida: false, criadoEm: serverTimestamp(),
+  });
+}
+export function marcarNotificacoesLiderancaLidas(ids) {
+  return Promise.all(
+    ids.map((id) => updateDoc(doc(db, "notificacoesLideranca", id), { lida: true }))
+  );
+}
+
+/* ---------- Planejamento do Clube (calendário privado) ---------- */
+export function watchPlanejamentoClube(cb) {
+  return onSnapshot(
+    query(collection(db, "planejamentoClube"), orderBy("data", "asc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+}
+export function addEventoClube(dados) {
+  return addDoc(collection(db, "planejamentoClube"), { ...dados, criadoEm: serverTimestamp() });
+}
+export function updateEventoClube(eventoId, dados) {
+  return updateDoc(doc(db, "planejamentoClube", eventoId), dados);
+}
+export function deleteEventoClube(eventoId) {
+  return deleteDoc(doc(db, "planejamentoClube", eventoId));
+}
+/* Só grava o planejamento padrão se a coleção ainda estiver vazia
+   — evita duplicar se a liderança clicar duas vezes. */
+export async function seedPlanejamentoClube(eventos) {
+  const snap = await getDocs(collection(db, "planejamentoClube"));
+  if (!snap.empty) return false;
+  await Promise.all(eventos.map((ev) => addEventoClube(ev)));
+  return true;
+}
+
 /* ---------- Lava Jato: agenda de domingos + cadastros ----------
    "lavajato_domingos" guarda só o resumo de cada domingo (vagas
    ocupadas, se está fechado) — é pública pra leitura, pra qualquer
@@ -198,32 +362,43 @@ export function setCamporiData(data) {
 /* ---------- backup (exportar tudo em .json, só leitura) ---------- */
 export async function exportarBackup() {
   const membros = {};
+  const planejamentos = {};
   for (const u of RS_UNIDADES) {
     const mSnap = await getDocs(collection(db, "unidades", u.id, "membros"));
     const lista = [];
     for (const m of mSnap.docs) {
       const rSnap = await getDocs(collection(db, "unidades", u.id, "membros", m.id, "registros"));
+      const eSnap = await getDocs(collection(db, "unidades", u.id, "membros", m.id, "especialidades"));
+      const matSnap = await getDocs(collection(db, "unidades", u.id, "membros", m.id, "materiais"));
       lista.push({
         id: m.id,
         ...m.data(),
         registros: rSnap.docs.map((r) => ({ id: r.id, ...r.data() })),
+        especialidades: eSnap.docs.map((e) => ({ id: e.id, ...e.data() })),
+        materiaisFaltando: matSnap.docs.map((mt) => ({ id: mt.id, ...mt.data() })),
       });
     }
     membros[u.id] = lista;
+
+    const pSnap = await getDocs(collection(db, "unidades", u.id, "planejamentos"));
+    planejamentos[u.id] = pSnap.docs.map((p) => ({ id: p.id, ...p.data() }));
   }
   const lavajatoSnap = await getDocs(collection(db, "lavajato"));
   const domingosSnap = await getDocs(collection(db, "lavajato_domingos"));
   const midiaSnap = await getDocs(collection(db, "midia"));
   const camporiDoc = await getDoc(doc(db, "config", "campori"));
+  const planejamentoClubeSnap = await getDocs(collection(db, "planejamentoClube"));
 
   const payload = {
     tipo: "rs-backup-completo",
     exportadoEm: new Date().toISOString(),
     membros,
+    planejamentos,
     lavajato: lavajatoSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
     lavajatoDomingos: domingosSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
     midia: midiaSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
     campori: camporiDoc.exists() ? camporiDoc.data() : null,
+    planejamentoClube: planejamentoClubeSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });

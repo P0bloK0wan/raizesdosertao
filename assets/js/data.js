@@ -130,3 +130,69 @@ export const RS_NOME_LIDERANCA = "Diretoria — Raízes do Sertão";
 export function emailDaUnidade(unidadeId) {
   return `${unidadeId}@${RS_DOMINIO_CONTAS}`;
 }
+
+/* =========================================================
+   Planejamento das Unidades: rótulos de status.
+   ========================================================= */
+export const RS_PLANEJAMENTO_STATUS = {
+  pendente: "Pendente",
+  aprovado: "Aprovado",
+  recusado: "Recusado",
+};
+
+/* =========================================================
+   Planejamento do Clube: categorias fixas de evento.
+   ========================================================= */
+export const RS_PLANEJAMENTO_CLUBE_CATEGORIAS = [
+  "Classe bíblica",
+  "Reunião",
+  "Folga",
+  "Evento especial",
+  "Acampamento",
+];
+
+/* Planejamento padrão do 2º semestre — carregado só quando a
+   liderança clicar em "Carregar planejamento padrão" no painel
+   (não é semeado automático). */
+export const RS_PLANEJAMENTO_CLUBE_SEED = [
+  { data: "2026-07-04", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-07-05", categoria: "Folga", nome: "Folga / Lava Jato" },
+  { data: "2026-07-11", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-07-12", categoria: "Reunião", nome: "Reunião" },
+  { data: "2026-07-18", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-07-19", categoria: "Folga", nome: "Folga" },
+  { data: "2026-07-25", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-07-26", categoria: "Reunião", nome: "Reunião" },
+
+  { data: "2026-08-01", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-08-02", categoria: "Folga", nome: "Folga" },
+  { data: "2026-08-08", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-08-09", categoria: "Evento especial", nome: "Reunião do clube com participação dos pais (Dia dos Pais)" },
+  { data: "2026-08-15", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-08-16", categoria: "Reunião", nome: "Reunião" },
+  { data: "2026-08-22", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-08-23", categoria: "Reunião", nome: "Reunião" },
+  { data: "2026-08-29", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-08-30", categoria: "Folga", nome: "Folga" },
+
+  { data: "2026-09-05", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-09-06", categoria: "Folga", nome: "Folga" },
+  { data: "2026-09-12", categoria: "Classe bíblica", nome: "Classe bíblica" },
+  { data: "2026-09-13", categoria: "Reunião", nome: "Reunião" },
+  { data: "2026-09-19", categoria: "Evento especial", nome: "Dia Mundial dos Desbravadores — Investidura" },
+  { data: "2026-09-20", categoria: "Folga", nome: "Folga" },
+  { data: "2026-09-27", categoria: "Reunião", nome: "Reunião" },
+
+  { data: "2026-10-04", categoria: "Reunião", nome: "Reunião" },
+  { data: "2026-10-09", dataFim: "2026-10-11", categoria: "Acampamento", nome: "Acampamento" },
+  { data: "2026-10-18", categoria: "Folga", nome: "Folga" },
+  { data: "2026-10-25", categoria: "Reunião", nome: "Reunião" },
+
+  { data: "2026-11-01", categoria: "Reunião", nome: "Reunião" },
+  { data: "2026-11-08", categoria: "Evento especial", nome: "Reunião (ENEM)" },
+  { data: "2026-11-15", categoria: "Folga", nome: "Folga" },
+  { data: "2026-11-22", categoria: "Reunião", nome: "Reunião" },
+  { data: "2026-11-29", categoria: "Folga", nome: "Folga" },
+
+  { data: "2026-12-05", categoria: "Evento especial", nome: "Encerramento das atividades" },
+];

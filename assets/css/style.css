@@ -764,8 +764,12 @@ table.data-table th { font-family: var(--font-title); font-size: .8rem; text-tra
 .pill { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: .74rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
 .pill-open { background: #e7f2d9; color: #3c5a1c; }
 .pill-closed { background: #fbe4e1; color: #9c2b21; }
+.pill-pending { background: #fbeecb; color: #8a5a00; }
 :root[data-theme="dark"] .pill-open { background: #1e2d10; color: #b9e08a; }
 :root[data-theme="dark"] .pill-closed { background: #3a1a16; color: #ff9d8f; }
+:root[data-theme="dark"] .pill-pending { background: #3a2c0c; color: #f3cc74; }
+tr.comprado { opacity: .55; }
+tr.comprado td { text-decoration: line-through; }
 .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .row-actions button { border: none; background: none; cursor: pointer; font-weight: 700; font-size: .82rem; color: var(--orange); padding: 4px 2px; }
 .row-actions button.danger { color: #c1443a; }
@@ -828,4 +832,86 @@ table.data-table th { font-family: var(--font-title); font-size: .8rem; text-tra
   .site-header, .site-footer, .float-whatsapp, .app-sidebar, .mobile-topbar, .no-print { display: none !important; }
   .app-main { padding: 0; }
   body { background: #fff; }
+}
+
+/* ---------- Notificações (sino no topo dos painéis) ---------- */
+.notif-wrap { position: relative; }
+.notif-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: #c1443a; color: #fff;
+  font-size: .68rem; font-weight: 800;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.notif-dropdown {
+  display: none;
+  position: absolute; right: 0; top: 48px;
+  width: min(340px, 90vw);
+  max-height: 420px; overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+  z-index: 150;
+}
+.notif-dropdown.show { display: block; }
+.notif-head { font-family: var(--font-title); font-weight: 700; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.notif-item { display: flex; gap: 10px; padding: 12px 16px; border-bottom: 1px dashed var(--border); font-size: .88rem; }
+.notif-item:last-child { border-bottom: none; }
+.notif-item p { margin: 0; }
+.notif-item.nao-lida { background: color-mix(in srgb, var(--orange) 8%, transparent); }
+
+/* ---------- Filtros (Planejamento das Unidades) ---------- */
+.filtros-bar { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 20px; }
+.filtros-bar select, .filtros-bar input { padding: 9px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: var(--font-body); }
+
+/* ---------- Especialidades (formulário inline por item) ---------- */
+.esp-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.esp-item { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; background: var(--bg); }
+.esp-linha { display: flex; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.esp-linha input, .esp-linha select { flex: 1; min-width: 140px; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text); }
+.esp-item textarea { width: 100%; margin-bottom: 8px; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text); font-family: var(--font-body); resize: vertical; }
+
+/* ---------- Materiais / lista de compras ---------- */
+.mat-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.mat-list li { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: .9rem; }
+.mat-list li.comprado { opacity: .6; }
+.mat-list li.comprado .mat-nome { text-decoration: line-through; }
+.mat-list .mat-nome { flex: 1; font-weight: 700; }
+
+/* ---------- Agenda / calendário do Planejamento do Clube ---------- */
+.calendario-nav { display: flex; align-items: center; justify-content: space-between; margin: 14px 0; }
+.calendario-nav strong { font-family: var(--font-title); text-transform: capitalize; }
+.calendario-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-cabecalho { text-align: center; font-family: var(--font-title); font-size: .78rem; color: var(--text-muted); padding-bottom: 6px; }
+.cal-dia {
+  min-height: 84px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  display: flex; flex-direction: column; gap: 4px;
+  background: var(--bg-elevated);
+}
+.cal-dia.cal-vazio { border: none; background: transparent; }
+.cal-numero { font-family: var(--font-title); font-weight: 700; font-size: .82rem; color: var(--text-muted); }
+.cal-evento {
+  display: block; width: 100%; text-align: left;
+  border: none; border-radius: 6px;
+  padding: 3px 6px;
+  font-size: .72rem; font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: #fff;
+}
+.cal-evento.cat-classe-biblica { background: var(--gold); color: var(--black); }
+.cal-evento.cat-reuniao { background: var(--green); }
+.cal-evento.cat-folga { background: #8c8367; }
+.cal-evento.cat-evento-especial { background: var(--orange); }
+.cal-evento.cat-acampamento { background: #6a3fb5; }
+.cal-aviso { text-align: center; font-size: .82rem; color: var(--text-muted); margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border); }
+@media (max-width: 700px) {
+  .calendario-grid { grid-template-columns: repeat(7, minmax(38px, 1fr)); }
+  .cal-dia { min-height: 54px; padding: 3px; }
+  .cal-evento { font-size: .62rem; padding: 2px 3px; }
 }

@@ -2,13 +2,20 @@
    Painel da Liderança
    ========================================================= */
 
-import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, rsProximosDomingos } from "./data.js";
+import {
+  RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, rsProximosDomingos,
+  RS_PLANEJAMENTO_STATUS, RS_PLANEJAMENTO_CLUBE_CATEGORIAS, RS_PLANEJAMENTO_CLUBE_SEED,
+} from "./data.js";
 import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
   watchLavaJato, deleteRegistroLavaJato,
   watchDomingos, fecharDomingo, abrirDomingo,
   watchMembros, deleteMembro,
   watchRegistrosMembro,
+  watchEspecialidadesMembro, watchMateriaisMembro, toggleMaterial,
+  watchPlanejamentos, aprovarPlanejamento, recusarPlanejamento,
+  watchNotificacoesLideranca, marcarNotificacoesLiderancaLidas,
+  watchPlanejamentoClube, addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
   watchMidia, addPastaMidia, deletePastaMidia,
   watchCampori, setCamporiData,
   exportarBackup,
@@ -31,6 +38,42 @@ function fmtDataBr(dataStr) {
   if (!dataStr) return "—";
   return new Date(dataStr + "T00:00:00").toLocaleDateString("pt-BR");
 }
+function nomeDaUnidade(id) {
+  return (RS_UNIDADES.find((u) => u.id === id) || {}).nome || id;
+}
+function categoriaClasse(categoria) {
+  return "cat-" + (categoria || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-");
+}
+
+/* Observa uma subcoleção por-desbravador (especialidades,
+   materiais...) em TODAS as unidades — usado pela liderança, que
+   precisa ver tudo, não só a própria unidade. */
+function criarFanOutGlobal(watchFn, onChange) {
+  const unsubs = new Map(); // membroId -> unsub
+  const dados = {}; // membroId -> items
+  return {
+    dados,
+    sincronizar(unidadeId, membros) {
+      membros.forEach((m) => {
+        if (unsubs.has(m.id)) return;
+        const unsub = watchFn(unidadeId, m.id, (items) => {
+          dados[m.id] = items;
+          onChange();
+        });
+        unsubs.set(m.id, unsub);
+      });
+    },
+    limparRemovidos(idsAtuaisGlobais) {
+      for (const [mid, unsub] of unsubs) {
+        if (!idsAtuaisGlobais.has(mid)) {
+          unsub();
+          unsubs.delete(mid);
+          delete dados[mid];
+        }
+      }
+    },
+  };
+}
 
 function iniciarPainel() {
   const estado = {
@@ -38,6 +81,9 @@ function iniciarPainel() {
     domingos: {},
     membrosPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
     registrosPorMembro: {},
+    planejamentosPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
+    notificacoes: [],
+    eventosClube: [],
     midia: [],
   };
   const idsJaNotificados = new Set();
@@ -45,6 +91,7 @@ function iniciarPainel() {
   const unsubsRegistros = new Map(); // membroId -> unsub
   const unidadesAbertas = new Set();
   const membrosAbertos = new Set();
+  const filtros = { unidade: "", status: "", data: "" };
 
   /* ---------------- Lava Jato ---------------- */
   watchLavaJato((lista) => {
@@ -52,7 +99,7 @@ function iniciarPainel() {
     if (!primeiraLeitura) {
       lista.forEach((r) => {
         if (r.cancelado && !idsJaNotificados.has(r.id) && !estado.lavajato.some((old) => old.id === r.id && old.cancelado)) {
-          notificarCancelamento(r);
+          notificarToast(`⚠️ ${r.nome} cancelou o atendimento do Lava Jato.`, "Cancelamento no Lava Jato", `${r.nome} (${r.placa}) cancelou o atendimento.`);
         }
       });
     }
@@ -64,11 +111,11 @@ function iniciarPainel() {
     renderStats();
   });
 
-  function notificarCancelamento(registro) {
-    mostrarToast(`⚠️ ${registro.nome} cancelou o atendimento do Lava Jato.`);
+  function notificarToast(msgToast, tituloNotif, corpoNotif) {
+    mostrarToast(msgToast);
     if (typeof Notification !== "undefined") {
       if (Notification.permission === "granted") {
-        new Notification("Cancelamento no Lava Jato", { body: `${registro.nome} (${registro.placa}) cancelou o atendimento.` });
+        new Notification(tituloNotif, { body: corpoNotif });
       } else if (Notification.permission !== "denied") {
         Notification.requestPermission();
       }
@@ -157,6 +204,9 @@ function iniciarPainel() {
   }
 
   /* ---------------- Unidades / desbravadores / requisitos ---------------- */
+  const fanOutEspecialidades = criarFanOutGlobal(watchEspecialidadesMembro, () => { renderDesbravadores(); renderEspecialidadesLideranca(); renderStats(); });
+  const fanOutMateriais = criarFanOutGlobal(watchMateriaisMembro, () => { renderCompras(); renderStats(); });
+
   function renderDesbravadores() {
     const wrap = document.getElementById("desbravadores-lista");
     wrap.innerHTML = "";
@@ -179,7 +229,9 @@ function iniciarPainel() {
               <button class="danger" data-del-membro="${u.id}:${m.id}" style="margin-left:auto;">Excluir</button>
             </summary>
             <div style="padding:14px 20px 18px;">
-              <p class="muted" style="margin:0 0 8px;">Nascimento: ${m.nascimento || "—"} · Responsável: ${m.responsavel || "—"} · Telefone: ${m.telefone || "—"} · Tipo sanguíneo: ${m.tipoSanguineo || "—"}</p>
+              <p class="muted" style="margin:0 0 8px;">Nascimento: ${m.nascimento || "—"} · Tipo sanguíneo: ${m.tipoSanguineo || "—"}</p>
+              <p class="muted" style="margin:0 0 8px;">Responsável: ${m.responsavel || "—"} (${m.parentesco || "—"}) · Telefone: ${m.telefone || "—"}</p>
+              ${m.responsavel2Nome ? `<p class="muted" style="margin:0 0 8px;">2º responsável: ${m.responsavel2Nome} · Telefone: ${m.responsavel2Telefone || "—"}</p>` : ""}
               <ul class="registro-list">${linhasRegs || "<li class='muted' style='border:none;'>Nenhum registro lançado ainda.</li>"}</ul>
             </div>
           </details>`;
@@ -216,6 +268,8 @@ function iniciarPainel() {
         mostrarToast("Desbravador removido.");
       })
     );
+
+    renderResponsaveis();
   }
 
   RS_UNIDADES.forEach((u) => {
@@ -238,10 +292,377 @@ function iniciarPainel() {
         });
         unsubsRegistros.set(m.id, unsub);
       });
+      fanOutEspecialidades.limparRemovidos(idsGlobais);
+      fanOutMateriais.limparRemovidos(idsGlobais);
+      fanOutEspecialidades.sincronizar(u.id, membros);
+      fanOutMateriais.sincronizar(u.id, membros);
 
       renderDesbravadores();
+      renderEspecialidadesLideranca();
+      renderCompras();
       renderStats();
     });
+  });
+
+  /* ---------------- Responsáveis ---------------- */
+  function renderResponsaveis() {
+    const tbody = document.getElementById("tbody-responsaveis");
+    const linhas = [];
+    RS_UNIDADES.forEach((u) => {
+      (estado.membrosPorUnidade[u.id] || []).forEach((m) => {
+        linhas.push(`<tr>
+          <td>${m.nome}</td>
+          <td>${u.nome}</td>
+          <td>${m.responsavel || "—"}</td>
+          <td>${m.parentesco || "—"}</td>
+          <td>${m.telefone || "—"}</td>
+          <td>${m.responsavel2Nome ? `${m.responsavel2Nome} (${m.responsavel2Telefone || "sem telefone"})` : "—"}</td>
+        </tr>`);
+      });
+    });
+    tbody.innerHTML = linhas.join("") || `<tr><td colspan="6" class="muted">Nenhum desbravador cadastrado ainda.</td></tr>`;
+  }
+
+  /* ---------------- Especialidades — visão geral ---------------- */
+  function renderEspecialidadesLideranca() {
+    const wrap = document.getElementById("lista-especialidades-lideranca");
+    const vazio = document.getElementById("especialidades-lideranca-vazio");
+    let total = 0;
+
+    const blocos = RS_UNIDADES.map((u) => {
+      const membros = estado.membrosPorUnidade[u.id] || [];
+      const linhasMembros = membros
+        .map((m) => {
+          const lista = fanOutEspecialidades.dados[m.id] || [];
+          total += lista.length;
+          if (!lista.length) return "";
+          const linhasEsp = lista
+            .map((e) => `<tr>
+              <td>${e.nome}</td>
+              <td><span class="pill ${e.status === "concluida" ? "pill-open" : e.status === "andamento" ? "pill-pending" : "pill-closed"}">${e.status === "concluida" ? "Concluída" : e.status === "andamento" ? "Em andamento" : "Pendente"}</span></td>
+              <td>${e.falta || "—"}</td>
+              <td>${e.materiais || "—"}</td>
+            </tr>`)
+            .join("");
+          return `<h4 style="margin:14px 0 6px; font-size:.9rem;">${m.nome}</h4>
+            <div class="table-wrap"><table class="data-table">
+              <thead><tr><th>Especialidade</th><th>Progresso</th><th>Falta</th><th>Materiais</th></tr></thead>
+              <tbody>${linhasEsp}</tbody>
+            </table></div>`;
+        })
+        .join("");
+      if (!linhasMembros) return "";
+      return `<details class="month-acc" style="margin-bottom:10px;"><summary>${u.nome}</summary><div style="padding:10px 20px 18px;">${linhasMembros}</div></details>`;
+    }).join("");
+
+    wrap.innerHTML = blocos;
+    vazio.style.display = total ? "none" : "block";
+  }
+
+  /* ---------------- Lista geral de compras ---------------- */
+  function renderCompras() {
+    const wrap = document.getElementById("lista-compras-lideranca");
+    const vazio = document.getElementById("compras-vazio");
+    const linhas = [];
+
+    RS_UNIDADES.forEach((u) => {
+      (estado.membrosPorUnidade[u.id] || []).forEach((m) => {
+        (fanOutMateriais.dados[m.id] || []).forEach((it) => {
+          linhas.push({ unidade: u.nome, membro: m.nome, membroId: m.id, unidadeId: u.id, item: it });
+        });
+      });
+    });
+
+    vazio.style.display = linhas.length ? "none" : "block";
+    wrap.innerHTML = linhas.length
+      ? `<div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Item</th><th>Desbravador</th><th>Unidade</th><th>Especialidade</th><th>Status</th><th></th></tr></thead>
+          <tbody>${linhas
+            .map(
+              ({ unidade, membro, membroId, unidadeId, item }) => `<tr class="${item.status === "comprado" ? "comprado" : ""}">
+              <td>${item.nome}</td>
+              <td>${membro}</td>
+              <td>${unidade}</td>
+              <td>${item.especialidade || "—"}</td>
+              <td><span class="pill ${item.status === "comprado" ? "pill-open" : "pill-pending"}">${item.status === "comprado" ? "Comprado" : "Pendente"}</span></td>
+              <td class="row-actions"><button data-toggle-compra="${unidadeId}:${membroId}:${item.id}:${item.status}">${item.status === "comprado" ? "Marcar pendente" : "Marcar comprado"}</button></td>
+            </tr>`
+            )
+            .join("")}</tbody>
+        </table></div>`
+      : "";
+
+    wrap.querySelectorAll("[data-toggle-compra]").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        const [uid, mid, iid, statusAtual] = btn.dataset.toggleCompra.split(":");
+        await toggleMaterial(uid, mid, iid, statusAtual === "comprado" ? "pendente" : "comprado");
+      })
+    );
+  }
+
+  /* ---------------- Planejamento das Unidades ---------------- */
+  RS_UNIDADES.forEach((u) => {
+    watchPlanejamentos(u.id, (lista) => {
+      estado.planejamentosPorUnidade[u.id] = lista;
+      renderPlanejamentoLideranca();
+      renderStats();
+    });
+  });
+
+  document.getElementById("filtro-unidade").innerHTML =
+    `<option value="">Todas as unidades</option>` + RS_UNIDADES.map((u) => `<option value="${u.id}">${u.nome}</option>`).join("");
+
+  ["filtro-unidade", "filtro-status", "filtro-data"].forEach((id) => {
+    document.getElementById(id).addEventListener("change", (e) => {
+      const chave = id.replace("filtro-", "");
+      filtros[chave] = e.target.value;
+      renderPlanejamentoLideranca();
+    });
+  });
+  document.getElementById("btn-limpar-filtros").addEventListener("click", () => {
+    filtros.unidade = ""; filtros.status = ""; filtros.data = "";
+    document.getElementById("filtro-unidade").value = "";
+    document.getElementById("filtro-status").value = "";
+    document.getElementById("filtro-data").value = "";
+    renderPlanejamentoLideranca();
+  });
+
+  function renderPlanejamentoLideranca() {
+    const todos = RS_UNIDADES.flatMap((u) =>
+      (estado.planejamentosPorUnidade[u.id] || []).map((p) => ({ ...p, unidadeId: u.id, unidadeNome: u.nome }))
+    );
+    const filtrados = todos.filter((p) =>
+      (!filtros.unidade || p.unidadeId === filtros.unidade) &&
+      (!filtros.status || p.status === filtros.status) &&
+      (!filtros.data || p.data === filtros.data)
+    );
+    filtrados.sort((a, b) => (a.data || "").localeCompare(b.data || ""));
+
+    const pendentesTotal = todos.filter((p) => p.status === "pendente").length;
+    const badge = document.getElementById("badge-pendentes");
+    badge.textContent = pendentesTotal;
+    badge.style.display = pendentesTotal ? "inline-block" : "none";
+
+    const wrap = document.getElementById("lista-planejamento-lideranca");
+    const vazio = document.getElementById("planejamento-lideranca-vazio");
+    vazio.style.display = filtrados.length ? "none" : "block";
+
+    wrap.innerHTML = filtrados
+      .map((p) => {
+        const pillClasse = p.status === "aprovado" ? "pill-open" : p.status === "recusado" ? "pill-closed" : "pill-pending";
+        return `
+        <div class="card" style="margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+            <h3 style="margin:0;">${p.titulo} <span class="muted" style="font-weight:600; font-size:.8rem;">— ${p.unidadeNome}</span></h3>
+            <span class="pill ${pillClasse}">${RS_PLANEJAMENTO_STATUS[p.status] || p.status}</span>
+          </div>
+          <p class="muted" style="margin:6px 0 0;">${fmtDataBr(p.data)} às ${p.horario || "—"} · ${p.local || "—"}</p>
+          <p style="margin:8px 0 0;"><strong>Objetivo:</strong> ${p.objetivo || "—"}</p>
+          <p style="margin:6px 0 0;">${p.descricao || ""}</p>
+          ${p.observacoes ? `<p class="muted" style="margin:6px 0 0;"><strong>Observações:</strong> ${p.observacoes}</p>` : ""}
+          ${p.status === "recusado" ? `<div class="alert alert-error show" style="margin-top:10px;"><strong>Motivo da recusa:</strong> ${p.motivoRecusa}</div>` : ""}
+          ${p.status === "pendente" ? `
+          <div style="display:flex; gap:10px; margin-top:12px;">
+            <button type="button" class="btn btn-green btn-sm" data-aprovar="${p.unidadeId}:${p.id}">✅ Aprovar</button>
+            <button type="button" class="btn btn-outline btn-sm" data-recusar="${p.unidadeId}:${p.id}" style="border-color:#c1443a; color:#c1443a;">❌ Recusar</button>
+          </div>` : ""}
+        </div>`;
+      })
+      .join("");
+
+    wrap.querySelectorAll("[data-aprovar]").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        const [uid, pid] = btn.dataset.aprovar.split(":");
+        const p = (estado.planejamentosPorUnidade[uid] || []).find((x) => x.id === pid);
+        await aprovarPlanejamento(uid, pid, p ? p.titulo : "");
+        mostrarToast("Planejamento aprovado.");
+      })
+    );
+    wrap.querySelectorAll("[data-recusar]").forEach((btn) =>
+      btn.addEventListener("click", () => abrirModalRecusa(btn.dataset.recusar))
+    );
+  }
+
+  const modalRecusa = document.getElementById("modal-recusa");
+  let recusaAlvo = null;
+  function abrirModalRecusa(chave) {
+    recusaAlvo = chave;
+    document.getElementById("recusa-motivo").value = "";
+    modalRecusa.classList.add("show");
+  }
+  document.getElementById("btn-cancelar-recusa").addEventListener("click", () => modalRecusa.classList.remove("show"));
+  document.getElementById("form-recusa").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const motivo = document.getElementById("recusa-motivo").value.trim();
+    if (!motivo || !recusaAlvo) return;
+    const [uid, pid] = recusaAlvo.split(":");
+    const p = (estado.planejamentosPorUnidade[uid] || []).find((x) => x.id === pid);
+    await recusarPlanejamento(uid, pid, p ? p.titulo : "", motivo);
+    modalRecusa.classList.remove("show");
+    mostrarToast("Planejamento recusado.");
+  });
+
+  /* ---------------- Notificações ---------------- */
+  const notifDropdown = document.getElementById("notif-dropdown");
+  watchNotificacoesLideranca((lista) => { estado.notificacoes = lista; renderNotificacoes(); });
+
+  function renderNotificacoes() {
+    const naoLidas = estado.notificacoes.filter((n) => !n.lida);
+    const badge = document.getElementById("notif-badge");
+    badge.textContent = naoLidas.length;
+    badge.style.display = naoLidas.length ? "inline-block" : "none";
+
+    const listaEl = document.getElementById("notif-lista");
+    const vazio = document.getElementById("notif-vazio");
+    vazio.style.display = estado.notificacoes.length ? "none" : "block";
+    listaEl.innerHTML = estado.notificacoes
+      .map((n) => `<div class="notif-item ${n.lida ? "" : "nao-lida"}">
+        <span>📋</span>
+        <div><p>${n.mensagem}</p></div>
+      </div>`)
+      .join("");
+  }
+
+  document.getElementById("btn-notif").addEventListener("click", () => {
+    notifDropdown.classList.toggle("show");
+    if (notifDropdown.classList.contains("show")) {
+      const idsNaoLidas = estado.notificacoes.filter((n) => !n.lida).map((n) => n.id);
+      if (idsNaoLidas.length) marcarNotificacoesLiderancaLidas(idsNaoLidas);
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".notif-wrap")) notifDropdown.classList.remove("show");
+  });
+
+  /* ---------------- Planejamento do Clube (calendário) ---------------- */
+  const calendario = { mesAtual: new Date(new Date().getFullYear(), new Date().getMonth(), 1) };
+
+  watchPlanejamentoClube((lista) => { estado.eventosClube = lista; renderCalendario(); });
+
+  document.getElementById("ev-categoria").innerHTML =
+    RS_PLANEJAMENTO_CLUBE_CATEGORIAS.map((c) => `<option value="${c}">${c}</option>`).join("");
+
+  document.getElementById("cal-anterior").addEventListener("click", () => {
+    calendario.mesAtual = new Date(calendario.mesAtual.getFullYear(), calendario.mesAtual.getMonth() - 1, 1);
+    renderCalendario();
+  });
+  document.getElementById("cal-proximo").addEventListener("click", () => {
+    calendario.mesAtual = new Date(calendario.mesAtual.getFullYear(), calendario.mesAtual.getMonth() + 1, 1);
+    renderCalendario();
+  });
+
+  function eventosNoDia(iso) {
+    return estado.eventosClube.filter((ev) => {
+      const fim = ev.dataFim || ev.data;
+      return iso >= ev.data && iso <= fim;
+    });
+  }
+
+  function renderCalendario() {
+    const ano = calendario.mesAtual.getFullYear();
+    const mes = calendario.mesAtual.getMonth();
+    document.getElementById("cal-mes-atual").textContent =
+      calendario.mesAtual.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+    const primeiroDia = new Date(ano, mes, 1);
+    const ultimoDia = new Date(ano, mes + 1, 0);
+    const offsetInicio = primeiroDia.getDay(); // 0 = domingo
+    const totalDias = ultimoDia.getDate();
+
+    const celulas = [];
+    ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].forEach((d) => celulas.push(`<div class="cal-cabecalho">${d}</div>`));
+    for (let i = 0; i < offsetInicio; i++) celulas.push(`<div class="cal-dia cal-vazio"></div>`);
+    for (let dia = 1; dia <= totalDias; dia++) {
+      const iso = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      const eventos = eventosNoDia(iso);
+      celulas.push(`<div class="cal-dia">
+        <span class="cal-numero">${dia}</span>
+        ${eventos.map((ev) => `<button type="button" class="cal-evento ${categoriaClasse(ev.categoria)}" data-evento="${ev.id}">${ev.nome}</button>`).join("")}
+      </div>`);
+    }
+
+    document.getElementById("calendario-grid").innerHTML = celulas.join("");
+    document.querySelectorAll("[data-evento]").forEach((btn) =>
+      btn.addEventListener("click", () => abrirDetalheEvento(btn.dataset.evento))
+    );
+  }
+
+  const modalEvento = document.getElementById("modal-evento");
+  const modalDetalhe = document.getElementById("modal-evento-detalhe");
+  const formEvento = document.getElementById("form-evento");
+  let eventoEmEdicao = null;
+
+  function abrirModalEvento(eventoId) {
+    eventoEmEdicao = eventoId || null;
+    const titulo = document.getElementById("modal-evento-titulo");
+    document.getElementById("btn-excluir-evento").style.display = eventoId ? "block" : "none";
+    if (eventoId) {
+      const ev = estado.eventosClube.find((x) => x.id === eventoId);
+      titulo.textContent = "Editar evento";
+      document.getElementById("ev-nome").value = ev.nome || "";
+      document.getElementById("ev-data").value = ev.data || "";
+      document.getElementById("ev-data-fim").value = ev.dataFim || "";
+      document.getElementById("ev-horario").value = ev.horario || "";
+      document.getElementById("ev-categoria").value = ev.categoria || RS_PLANEJAMENTO_CLUBE_CATEGORIAS[0];
+      document.getElementById("ev-descricao").value = ev.descricao || "";
+      document.getElementById("ev-observacoes").value = ev.observacoes || "";
+    } else {
+      titulo.textContent = "Novo evento";
+      formEvento.reset();
+    }
+    modalDetalhe.classList.remove("show");
+    modalEvento.classList.add("show");
+  }
+
+  function abrirDetalheEvento(eventoId) {
+    const ev = estado.eventosClube.find((x) => x.id === eventoId);
+    if (!ev) return;
+    document.getElementById("detalhe-nome").textContent = ev.nome;
+    document.getElementById("detalhe-data").textContent =
+      `${fmtDataBr(ev.data)}${ev.dataFim && ev.dataFim !== ev.data ? " a " + fmtDataBr(ev.dataFim) : ""}${ev.horario ? " · " + ev.horario : ""}`;
+    document.getElementById("detalhe-categoria").textContent = ev.categoria;
+    document.getElementById("detalhe-descricao").textContent = ev.descricao || "";
+    document.getElementById("detalhe-observacoes").textContent = ev.observacoes ? "Observações: " + ev.observacoes : "";
+    document.getElementById("btn-editar-evento").onclick = () => abrirModalEvento(ev.id);
+    modalDetalhe.classList.add("show");
+  }
+
+  document.getElementById("btn-novo-evento").addEventListener("click", () => abrirModalEvento(null));
+  document.getElementById("btn-cancelar-evento").addEventListener("click", () => modalEvento.classList.remove("show"));
+  document.getElementById("btn-fechar-detalhe").addEventListener("click", () => modalDetalhe.classList.remove("show"));
+  document.getElementById("btn-excluir-evento").addEventListener("click", async () => {
+    if (!eventoEmEdicao || !confirm("Excluir este evento?")) return;
+    await deleteEventoClube(eventoEmEdicao);
+    modalEvento.classList.remove("show");
+    mostrarToast("Evento excluído.");
+  });
+  formEvento.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const dados = {
+      nome: document.getElementById("ev-nome").value.trim(),
+      data: document.getElementById("ev-data").value,
+      dataFim: document.getElementById("ev-data-fim").value || "",
+      horario: document.getElementById("ev-horario").value,
+      categoria: document.getElementById("ev-categoria").value,
+      descricao: document.getElementById("ev-descricao").value.trim(),
+      observacoes: document.getElementById("ev-observacoes").value.trim(),
+    };
+    if (eventoEmEdicao) {
+      await updateEventoClube(eventoEmEdicao, dados);
+      mostrarToast("Evento atualizado.");
+    } else {
+      await addEventoClube(dados);
+      mostrarToast("Evento adicionado.");
+    }
+    modalEvento.classList.remove("show");
+  });
+
+  document.getElementById("btn-seed-planejamento").addEventListener("click", async (e) => {
+    const btn = e.target;
+    btn.disabled = true;
+    const gravou = await seedPlanejamentoClube(RS_PLANEJAMENTO_CLUBE_SEED);
+    mostrarToast(gravou ? "Planejamento padrão carregado." : "O calendário já tinha eventos — nada foi duplicado.");
+    btn.disabled = false;
   });
 
   /* ---------------- Mídia ---------------- */
@@ -296,12 +717,36 @@ function iniciarPainel() {
   function renderStats() {
     const totalMembros = RS_UNIDADES.reduce((acc, u) => acc + (estado.membrosPorUnidade[u.id] || []).length, 0);
     const ativos = estado.lavajato.filter((r) => !r.cancelado).length;
-    const cancelados = estado.lavajato.filter((r) => r.cancelado).length;
 
     document.getElementById("s-membros").textContent = totalMembros;
     document.getElementById("s-lavajato-ativos").textContent = ativos;
-    document.getElementById("s-lavajato-cancelados").textContent = cancelados;
     document.getElementById("s-midia").textContent = estado.midia.length;
+
+    const todosPlanejamentos = RS_UNIDADES.flatMap((u) => estado.planejamentosPorUnidade[u.id] || []);
+    document.getElementById("s-plan-pendentes").textContent = todosPlanejamentos.filter((p) => p.status === "pendente").length;
+    document.getElementById("s-plan-aprovados").textContent = todosPlanejamentos.filter((p) => p.status === "aprovado").length;
+    document.getElementById("s-plan-recusados").textContent = todosPlanejamentos.filter((p) => p.status === "recusado").length;
+
+    const todasEspecialidades = Object.values(fanOutEspecialidades.dados).flat();
+    document.getElementById("s-esp-andamento").textContent = todasEspecialidades.filter((e) => e.status === "andamento").length;
+    document.getElementById("s-esp-concluidas").textContent = todasEspecialidades.filter((e) => e.status === "concluida").length;
+
+    const todosMateriais = Object.values(fanOutMateriais.dados).flat();
+    document.getElementById("s-materiais-pendentes").textContent = todosMateriais.filter((m) => m.status !== "comprado").length;
+
+    const todosMembros = RS_UNIDADES.flatMap((u) => estado.membrosPorUnidade[u.id] || []);
+    const semEspecialidade = todosMembros.filter((m) => !(fanOutEspecialidades.dados[m.id] || []).length).length;
+    document.getElementById("s-sem-especialidade").textContent = semEspecialidade;
+
+    const cadastroIncompleto = todosMembros.filter((m) => !m.responsavel || !m.telefone).length;
+    document.getElementById("s-cadastro-incompleto").textContent = cadastroIncompleto;
+
+    let responsaveisSemTelefone = 0;
+    todosMembros.forEach((m) => {
+      if (m.responsavel && !m.telefone) responsaveisSemTelefone++;
+      if (m.responsavel2Nome && !m.responsavel2Telefone) responsaveisSemTelefone++;
+    });
+    document.getElementById("s-resp-sem-telefone").textContent = responsaveisSemTelefone;
   }
 
   /* ---------------- Backup ---------------- */
