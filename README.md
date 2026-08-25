@@ -8,6 +8,12 @@ HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pag
 
 ## 📝 O que mudou na última atualização
 
+- **O site tinha parado de novo**: o arquivo `assets/js/firebase.js` (o "coração" do site — é ele que conecta tudo ao Firebase) tinha sido sobrescrito por engano com outro conteúdo que não é código válido, quebrando login, painéis e Mídia ao mesmo tempo. Já corrigido — veja o novo item no checklist de erros comuns logo abaixo pra reconhecer esse sintoma se acontecer de novo.
+- **Mídia agora é upload manual, com download em resolução completa**: em vez de colar o link de uma pasta do Google Drive, a liderança clica em **"+ Nova pasta"** no painel, dá um nome, e sobe as fotos direto pelo site (**"Adicionar fotos"**, escolhe uma ou várias imagens do computador/celular). As fotos ficam guardadas no **Firebase Storage** (armazenamento de arquivos do próprio Firebase, também gratuito). Qualquer visitante vê a pasta em `Mídia`, clica numa foto pra ampliar e tem um botão **Baixar** que entrega o arquivo **original, sem nenhum redimensionamento** — a mesma resolução que foi enviada. Limite de 15MB por foto, só arquivos de imagem. Pastas antigas que ainda tinham link do Drive continuam funcionando normalmente (mostram "Abrir no Drive ↗").
+- Isso exige um passo novo e manual no Firebase Console: **ativar o Storage** (veja o passo 1.6 abaixo) — sem isso, o upload de fotos falha mesmo com o código certo.
+
+### Rodada anterior
+
 Essa foi uma atualização grande — 6 áreas novas, pensadas pra dar mais autonomia pras unidades e uma visão central pra liderança:
 
 - **Planejamento das Unidades**: cada unidade cria propostas de planejamento (título, data, horário, local, objetivo, descrição, observações) e envia pra liderança aprovar. A liderança vê todas as propostas de todas as unidades, com filtros por unidade/status/data, e pode **Aprovar** ou **Recusar** (recusar exige escrever o motivo). A unidade recebe um aviso (sino de notificações) com o resultado — se for recusada, vê o motivo, corrige e reenvia (volta pra pendente); depois de aprovada, a proposta não pode mais ser editada.
@@ -18,11 +24,11 @@ Essa foi uma atualização grande — 6 áreas novas, pensadas pra dar mais auto
 - **Dashboard da liderança**: o painel da liderança ganhou vários indicadores novos (unidades, desbravadores, planejamentos pendentes/aprovados/recusados, especialidades em andamento/concluídas, materiais a comprar, desbravadores sem especialidade cadastrada, cadastros incompletos, responsáveis sem telefone) — tudo num lugar só, sem precisar entrar unidade por unidade.
 - **Notificações**: um sino no topo dos dois painéis mostra avisos (planejamento aprovado/recusado pra unidade, novo planejamento enviado pra liderança), com contador de não lidas. É só dentro do site (sem WhatsApp/e-mail de verdade — isso exigiria habilitar o plano pago do Firebase, o que sairia da promessa de "tudo de graça").
 
-### Rodada anterior
+### Rodadas anteriores a essa
 
 - **Lava-Jato voltou a ter agenda**: a página mostra os próximos domingos num grid — cinza com o número de vagas livres, laranja quando lota (só aceitamos **5 carros por domingo**), vermelho quando a liderança fecha o dia. Quem for se cadastrar escolhe o domingo (só aparecem datas com vaga). No painel da liderança, clicar num domingo aberto fecha ele (com um motivo opcional, tipo "sem lavagem esse domingo") — e clicar de novo reabre. Isso já empurra o pessoal a se agendar pro próximo domingo em vez do que foi fechado.
 - **Desbravadores podem ter o tipo sanguíneo registrado** (campo opcional no cadastro, dentro do painel da unidade) — bom ter à mão, mas não é obrigatório preencher.
-- **Mídia agora mostra as fotos direto no site**: a liderança continua só colando o link da pasta do Google Drive, mas a página pública busca e exibe as fotos da pasta automaticamente (numa grade, com uma foto ampliada ao clicar e um botão de baixar) — não depende mais de abrir o Drive pra ver. Isso exige uma chave de API gratuita do Google (passo 1.5 abaixo); sem ela, a pasta cai de volta pra só um link "Abrir no Drive".
+- **Mídia passou a mostrar as fotos direto no site** (buscando de uma pasta do Google Drive por link) — *substituído na atualização mais recente por upload manual direto no site, veja o topo desta seção*.
 
 ### Mudanças de rodadas anteriores
 
@@ -39,7 +45,12 @@ Essa foi uma atualização grande — 6 áreas novas, pensadas pra dar mais auto
 Se alguma coisa não estiver funcionando depois de você mexer na configuração, comece por aqui:
 
 **"O site inteiro parou de responder — botões, login, tudo."**
-→ Quase sempre é um erro de sintaxe em `assets/js/firebase.js`. A causa mais comum: colar a configuração nova **por cima** do arquivo (sem apagar o conteúdo antigo primeiro), duplicando `firebaseConfig`, `app`, `auth`, `db`. Abra o arquivo e confira se cada um desses aparece **uma única vez**. Se tiver duplicado, apague tudo e cole de novo — o conteúdo novo deve **substituir** o arquivo inteiro, não ser adicionado no topo dele.
+→ Quase sempre é um erro de sintaxe em `assets/js/firebase.js`. A causa mais comum: colar algum outro conteúdo **por cima** do arquivo (sem apagar o conteúdo antigo primeiro) em vez de substituí-lo inteiro. Isso já aconteceu de três formas diferentes neste projeto — todas com o mesmo sintoma e a mesma correção:
+  - Duplicando `firebaseConfig`, `app`, `auth`, `db` (colou a config nova sem apagar a antiga).
+  - Com o conteúdo do arquivo `firestore.rules` colado dentro dele por engano (`firebase.js` é **JavaScript** — as chaves do site; `firestore.rules` é a **linguagem de regras do Firestore** — nunca colar o conteúdo de um dentro do outro).
+  - Com pedaços de um `git diff` colados dentro (sinal claro: linhas começando com `@@ -alguma coisa @@`, ou o mesmo trecho de código aparecendo repetido/fora de ordem no arquivo).
+
+  Em qualquer um desses casos, abra `assets/js/firebase.js` e confira se `firebaseConfig`, `app`, `auth`, `db` e `storage` aparecem **uma única vez** cada, e se o arquivo só tem JavaScript (nada de `service cloud.firestore`, nada de `@@`). Se estiver estranho, apague tudo e cole de novo o conteúdo do passo 1.4 abaixo — o conteúdo novo deve **substituir** o arquivo inteiro, não ser adicionado no topo dele.
 
 **"Consigo abrir o site, mas o login não aparece / os botões não fazem nada."**
 → Mesma causa acima na maioria das vezes: algum arquivo `.js` com erro de sintaxe quebra o carregamento de todos os outros (eles dependem uns dos outros). Abra o site, aperte F12 (ferramentas do desenvolvedor) → aba **Console** → veja se aparece algo em vermelho tipo "Uncaught SyntaxError" e em qual arquivo.
@@ -56,8 +67,11 @@ Se alguma coisa não estiver funcionando depois de você mexer na configuração
 **"O Firebase Console recusa publicar as regras (`firestore.rules`), ou dá um erro de sintaxe ao colar."**
 → Mesmo problema do `firebase.js` acima, só que no arquivo de regras: alguém colou um conteúdo novo **por cima** do antigo, em vez de apagar tudo e colar de novo — isso duplica o bloco `service cloud.firestore { ... }`, e regras do Firestore só aceitam **um** bloco desses por arquivo. Se isso acontecer, abra o arquivo e confira se a palavra `service` aparece **uma única vez**; se aparecer duas vezes, o arquivo está com conteúdo duplicado e precisa ser substituído inteiro pela versão certa (a que está neste repositório).
 
-**"As fotos da Mídia não aparecem, só o link 'Abrir no Drive'."**
-→ Confira três coisas, nessa ordem: (1) a chave `RS_GOOGLE_DRIVE_API_KEY` em `assets/js/data.js` está preenchida (veja o passo 1.5 abaixo); (2) a pasta do Drive está compartilhada como **"Qualquer pessoa com o link" → Leitor**, não só com pessoas específicas; (3) a **Google Drive API** está ativada no mesmo projeto do Google Cloud da sua chave. Sem isso, o site cai de volta pro link — não é um erro, é o comportamento esperado quando a busca não funciona.
+**"Não consigo subir fotos na Mídia / dá erro de permissão ao enviar."**
+→ O **Storage** do Firebase provavelmente não foi ativado, ou o arquivo `storage.rules` não foi publicado — veja o passo 1.6 abaixo. Sem isso, o upload falha mesmo com o código do site certinho.
+
+**"Uma pasta antiga de Mídia só mostra o link 'Abrir no Drive', em vez das fotos."**
+→ Isso é esperado — é uma pasta criada antes da mudança pra upload manual (quando a Mídia ainda buscava fotos de uma pasta do Google Drive por link). Ela continua funcionando como estava; se quiser trocar pra fotos direto no site, crie uma pasta nova pelo painel e suba as fotos nela.
 
 **"O Lava Jato diz que um domingo está lotado/fechado e não deixa cadastrar."**
 → Isso é esperado: só aceitamos 5 carros por domingo, e a liderança pode fechar um domingo específico pelo painel. A pessoa pode escolher outro domingo em aberto na mesma agenda.
@@ -107,18 +121,15 @@ O site precisa de um projeto Firebase gratuito pra funcionar. Leva uns 10-15 min
 
 Essas chaves **não são segredo** — é normal elas aparecerem no código de um app Firebase. Quem protege os dados de verdade são as regras do Firestore (passo 1.3), não esconder essas chaves.
 
-### 1.5. (Opcional) Ativar a exibição automática das fotos da Mídia
+### 1.6. Ativar o Storage (necessário para a Mídia)
 
-Sem esse passo o site continua funcionando normalmente — só que a página de Mídia mostra um link "Abrir no Drive" em vez das fotos. Pra mostrar as fotos direto no site:
+O Storage é onde ficam guardadas as fotos que a liderança sobe pela página de Mídia. Sem esse passo, o upload de fotos falha (mesmo o resto do site funcionando normalmente):
 
-1. No [Google Cloud Console](https://console.cloud.google.com/apis/library/drive.googleapis.com), selecione o **mesmo projeto** que você criou no Firebase (Firebase e Google Cloud são o mesmo projeto por trás) e clique **Ativar** na Drive API.
-2. Vá em **APIs e Serviços → Credenciais → Criar credenciais → Chave de API**.
-3. (Recomendado) Clique na chave criada → em **Restrições do aplicativo**, escolha **Sites** e adicione o endereço do seu site (ex.: `https://seu-usuario.github.io/*`) — assim ninguém mais consegue usar sua chave. Em **Restrições de API**, marque só a **Google Drive API**.
-4. Copie a chave e cole no arquivo [`assets/js/data.js`](./assets/js/data.js), na linha `export const RS_GOOGLE_DRIVE_API_KEY = ""`, entre as aspas.
-5. Toda pasta que a liderança cadastrar em Mídia precisa estar compartilhada no Drive como **"Qualquer pessoa com o link" → Leitor** — senão a API não consegue ler o conteúdo dela.
-6. Salve, faça commit e push.
+1. No menu lateral: **Compilação → Storage → Introdução**.
+2. Escolha uma localização (a mesma região que você usou no Firestore, ex. `southamerica-east1`) → **Concluído**.
+3. Vá na aba **Regras (Rules)**, apague o conteúdo e cole o conteúdo do arquivo [`storage.rules`](./storage.rules) deste repositório → **Publicar**.
 
-Essa chave também não é segredo (é só de leitura pública, e dá pra restringir por site como no passo 3) — mas mesmo assim vale restringir pra evitar que outra pessoa gaste a sua cota gratuita da API.
+Isso limita o upload à liderança, só arquivos de imagem, até 15MB cada — o mesmo tipo de regra de segurança já usada no Firestore (passo 1.3).
 
 ## 2. Publicar no GitHub Pages
 
@@ -128,12 +139,14 @@ Essa chave também não é segredo (é só de leitura pública, e dá pra restri
 
 ## Mídia (fotos e vídeos)
 
-O site não guarda arquivos (isso não caberia num site gratuito sem servidor de armazenamento) — as fotos continuam morando no Google Drive, mas aparecem direto na página do site:
+As fotos ficam guardadas no **Firebase Storage** (armazenamento de arquivos do próprio Firebase, gratuito até 5GB de espaço e 1GB de download por dia — de sobra pro volume de um clube pequeno):
 
-1. Suba as fotos/vídeos do evento numa pasta do **Google Drive** (gratuito).
-2. Compartilhe a pasta como **"Qualquer pessoa com o link" → Leitor**.
-3. No painel da liderança → **Mídia**, coloque o nome da pasta + o link.
-4. A pasta aparece automaticamente na página pública de **Mídia**, com uma grade das fotos de dentro dela — dá pra ampliar cada uma e baixar, sem precisar abrir o Drive. Isso só funciona com a chave de API configurada (passo 1.5); sem ela, aparece um botão "Abrir no Drive" no lugar.
+1. No painel da liderança → **Mídia** → **+ Nova pasta**, dê um nome (ex.: "Acampamento 2026").
+2. Abra a pasta criada e clique **Adicionar fotos** — escolha uma ou várias imagens do computador/celular (até 15MB cada).
+3. A pasta aparece automaticamente na página pública de **Mídia**, com uma grade das fotos. Qualquer visitante clica numa foto pra ampliar e tem um botão **Baixar** que entrega o arquivo **original, sem redimensionar** — a mesma resolução que foi enviada.
+4. Pra remover uma foto ou a pasta inteira, use os botões de excluir no painel da liderança.
+
+Requer o Storage ativado no Firebase (passo 1.6 acima). Pastas antigas que ainda tinham um link do Google Drive continuam mostrando o botão "Abrir no Drive ↗" normalmente.
 
 ## Contas de acesso (login)
 
