@@ -1,83 +1,155 @@
-/* =========================================================
-   FIREBASE — RAÍZES DO SERTÃO
-   ========================================================= */
+rules_version = '2';
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+/* Regras de segurança do Firestore para o site Raízes do Sertão.
+   Cole este conteúdo em: Console do Firebase → Firestore Database
+   → Regras (Rules) → Publicar.
 
-import {
-  getAuth,
-  connectAuthEmulator
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+   Como funciona: cada conta (liderança e cada unidade) é um
+   e-mail "sintético" do tipo <usuario>@raizesdosertao.app criado
+   no Authentication. As regras conferem esse e-mail pra decidir
+   quem pode ler/escrever em cada coleção. */
 
-import {
-  getFirestore,
-  connectFirestoreEmulator
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+service cloud.firestore {
+  match /databases/{database}/documents {
 
+    function estaLogado() {
+      return request.auth != null;
+    }
+    function eLideranca() {
+      return estaLogado() && request.auth.token.email == 'lideranca@raizesdosertao.app';
+    }
+    function eDaUnidade(unidadeId) {
+      return estaLogado() && request.auth.token.email == unidadeId + '@raizesdosertao.app';
+    }
 
-/* =========================================================
-   CONFIGURAÇÃO
-   ========================================================= */
+    // Configurações públicas (ex.: data do Campori) — qualquer
+    // visitante pode ler, só a liderança pode alterar.
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if eLideranca();
+    }
 
-export const firebaseConfig = {
-  apiKey: "AIzaSyBPqAi0WzOzACn-heh6tNo73cdhzTaWjDA",
-  authDomain: "raizes-do-sertao-7d82c.firebaseapp.com",
-  projectId: "raizes-do-sertao-7d82c",
-  storageBucket: "raizes-do-sertao-7d82c.firebasestorage.app",
-  messagingSenderId: "983565125063",
-  appId: "1:983565125063:web:2611f8afd77d652b8505e2"
-};
+    // Pastas de mídia (links do Google Drive/Fotos) — públicas
+    // pra leitura, só a liderança publica/edita/remove.
+    match /midia/{pastaId} {
+      allow read: if true;
+      allow write: if eLideranca();
+    }
 
+    // Lava Jato: qualquer visitante pode criar um cadastro (não
+    // precisa estar logado). Só a liderança lê a lista completa
+    // (protege telefone/placa dos clientes de ficarem públicos).
+    // Cancelamento: liberado pra quem tiver o ID do próprio
+    // cadastro (guardado no navegador de quem se cadastrou) OU
+    // pela liderança — mas só pode alterar os campos de
+    // cancelamento, nada mais.
+    match /lavajato/{registroId} {
+      allow create: if true;
+      allow read: if eLideranca();
+      allow update: if eLideranca() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelado', 'canceladoEm']) &&
+        request.resource.data.cancelado == true
+      );
+      allow delete: if eLideranca();
+    }
 
-/* =========================================================
-   FIREBASE
-   ========================================================= */
+    // Agenda pública do Lava Jato: um documento por domingo (ID =
+    // "AAAA-MM-DD") com só o resumo — vagas ocupadas de um total
+    // fixo de 5, e se a liderança fechou o dia. Qualquer visitante
+    // pode ler (pra ver a agenda) e reservar/liberar 1 vaga por vez
+    // (ao cadastrar ou cancelar um atendimento); só a liderança
+    // pode abrir/fechar um domingo ou mudar o total de vagas.
+    match /lavajato_domingos/{data} {
+      allow read: if true;
+      allow write: if eLideranca();
 
-export const firebaseConfigurado = true;
+      allow create: if
+        request.resource.data.keys().hasOnly(['fechado', 'vagasTotal', 'vagasOcupadas']) &&
+        request.resource.data.fechado == false &&
+        request.resource.data.vagasTotal == 5 &&
+        request.resource.data.vagasOcupadas == 1;
 
-export const app = initializeApp(firebaseConfig);
+      allow update: if
+        request.resource.data.fechado == resource.data.fechado &&
+        request.resource.data.vagasTotal == resource.data.vagasTotal &&
+        (
+          (
+            request.resource.data.vagasOcupadas == resource.data.vagasOcupadas + 1 &&
+            resource.data.fechado == false &&
+            resource.data.vagasOcupadas < resource.data.vagasTotal
+          ) ||
+          request.resource.data.vagasOcupadas == resource.data.vagasOcupadas - 1
+        );
+    }
 
-export const auth = getAuth(app);
+    // Desbravadores de cada unidade — só a própria unidade e a
+    // liderança podem ler e escrever; outras unidades não têm
+    // acesso nenhum aos dados de uma unidade que não é a sua.
+    match /unidades/{unidadeId}/membros/{membroId} {
+      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+    }
 
-export const db = getFirestore(app);
+    // Registros de requisitos por desbravador (histórico de
+    // lançamentos individuais) — mesma regra dos membros.
+    match /unidades/{unidadeId}/membros/{membroId}/registros/{registroId} {
+      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+    }
 
+    // Especialidades e "o que falta comprar" de cada desbravador —
+    // mesma regra dos membros.
+    match /unidades/{unidadeId}/membros/{membroId}/especialidades/{espId} {
+      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+    }
+    match /unidades/{unidadeId}/membros/{membroId}/materiais/{itemId} {
+      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+    }
 
-/* =========================================================
-   EMULADOR LOCAL
-   ========================================================= */
+    // Planejamento das Unidades: a unidade cria a proposta sempre
+    // como "pendente" (não pode se auto-aprovar). Só a liderança
+    // aprova/recusa. A unidade pode editar/reenviar enquanto não
+    // estiver aprovado — editar sempre devolve pra "pendente".
+    match /unidades/{unidadeId}/planejamentos/{planId} {
+      allow read: if estaLogado();
+      allow create: if eDaUnidade(unidadeId) &&
+        request.resource.data.status == 'pendente' &&
+        request.resource.data.keys().hasAll(['titulo', 'data', 'horario', 'local', 'objetivo', 'descricao', 'status']);
+      allow update: if eLideranca() || (
+        eDaUnidade(unidadeId) &&
+        resource.data.status != 'aprovado' &&
+        request.resource.data.status == 'pendente'
+      );
+      allow delete: if eLideranca() || (eDaUnidade(unidadeId) && resource.data.status != 'aprovado');
+    }
 
-const usandoEmulador =
-  typeof window !== "undefined" &&
-  new URLSearchParams(window.location.search).has("emulator");
+    // Notificações pra unidade (aviso de planejamento aprovado ou
+    // recusado) — só a liderança cria, a própria unidade só lê e
+    // marca como lida.
+    match /unidades/{unidadeId}/notificacoes/{notifId} {
+      allow read, update: if eLideranca() || eDaUnidade(unidadeId);
+      allow create: if eLideranca();
+      allow delete: if eLideranca();
+    }
 
+    // Notificações pra liderança (aviso de novo planejamento
+    // enviado) — qualquer unidade logada pode criar (ao enviar um
+    // planejamento), só a liderança lê/gerencia.
+    match /notificacoesLideranca/{notifId} {
+      allow read, update, delete: if eLideranca();
+      allow create: if estaLogado();
+    }
 
-if (usandoEmulador) {
+    // Planejamento do Clube (calendário privado) — qualquer conta
+    // logada (liderança ou unidade) pode ler; só a liderança
+    // adiciona, edita ou remove eventos.
+    match /planejamentoClube/{eventoId} {
+      allow read: if estaLogado();
+      allow write: if eLideranca();
+    }
 
-  try {
-
-    connectAuthEmulator(
-      auth,
-      "http://127.0.0.1:9099",
-      {
-        disableWarnings: true
-      }
-    );
-
-    connectFirestoreEmulator(
-      db,
-      "127.0.0.1",
-      8080
-    );
-
-    console.log("Firebase Emulator ativado.");
-
-  } catch (erro) {
-
-    console.warn(
-      "Erro ao conectar aos emuladores:",
-      erro
-    );
-
+    // Qualquer outra coleção não prevista acima fica bloqueada
+    // por padrão.
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
-
 }
