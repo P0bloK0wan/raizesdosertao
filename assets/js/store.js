@@ -4,12 +4,15 @@
    cuida de tudo, no plano gratuito.
    ========================================================= */
 
-import { db } from "./firebase.js";
-import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, extrairIdPastaDrive } from "./data.js";
+import { db, storage } from "./firebase.js";
+import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO } from "./data.js";
 import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDoc, getDocs,
   onSnapshot, serverTimestamp, orderBy, query, runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import {
+  ref, uploadBytes, getDownloadURL, listAll, deleteObject,
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
 /* ---------- tema (só de exibição, pode ficar local) ---------- */
 export function getTheme() {
@@ -329,24 +332,43 @@ export function watchLavaJato(cb) {
   });
 }
 
-/* ---------- Mídia: pastas do Google Drive (pública) ----------
-   As fotos de dentro da pasta são buscadas direto no navegador do
-   visitante via Drive API (ver assets/js/midia-drive.js). */
+/* ---------- Mídia: pastas com fotos enviadas direto pelo painel ----------
+   A pasta em si é só um nome no Firestore; as fotos ficam no
+   Firebase Storage, em "midia/{pastaId}/{nomeDoArquivo}" — sem
+   redimensionar nada, então baixar sempre pega o arquivo original.
+   Pastas antigas (criadas quando a Mídia usava link do Google
+   Drive) ainda têm o campo "link" — tratado como caso legado nas
+   páginas que exibem a Mídia. */
 export function watchMidia(cb) {
   return onSnapshot(query(collection(db, "midia"), orderBy("criadoEm", "asc")), (snap) => {
     cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   });
 }
-export function addPastaMidia(nome, link) {
-  return addDoc(collection(db, "midia"), {
-    nome,
-    link,
-    folderId: extrairIdPastaDrive(link),
-    criadoEm: serverTimestamp(),
+export function addPastaMidia(nome) {
+  return addDoc(collection(db, "midia"), { nome, criadoEm: serverTimestamp() });
+}
+export async function deletePastaMidia(pastaId) {
+  const fotos = await listarFotosMidia(pastaId);
+  await Promise.all(fotos.map((f) => deleteFotoMidia(pastaId, f.nome)));
+  await deleteDoc(doc(db, "midia", pastaId));
+}
+
+/* contentDisposition "attachment" garante que o botão de baixar
+   force o download do arquivo original (em vez de só abrir a foto
+   numa aba), já que o Storage fica num domínio diferente do site. */
+export function uploadFotoMidia(pastaId, arquivo) {
+  return uploadBytes(ref(storage, `midia/${pastaId}/${arquivo.name}`), arquivo, {
+    contentDisposition: `attachment; filename="${arquivo.name}"`,
   });
 }
-export function deletePastaMidia(pastaId) {
-  return deleteDoc(doc(db, "midia", pastaId));
+export async function listarFotosMidia(pastaId) {
+  const lista = await listAll(ref(storage, `midia/${pastaId}`));
+  return Promise.all(
+    lista.items.map(async (item) => ({ nome: item.name, url: await getDownloadURL(item) }))
+  );
+}
+export function deleteFotoMidia(pastaId, nomeArquivo) {
+  return deleteObject(ref(storage, `midia/${pastaId}/${nomeArquivo}`));
 }
 
 /* ---------- Campori: data do evento (configurável pela liderança) ---------- */

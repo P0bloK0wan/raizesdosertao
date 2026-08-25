@@ -18,7 +18,7 @@
     <div class="section-head">
       <span class="eyebrow">Registros</span>
       <h1>Mídia</h1>
-      <p>Fotos e vídeos dos nossos eventos, acampamentos e edições do Lava Jato — organizados em pastas pela diretoria.</p>
+      <p>Fotos dos nossos eventos, acampamentos e edições do Lava Jato — organizadas em pastas pela diretoria. Clique numa foto pra ampliar e baixar em resolução completa.</p>
     </div>
     <div id="midia-pastas"></div>
   </div>
@@ -33,8 +33,7 @@
 <div data-site-footer></div>
 
 <script type="module">
-  import { watchMidia } from "./assets/js/store.js";
-  import { buscarFotosDaPasta } from "./assets/js/midia-drive.js";
+  import { watchMidia, listarFotosMidia } from "./assets/js/store.js";
 
   const wrap = document.getElementById("midia-pastas");
   const lightbox = document.getElementById("lightbox");
@@ -42,9 +41,9 @@
   const lightboxBaixar = document.getElementById("lightbox-baixar");
 
   function abrirLightbox(foto) {
-    lightboxImg.src = foto.visualizar;
+    lightboxImg.src = foto.url;
     lightboxImg.alt = foto.nome;
-    lightboxBaixar.href = foto.baixar;
+    lightboxBaixar.href = foto.url;
     lightbox.classList.add("show");
   }
   function fecharLightbox() {
@@ -54,29 +53,34 @@
   document.getElementById("lightbox-fechar").addEventListener("click", fecharLightbox);
   lightbox.addEventListener("click", (e) => { if (e.target === lightbox) fecharLightbox(); });
 
-  function cardPasta(p, fotos) {
-    if (!fotos || !fotos.length) {
-      return `
-        <div class="pasta-bloco">
-          <div class="pasta-cabecalho">
-            <h3>📁 ${p.nome}</h3>
-            <a class="btn btn-outline btn-sm" href="${p.link}" target="_blank" rel="noopener">Abrir no Drive ↗</a>
-          </div>
-          <div class="empty-state">Não deu pra carregar as fotos dessa pasta aqui — clique em "Abrir no Drive" pra ver.</div>
-        </div>`;
-    }
-
-    const grade = fotos.map((f) => `
-      <button class="foto-thumb" data-foto-id="${f.id}" aria-label="Ver foto ${f.nome}">
-        <img src="${f.miniatura}" alt="${f.nome}" loading="lazy">
-      </button>`).join("");
-
+  function cardPastaAntiga(p) {
     return `
       <div class="pasta-bloco">
         <div class="pasta-cabecalho">
           <h3>📁 ${p.nome}</h3>
           <a class="btn btn-outline btn-sm" href="${p.link}" target="_blank" rel="noopener">Abrir no Drive ↗</a>
         </div>
+        <div class="empty-state">Essa pasta ainda usa o link antigo do Google Drive.</div>
+      </div>`;
+  }
+
+  function cardPasta(p, fotos) {
+    if (!fotos.length) {
+      return `
+        <div class="pasta-bloco">
+          <div class="pasta-cabecalho"><h3>📁 ${p.nome}</h3></div>
+          <div class="empty-state">Nenhuma foto nessa pasta ainda.</div>
+        </div>`;
+    }
+
+    const grade = fotos.map((f) => `
+      <button class="foto-thumb" data-foto-nome="${f.nome}" aria-label="Ver foto ${f.nome}">
+        <img src="${f.url}" alt="${f.nome}" loading="lazy">
+      </button>`).join("");
+
+    return `
+      <div class="pasta-bloco">
+        <div class="pasta-cabecalho"><h3>📁 ${p.nome}</h3></div>
         <div class="foto-grid" data-fotos="${p.id}">${grade}</div>
       </div>`;
   }
@@ -89,16 +93,18 @@
 
     wrap.innerHTML = `<div class="empty-state">Carregando fotos...</div>`;
     const comFotos = await Promise.all(
-      pastas.map(async (p) => ({ pasta: p, fotos: await buscarFotosDaPasta(p.folderId) }))
+      pastas.map(async (p) => ({ pasta: p, fotos: p.link ? null : await listarFotosMidia(p.id) }))
     );
-    wrap.innerHTML = comFotos.map(({ pasta, fotos }) => cardPasta(pasta, fotos)).join("");
+    wrap.innerHTML = comFotos
+      .map(({ pasta, fotos }) => (fotos === null ? cardPastaAntiga(pasta) : cardPasta(pasta, fotos)))
+      .join("");
 
     comFotos.forEach(({ pasta, fotos }) => {
       if (!fotos) return;
       const el = wrap.querySelector(`[data-fotos="${pasta.id}"]`);
       if (!el) return;
-      el.querySelectorAll("[data-foto-id]").forEach((btn) => {
-        const foto = fotos.find((f) => f.id === btn.dataset.fotoId);
+      el.querySelectorAll("[data-foto-nome]").forEach((btn) => {
+        const foto = fotos.find((f) => f.nome === btn.dataset.fotoNome);
         if (foto) btn.addEventListener("click", () => abrirLightbox(foto));
       });
     });

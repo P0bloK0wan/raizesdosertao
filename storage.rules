@@ -1,0 +1,29 @@
+rules_version = '2';
+
+/* Regras de segurança do Firebase Storage para o site Raízes do
+   Sertão. Cole este conteúdo em: Console do Firebase → Storage →
+   Regras (Rules) → Publicar.
+
+   Guarda as fotos da página de Mídia, enviadas direto pelo painel
+   da liderança. Qualquer visitante pode ver/baixar; só a liderança
+   pode enviar ou excluir, e só arquivos de imagem até 15MB. */
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    match /midia/{pastaId}/{arquivo} {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        request.auth.token.email == 'lideranca@raizesdosertao.app' &&
+        request.resource.size < 15 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null &&
+        request.auth.token.email == 'lideranca@raizesdosertao.app';
+    }
+
+    // Qualquer outro caminho não previsto acima fica bloqueado.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

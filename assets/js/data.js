@@ -96,25 +96,12 @@ export function rsProximosDomingos(qtd = 8) {
 export const RS_TIPOS_SANGUINEOS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 /* =========================================================
-   Mídia: exibição automática das fotos de uma pasta do Google
-   Drive, usando a API pública do Drive (Drive API v3).
-
-   Pra funcionar, é preciso: (1) criar uma chave de API no Google
-   Cloud Console com a Drive API ativada (veja o README), e (2)
-   colar essa chave abaixo. Sem isso, a página de Mídia ainda
-   funciona — só mostra um link "Abrir no Drive" em vez das fotos. */
-export const RS_GOOGLE_DRIVE_API_KEY = "AIzaSyBXBh7pAfMwllIKXi__jW5mK_gLnVYiQPE";
-
-/* Extrai o ID da pasta a partir de um link do Google Drive
-   (ex.: https://drive.google.com/drive/folders/<ID>?usp=sharing).
-   Se o texto colado já for só o ID, devolve ele mesmo. */
-export function extrairIdPastaDrive(link) {
-  if (!link) return "";
-  const m = link.match(/\/folders\/([a-zA-Z0-9_-]+)/);
-  if (m) return m[1];
-  const m2 = link.match(/^[a-zA-Z0-9_-]{10,}$/);
-  return m2 ? link.trim() : "";
-}
+   Mídia: fotos enviadas direto no painel da liderança, guardadas
+   no Firebase Storage (sem redimensionar nada — baixar sempre
+   pega o arquivo original). Mesmo limite de tamanho usado na
+   validação do formulário e em storage.rules.
+   ========================================================= */
+export const RS_MIDIA_TAMANHO_MAXIMO_MB = 15;
 
 /* =========================================================
    Contas de acesso.

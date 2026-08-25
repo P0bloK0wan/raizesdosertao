@@ -177,13 +177,8 @@
         <h2>Mídia</h2>
         <button class="btn btn-primary btn-sm" id="btn-nova-pasta">+ Nova pasta</button>
       </div>
-      <p class="muted">Crie uma pasta com o link do Google Drive do evento (compartilhada como "qualquer pessoa com o link"). As fotos aparecem automaticamente na página pública de Mídia, sem precisar sair do site.</p>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Pasta</th><th>Link</th><th></th></tr></thead>
-          <tbody id="tbody-midia"></tbody>
-        </table>
-      </div>
+      <p class="muted">Crie uma pasta e envie as fotos direto por aqui (até 15MB cada). Elas aparecem na hora na página pública de Mídia, e qualquer visitante consegue baixar o arquivo original em resolução completa.</p>
+      <div id="lista-midia"></div>
       <div class="empty-state" id="midia-vazio" style="display:none;">Nenhuma pasta publicada ainda.</div>
     </section>
 
@@ -226,7 +221,6 @@
     <h2>Nova pasta de mídia</h2>
     <form id="form-pasta">
       <div class="field"><label>Nome da pasta</label><input type="text" id="pa-nome" placeholder="ex.: Acampamento 2026" required></div>
-      <div class="field"><label>Link do Google Drive (ou Google Fotos)</label><input type="url" id="pa-link" placeholder="https://..." required></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-pasta">Cancelar</button>
         <button type="submit" class="btn btn-primary btn-block">Publicar</button>

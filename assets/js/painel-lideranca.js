@@ -5,6 +5,7 @@
 import {
   RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, rsProximosDomingos,
   RS_PLANEJAMENTO_STATUS, RS_PLANEJAMENTO_CLUBE_CATEGORIAS, RS_PLANEJAMENTO_CLUBE_SEED,
+  RS_MIDIA_TAMANHO_MAXIMO_MB,
 } from "./data.js";
 import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
@@ -16,7 +17,7 @@ import {
   watchPlanejamentos, aprovarPlanejamento, recusarPlanejamento,
   watchNotificacoesLideranca, marcarNotificacoesLiderancaLidas,
   watchPlanejamentoClube, addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
-  watchMidia, addPastaMidia, deletePastaMidia,
+  watchMidia, addPastaMidia, deletePastaMidia, uploadFotoMidia, listarFotosMidia, deleteFotoMidia,
   watchCampori, setCamporiData,
   exportarBackup,
 } from "./store.js";
@@ -666,27 +667,119 @@ function iniciarPainel() {
   });
 
   /* ---------------- Mídia ---------------- */
-  watchMidia((pastas) => { estado.midia = pastas; renderMidia(); renderStats(); });
+  const fotosPorPasta = {}; // pastaId -> [{nome, url}]
+  const midiaAbertas = new Set();
+
+  watchMidia((pastas) => {
+    estado.midia = pastas;
+    pastas.forEach((p) => {
+      if (p.link || fotosPorPasta[p.id]) return; // pasta antiga (Drive) não tem fotos no Storage
+      carregarFotosPasta(p.id);
+    });
+    renderMidia();
+    renderStats();
+  });
+
+  async function carregarFotosPasta(pastaId) {
+    fotosPorPasta[pastaId] = await listarFotosMidia(pastaId);
+    renderMidia();
+    renderStats();
+  }
 
   function renderMidia() {
-    const tbody = document.getElementById("tbody-midia");
+    const wrap = document.getElementById("lista-midia");
     const vazio = document.getElementById("midia-vazio");
-    tbody.innerHTML = estado.midia
-      .map(
-        (p) => `<tr>
-          <td>📁 ${p.nome}</td>
-          <td><a href="${p.link}" target="_blank" rel="noopener">Abrir ↗</a></td>
-          <td class="row-actions"><button class="danger" data-del-pasta="${p.id}">Excluir</button></td>
-        </tr>`
-      )
-      .join("");
     vazio.style.display = estado.midia.length ? "none" : "block";
 
-    tbody.querySelectorAll("[data-del-pasta]").forEach((btn) =>
-      btn.addEventListener("click", async () => {
-        if (!confirm("Excluir esta pasta da página pública de Mídia?")) return;
+    wrap.innerHTML = estado.midia
+      .map((p) => {
+        if (p.link) {
+          return `<div class="pasta-bloco">
+            <div class="pasta-cabecalho">
+              <h3>📁 ${p.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(pasta antiga do Drive)</span></h3>
+              <div style="display:flex; gap:8px;">
+                <a class="btn btn-outline btn-sm" href="${p.link}" target="_blank" rel="noopener">Abrir no Drive ↗</a>
+                <button type="button" class="danger" data-del-pasta="${p.id}">Excluir</button>
+              </div>
+            </div>
+          </div>`;
+        }
+        const fotos = fotosPorPasta[p.id] || [];
+        const grade = fotos
+          .map(
+            (f) => `<div class="foto-thumb-wrap">
+              <img src="${f.url}" alt="${f.nome}" loading="lazy">
+              <button type="button" class="foto-del" data-del-foto="${p.id}:${f.nome}" aria-label="Excluir foto">✕</button>
+            </div>`
+          )
+          .join("");
+        return `
+        <details class="month-acc" data-pasta-acc="${p.id}"${midiaAbertas.has(p.id) ? " open" : ""}>
+          <summary>${p.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${fotos.length} foto(s))</span>
+            <button type="button" class="danger" data-del-pasta="${p.id}" style="margin-left:auto;">Excluir pasta</button>
+          </summary>
+          <div style="padding:14px 20px 18px;">
+            <div class="foto-grid">${grade || "<p class='muted'>Nenhuma foto ainda.</p>"}</div>
+            <form class="registro-add-form" data-form-upload="${p.id}">
+              <div class="field"><label>Adicionar fotos (até ${RS_MIDIA_TAMANHO_MAXIMO_MB}MB cada)</label><input type="file" accept="image/*" multiple class="upload-input"></div>
+              <button type="submit" class="btn btn-primary btn-sm">Enviar</button>
+            </form>
+          </div>
+        </details>`;
+      })
+      .join("");
+
+    wrap.querySelectorAll("[data-pasta-acc]").forEach((det) =>
+      det.addEventListener("toggle", () => {
+        if (det.open) midiaAbertas.add(det.dataset.pastaAcc);
+        else midiaAbertas.delete(det.dataset.pastaAcc);
+      })
+    );
+
+    wrap.querySelectorAll("[data-del-pasta]").forEach((btn) =>
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!confirm("Excluir esta pasta e todas as fotos dela?")) return;
         await deletePastaMidia(btn.dataset.delPasta);
+        delete fotosPorPasta[btn.dataset.delPasta];
         mostrarToast("Pasta removida.");
+      })
+    );
+    wrap.querySelectorAll("[data-del-foto]").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        const [pastaId, nomeArquivo] = btn.dataset.delFoto.split(/:(.+)/);
+        if (!confirm("Excluir esta foto?")) return;
+        await deleteFotoMidia(pastaId, nomeArquivo);
+        await carregarFotosPasta(pastaId);
+        mostrarToast("Foto removida.");
+      })
+    );
+    wrap.querySelectorAll("[data-form-upload]").forEach((form) =>
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const pastaId = form.dataset.formUpload;
+        const input = form.querySelector(".upload-input");
+        const arquivos = [...input.files];
+        if (!arquivos.length) return;
+
+        const grandeDemais = arquivos.find((a) => a.size > RS_MIDIA_TAMANHO_MAXIMO_MB * 1024 * 1024);
+        if (grandeDemais) {
+          mostrarToast(`"${grandeDemais.name}" passa de ${RS_MIDIA_TAMANHO_MAXIMO_MB}MB — não foi enviada.`);
+          return;
+        }
+
+        const btn = form.querySelector("button[type=submit]");
+        btn.disabled = true;
+        for (let i = 0; i < arquivos.length; i++) {
+          btn.textContent = `Enviando ${i + 1} de ${arquivos.length}...`;
+          await uploadFotoMidia(pastaId, arquivos[i]);
+        }
+        btn.disabled = false;
+        btn.textContent = "Enviar";
+        input.value = "";
+        await carregarFotosPasta(pastaId);
+        mostrarToast(`${arquivos.length} foto(s) enviada(s).`);
       })
     );
   }
@@ -696,10 +789,10 @@ function iniciarPainel() {
   document.getElementById("btn-cancelar-pasta").addEventListener("click", () => modalPasta.classList.remove("show"));
   document.getElementById("form-pasta").addEventListener("submit", async (e) => {
     e.preventDefault();
-    await addPastaMidia(document.getElementById("pa-nome").value.trim(), document.getElementById("pa-link").value.trim());
+    await addPastaMidia(document.getElementById("pa-nome").value.trim());
     modalPasta.classList.remove("show");
     e.target.reset();
-    mostrarToast("Link salvo com sucesso! A pasta já está na página pública de Mídia.");
+    mostrarToast("Pasta criada! Agora abra ela pra adicionar as fotos.");
   });
 
   /* ---------------- Campori ---------------- */
