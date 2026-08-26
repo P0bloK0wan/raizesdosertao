@@ -22,13 +22,15 @@ export const RS_LINKS = {
 };
 
 /* =========================================================
-   Doação pro Campori DSA 2027: link de pagamento do Mercado
-   Pago (PIX, cartão e boleto, valor livre). Preencha depois de
-   criar o link — veja o passo a passo no README.md. Enquanto
-   estiver vazio, o botão "Quero ajudar" cai de volta pro contato
-   direto no WhatsApp.
+   Doação pro Campori DSA 2027: chama a API de pagamento do
+   Mercado Pago (PIX, cartão e boleto, valor livre) através de um
+   Cloudflare Worker — é ele que guarda a chave secreta do
+   Mercado Pago e gera o link de pagamento na hora. Preencha com a
+   URL do seu Worker depois de publicar — veja o passo a passo no
+   README.md. Enquanto estiver vazio, o botão "Quero ajudar" cai
+   de volta pro contato direto no WhatsApp.
    ========================================================= */
-export const RS_LINK_DOACAO_CAMPORI = "";
+export const RS_API_DOACAO_CAMPORI = "";
 
 export const RS_UNIDADES = [
   { id: "prea",      nome: "Preá",       img: "assets/img/unit_prea.png" },

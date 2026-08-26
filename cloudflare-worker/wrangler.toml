@@ -1,0 +1,21 @@
+# Configuração do Cloudflare Worker que gera os pagamentos da doação
+# do Campori. Veja o passo a passo completo no README.md do site,
+# seção "Configurar a API de pagamento do Mercado Pago".
+#
+# O Access Token do Mercado Pago NÃO fica aqui — ele é guardado como
+# "secret" (comando `wrangler secret put MP_ACCESS_TOKEN`), nunca
+# commitado no repositório.
+
+name = "raizes-doacao-campori"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+# Endereço completo da página do Campori no seu site publicado —
+# é pra onde o Mercado Pago redireciona a pessoa depois de pagar.
+SITE_URL_CAMPORI = "https://SEU-USUARIO.github.io/SEU-REPOSITORIO/campori.html"
+
+# Endereço "de origem" do seu site (sem barra no final) — usado só
+# pra liberar a chamada do navegador pro Worker (CORS). Ajuste pro
+# seu domínio real.
+SITE_ORIGIN = "https://SEU-USUARIO.github.io"

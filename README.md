@@ -8,11 +8,12 @@ HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pag
 
 ## 📝 O que mudou na última atualização
 
-- **O botão "Quero ajudar" do Campori agora gera um pagamento de verdade** (cartão, boleto ou **PIX**), em vez de só abrir uma conversa no WhatsApp. Quem clicar escolhe quanto quer doar (valor livre) e, depois de pagar, volta pro site com uma mensagem de agradecimento. Veja "Configurar o link de doação" abaixo — **precisa de um passo manual seu** pra funcionar (sem ele, o botão continua abrindo o WhatsApp normalmente, não quebra nada).
+- **O botão "Quero ajudar" do Campori agora usa a API de pagamento de verdade do Mercado Pago** (cartão, boleto ou **PIX**), em vez de um link fixo criado na mão. A pessoa digita (ou escolhe um valor sugerido: R$20/R$50/R$100) quanto quer doar, o site gera a cobrança na hora e ela paga; depois volta pro site com uma mensagem de agradecimento. Isso precisou de um servidor bem pequeno (**Cloudflare Worker**, gratuito, sem cartão) só pra guardar a chave secreta do Mercado Pago em segurança — ela nunca pode aparecer no código do navegador. Veja "Configurar a API de pagamento do Mercado Pago" abaixo — **precisa de alguns passos manuais seus** pra funcionar (sem eles, o botão continua abrindo o WhatsApp normalmente, não quebra nada).
 
 ### Rodada anterior
 
-Essa rodada juntou vários pedidos pequenos — mais controle pra liderança, mais identidade pras unidades, e a troca da Mídia pra um jeito que não depende de cartão de crédito:
+- O botão "Quero ajudar" tinha acabado de virar um link de pagamento fixo, criado na mão no painel do Mercado Pago — *substituído nesta atualização pela API de verdade (valor livre digitado na hora, veja o topo desta seção)*.
+- Essa rodada juntou vários pedidos pequenos — mais controle pra liderança, mais identidade pras unidades, e a troca da Mídia pra um jeito que não depende de cartão de crédito:
 
 - **Mídia trocou de Firebase Storage pra Cloudinary**: o Storage do Firebase passou a exigir plano pago (Blaze) pra ser ativado em projetos novos — mesmo sem cobrar nada dentro da cota grátis, ele pede cartão, o que não rolava pra esse projeto. A Mídia agora sobe as fotos pro **Cloudinary** (outro serviço gratuito, sem cartão, feito exatamente pra isso). O jeito de usar não muda nada pra liderança (mesmos botões "+ Nova pasta" / "Adicionar fotos"), só o passo de configuração inicial — veja "Configurar o Cloudinary" abaixo. Uma ressalva: como não há servidor próprio pra confirmar uma exclusão de verdade, apagar uma foto tira ela do site, mas o arquivo pode continuar existindo na conta do Cloudinary.
 - **Liderança agora pode apagar planejamentos de qualquer unidade** (antes só dava pra aprovar/recusar) — apagar pede um motivo, e a unidade recebe um aviso.
@@ -97,7 +98,10 @@ Se alguma coisa não estiver funcionando depois de você mexer na configuração
 → Isso é esperado: só aceitamos 5 carros por domingo, e a liderança pode fechar um domingo específico pelo painel. A pessoa pode escolher outro domingo em aberto na mesma agenda.
 
 **"O botão 'Quero ajudar' do Campori continua abrindo o WhatsApp em vez de pedir pagamento."**
-→ Isso é esperado até você configurar o link de doação — veja o passo 1.7. Sem `RS_LINK_DOACAO_CAMPORI` preenchido em `assets/js/data.js`, o botão cai de volta pro WhatsApp de propósito, pra nunca ficar quebrado.
+→ Isso é esperado até você configurar a API do Mercado Pago (Worker) — veja o passo 1.7. Sem `RS_API_DOACAO_CAMPORI` preenchido em `assets/js/data.js`, o botão cai de volta pro WhatsApp de propósito, pra nunca ficar quebrado.
+
+**"Cliquei em 'Quero ajudar', digitei um valor, e apareceu uma mensagem de erro em vez de ir pro pagamento."**
+→ Normalmente é o Cloudflare Worker que não está publicado, ou o `MP_ACCESS_TOKEN` não foi configurado como secret nele (veja o passo 1.7). Também pode ser o `SITE_ORIGIN` no `wrangler.toml` desatualizado — se não bater com o endereço real do site, o navegador bloqueia a chamada por segurança (CORS).
 
 **Testar antes de publicar de verdade:** rode o site localmente (veja "Testando localmente" mais abaixo) e olhe o console do navegador (F12) — é o jeito mais rápido de achar o erro exato antes de fazer commit e esperar o GitHub Pages atualizar.
 
@@ -165,24 +169,47 @@ O Cloud name e o nome do preset **não são segredo** — um preset "unsigned" s
 
 Isso limita o upload à liderança, só arquivos de imagem, até 10MB cada — o mesmo tipo de regra de segurança já usada no Firestore (passo 1.3).
 
-### 1.7. Configurar o link de doação do Campori (opcional)
+### 1.7. Configurar a API de pagamento do Mercado Pago (opcional)
 
-Sem esse passo, o botão **"Quero ajudar"** na página do Campori continua funcionando normalmente — só que abrindo uma conversa no WhatsApp, como já era antes. Pra transformar ele num link de pagamento de verdade (PIX, cartão ou boleto):
+Sem esse passo, o botão **"Quero ajudar"** na página do Campori continua funcionando normalmente — só que abrindo uma conversa no WhatsApp, como já era antes.
 
+Diferente de um link de pagamento fixo, aqui o site chama a **API de verdade** do Mercado Pago pra gerar a cobrança na hora, com o valor que a pessoa escolher. Isso exige uma chave secreta (Access Token) do Mercado Pago — e uma chave secreta **nunca pode aparecer no código do navegador** (qualquer pessoa que abrisse o site conseguiria roubá-la). Por isso essa chamada acontece num servidor bem pequeno e separado, feito só pra isso: um **Cloudflare Worker** — um serviço gratuito de verdade, sem pedir cartão de crédito. O código dele já está pronto na pasta [`cloudflare-worker/`](./cloudflare-worker) deste repositório; falta só publicar.
+
+**Passo 1 — Pegar as credenciais do Mercado Pago:**
 1. Crie uma conta **pessoal** grátis em [mercadopago.com.br](https://www.mercadopago.com.br) (pode pedir uma verificação de identidade simples — normal, gratuita, e é a mesma conta que recebe o dinheiro depois).
-2. No app ou site do Mercado Pago, vá em **Cobrar → Link de pagamento** (ou "Ferramentas para vender").
-3. Escolha **valor livre/aberto** (assim quem doa decide quanto quer contribuir) e marque os meios de pagamento — deixe o **PIX** habilitado, já que é a preferência do clube.
-4. Configure a **URL de redirecionamento** (o campo pode aparecer como "link de retorno" ou similar) pra:
-   ```
-   https://<seu-usuário>.github.io/<repositório>/campori.html?doacao=obrigado
-   ```
-   É pra essa URL que a pessoa volta depois de pagar — o site já sabe mostrar a mensagem de agradecimento quando vê `?doacao=obrigado` no final do endereço.
-5. Copie o link gerado e cole em `RS_LINK_DOACAO_CAMPORI`, no arquivo [`assets/js/data.js`](./assets/js/data.js).
-6. Salve, faça commit e push.
+2. Acesse o [Painel de Desenvolvedores do Mercado Pago](https://www.mercadopago.com.br/developers/panel) e crie uma aplicação (qualquer nome, ex.: "Site Raízes do Sertão").
+3. Na aba **Credenciais de produção**, copie o **Access Token** (começa com `APP_USR-...`) — é essa a chave secreta. Existem também "Credenciais de teste" (começam com `TEST-...`), úteis pra testar o fluxo inteiro sem mexer com dinheiro de verdade antes de divulgar pra valer.
 
-**Duas coisas importantes de saber antes de divulgar:**
-- O Mercado Pago cobra uma taxa por transação (o percentual varia por forma de pagamento — confira o valor atual direto no painel da sua conta antes de divulgar o link, pra saber quanto realmente sobra da doação).
-- Como o site não tem servidor próprio, a mensagem de "obrigado" depois do pagamento é baseada só nesse redirecionamento de volta — não é uma confirmação verificada de que o pagamento realmente foi aprovado (tecnicamente, alguém poderia visitar essa URL na mão sem ter pago nada). Pra uma arrecadação voluntária de um clube pequeno isso é uma limitação aceitável, mas não tem o mesmo nível de garantia de um sistema com servidor recebendo aviso direto do banco.
+**Passo 2 — Publicar o Cloudflare Worker:**
+1. Crie uma conta grátis em [dash.cloudflare.com](https://dash.cloudflare.com) (sem cartão).
+2. No computador, dentro da pasta `cloudflare-worker/` deste projeto, rode:
+   ```
+   npx wrangler login
+   ```
+   (abre o navegador pra você autorizar; instala o `wrangler`, ferramenta oficial da Cloudflare, na hora — não precisa instalar nada à parte).
+3. Abra o arquivo [`cloudflare-worker/wrangler.toml`](./cloudflare-worker/wrangler.toml) e ajuste `SITE_URL_CAMPORI` (endereço completo da página `campori.html` no seu site publicado) e `SITE_ORIGIN` (endereço-base do seu site) pros valores reais.
+4. Guarde o Access Token como segredo (nunca vai pro código):
+   ```
+   npx wrangler secret put MP_ACCESS_TOKEN
+   ```
+   (cola o Access Token do Passo 1 quando ele pedir).
+5. Publique:
+   ```
+   npx wrangler deploy
+   ```
+   Ao final, ele mostra a URL do Worker (algo como `https://raizes-doacao-campori.SEU-USUARIO.workers.dev`).
+
+**Passo 3 — Ligar o site ao Worker:**
+1. Abra o arquivo [`assets/js/data.js`](./assets/js/data.js) e preencha `RS_API_DOACAO_CAMPORI` com a URL do Passo 2 (Passo 2.5).
+2. Salve, faça commit e push.
+
+**Antes de divulgar de verdade, teste com as "Credenciais de teste"** do Passo 1 (troque o Access Token do Worker por uma delas, gere um pagamento de teste, confira se o fluxo completo funciona), depois troque pelo Access Token de produção quando estiver tudo certo.
+
+**Coisas importantes de saber:**
+- O Mercado Pago cobra uma taxa por transação (o percentual varia por forma de pagamento — confira o valor atual direto no painel da sua conta antes de divulgar).
+- O Cloudflare Worker é gratuito até 100.000 chamadas por dia — muito acima do que um clube pequeno usaria.
+- Como o site não tem um servidor "de verdade" recebendo aviso direto do banco (webhook), a mensagem de "obrigado"/"pendente"/"não foi possível confirmar" depois do pagamento é baseada só no redirecionamento que o Mercado Pago faz de volta — não é uma confirmação criptograficamente à prova de fraude (tecnicamente, alguém poderia visitar a URL de "obrigado" na mão sem ter pago nada). Pra uma arrecadação voluntária de um clube pequeno isso é uma limitação aceitável, mas vale saber que ela existe.
+- Pagamentos por **boleto** demoram (às vezes dias) pra confirmar — nesses casos a pessoa costuma cair na mensagem de "pagamento em processamento", não na de "obrigado" na hora.
 
 ## 2. Publicar no GitHub Pages
 

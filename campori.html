@@ -32,11 +32,31 @@
         <div class="box" style="background:var(--gold); color:var(--black);"><b data-c="s">00</b><span>seg</span></div>
       </div>
     </div>
-    <div class="alert alert-ok" id="doacao-obrigado" style="max-width:520px; margin:0 auto 20px;">
+    <div class="alert alert-ok" id="doacao-obrigado" style="max-width:520px; margin:0 auto 16px;">
       Muito obrigado pela sua doação! 🙏 Ela vai ajudar a levar mais desbravadores pro Campori DSA 2027.
     </div>
+    <div class="alert" id="doacao-pendente" style="max-width:520px; margin:0 auto 16px; background:#fff4e0; color:#8a5a00;">
+      Recebemos seu pagamento e ele está em processamento (comum em boleto). Assim que confirmar, muito obrigado pela doação! 🙏
+    </div>
+    <div class="alert alert-error" id="doacao-falhou" style="max-width:520px; margin:0 auto 16px;">
+      Não conseguimos confirmar o pagamento. Se o valor foi descontado de você, chama a gente no WhatsApp que resolvemos.
+    </div>
+
     <div class="text-center" style="margin-top:28px;">
-      <a href="#" id="btn-quero-ajudar" class="btn btn-primary">👉 Quero ajudar</a>
+      <form id="form-doacao" style="max-width:320px; margin:0 auto; display:none;">
+        <div class="field">
+          <label for="valor-doacao">Quanto você quer doar?</label>
+          <input type="number" id="valor-doacao" min="1" step="0.01" placeholder="R$ 50,00" required>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:center; margin-bottom:16px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline btn-sm" data-valor-sugerido="20">R$ 20</button>
+          <button type="button" class="btn btn-outline btn-sm" data-valor-sugerido="50">R$ 50</button>
+          <button type="button" class="btn btn-outline btn-sm" data-valor-sugerido="100">R$ 100</button>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="btn-quero-ajudar">👉 Quero ajudar</button>
+        <div class="alert alert-error" id="doacao-erro" style="margin-top:12px;"></div>
+      </form>
+      <a href="#" target="_blank" rel="noopener" class="btn btn-primary" id="btn-ajudar-whatsapp" style="display:none;">👉 Quero ajudar</a>
       <p class="muted" style="margin-top:10px; font-size:.85rem;">
         Prefere falar com a gente antes? <a href="https://wa.me/5587988779496?text=Ol%C3%A1!%20Vim%20pelo%20site%20do%20Instagram%2C%20Eu%20gostaria%20de%20ajudar%2C%20o%20clube%20pro%20Campori%20DSA%202027!!" target="_blank" rel="noopener">Chama no WhatsApp</a>.
       </p>
@@ -49,7 +69,7 @@
 <script type="module">
   import { watchCampori } from "./assets/js/store.js";
   import { iniciarContagem } from "./assets/js/main.js";
-  import { RS_LINK_DOACAO_CAMPORI, RS_LINKS } from "./assets/js/data.js";
+  import { RS_API_DOACAO_CAMPORI, RS_LINKS } from "./assets/js/data.js";
 
   const el = document.querySelector("[data-countdown-campori]");
   let intervalo;
@@ -58,22 +78,62 @@
     intervalo = iniciarContagem(el, campori.data);
   });
 
-  /* Enquanto o link de doação não estiver configurado (veja o
-     README), o botão cai de volta pro contato direto no WhatsApp,
-     em vez de ficar quebrado. */
-  const btnAjudar = document.getElementById("btn-quero-ajudar");
-  btnAjudar.href = RS_LINK_DOACAO_CAMPORI || RS_LINKS.ajudarCampori;
-  if (!RS_LINK_DOACAO_CAMPORI) {
-    btnAjudar.target = "_blank";
-    btnAjudar.rel = "noopener";
+  /* Enquanto a API de doação não estiver configurada (veja o
+     README), mostra só o botão que cai pro contato direto no
+     WhatsApp, em vez de um formulário que não funciona. */
+  const formDoacao = document.getElementById("form-doacao");
+  const btnWhatsapp = document.getElementById("btn-ajudar-whatsapp");
+  if (RS_API_DOACAO_CAMPORI) {
+    formDoacao.style.display = "block";
+
+    formDoacao.querySelectorAll("[data-valor-sugerido]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        document.getElementById("valor-doacao").value = btn.dataset.valorSugerido;
+      })
+    );
+
+    formDoacao.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const erro = document.getElementById("doacao-erro");
+      erro.classList.remove("show");
+
+      const valor = Number(document.getElementById("valor-doacao").value);
+      if (!valor || valor <= 0) return;
+
+      const btn = document.getElementById("btn-quero-ajudar");
+      btn.disabled = true;
+      btn.textContent = "Gerando pagamento...";
+      try {
+        const resp = await fetch(RS_API_DOACAO_CAMPORI, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ valor }),
+        });
+        const dados = await resp.json();
+        if (!resp.ok || !dados.url) throw new Error(dados.erro || "Não foi possível gerar o pagamento.");
+        window.location.href = dados.url;
+      } catch (err) {
+        erro.textContent = err.message || "Não foi possível gerar o pagamento. Tente de novo.";
+        erro.classList.add("show");
+        btn.disabled = false;
+        btn.textContent = "👉 Quero ajudar";
+      }
+    });
+  } else {
+    btnWhatsapp.style.display = "inline-flex";
+    btnWhatsapp.href = RS_LINKS.ajudarCampori;
   }
 
-  /* O link de pagamento é configurado (no Mercado Pago) pra
-     redirecionar de volta pra cá com "?doacao=obrigado" depois
-     que a pessoa paga — sem servidor próprio, essa mensagem
-     confia no redirecionamento, não é uma confirmação verificada. */
-  if (new URLSearchParams(window.location.search).get("doacao") === "obrigado") {
-    const aviso = document.getElementById("doacao-obrigado");
+  /* O Worker configura o Mercado Pago pra redirecionar de volta
+     pra cá com "?doacao=obrigado" (aprovado), "?doacao=pendente"
+     (em processamento, comum em boleto) ou "?doacao=falhou" depois
+     que a pessoa termina o pagamento — sem servidor guardando o
+     resultado, essa mensagem confia no redirecionamento, não é uma
+     confirmação verificada. */
+  const estadoDoacao = new URLSearchParams(window.location.search).get("doacao");
+  const mapaAvisos = { obrigado: "doacao-obrigado", pendente: "doacao-pendente", falhou: "doacao-falhou" };
+  if (mapaAvisos[estadoDoacao]) {
+    const aviso = document.getElementById(mapaAvisos[estadoDoacao]);
     aviso.classList.add("show");
     aviso.scrollIntoView({ behavior: "smooth", block: "center" });
   }
