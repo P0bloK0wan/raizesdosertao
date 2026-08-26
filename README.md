@@ -8,6 +8,10 @@ HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pag
 
 ## 📝 O que mudou na última atualização
 
+- **O botão "Quero ajudar" do Campori agora gera um pagamento de verdade** (cartão, boleto ou **PIX**), em vez de só abrir uma conversa no WhatsApp. Quem clicar escolhe quanto quer doar (valor livre) e, depois de pagar, volta pro site com uma mensagem de agradecimento. Veja "Configurar o link de doação" abaixo — **precisa de um passo manual seu** pra funcionar (sem ele, o botão continua abrindo o WhatsApp normalmente, não quebra nada).
+
+### Rodada anterior
+
 Essa rodada juntou vários pedidos pequenos — mais controle pra liderança, mais identidade pras unidades, e a troca da Mídia pra um jeito que não depende de cartão de crédito:
 
 - **Mídia trocou de Firebase Storage pra Cloudinary**: o Storage do Firebase passou a exigir plano pago (Blaze) pra ser ativado em projetos novos — mesmo sem cobrar nada dentro da cota grátis, ele pede cartão, o que não rolava pra esse projeto. A Mídia agora sobe as fotos pro **Cloudinary** (outro serviço gratuito, sem cartão, feito exatamente pra isso). O jeito de usar não muda nada pra liderança (mesmos botões "+ Nova pasta" / "Adicionar fotos"), só o passo de configuração inicial — veja "Configurar o Cloudinary" abaixo. Uma ressalva: como não há servidor próprio pra confirmar uma exclusão de verdade, apagar uma foto tira ela do site, mas o arquivo pode continuar existindo na conta do Cloudinary.
@@ -21,14 +25,13 @@ Essa rodada juntou vários pedidos pequenos — mais controle pra liderança, ma
 - **Campo de idade no cadastro do desbravador** (além da data de nascimento que já existia).
 - **Animação nas telas de login** (entrada suave do card, pequenos efeitos ao passar o mouse) — só visual, não muda nenhum fluxo.
 
-### Rodada anterior
+### Rodadas anteriores (mais recente primeiro)
 
-- **O site tinha parado de novo**: o arquivo `assets/js/firebase.js` tinha sido sobrescrito por engano com outro conteúdo que não é código válido, quebrando login, painéis e Mídia ao mesmo tempo. Corrigido.
-- **Mídia passou a ser upload manual, com download em resolução completa**: em vez de colar o link de uma pasta do Google Drive, a liderança sobe as fotos direto pelo site. *Nessa mesma rodada isso usava o Firebase Storage — substituído pelo Cloudinary na atualização mais recente, veja o topo desta seção.*
+- Liderança pode apagar planejamentos e editar/apagar o que uma unidade cadastrou (com motivo e aviso); Planejamento do Clube visível pras unidades; notificações com botão de excluir individual; troca de senha da unidade por aprovação da liderança; Mídia migrada do Firebase Storage pro Cloudinary; logo e grito de guerra por unidade; cadastro de conselheiros; campo de idade do desbravador; animação nas telas de login.
+- O site tinha parado de novo: o arquivo `assets/js/firebase.js` tinha sido sobrescrito por engano com outro conteúdo que não é código válido, quebrando login, painéis e Mídia ao mesmo tempo. Corrigido.
+- Mídia passou a ser upload manual, com download em resolução completa (nessa época ainda usando o Firebase Storage, depois substituído pelo Cloudinary).
 
-### Duas rodadas atrás
-
-Essa foi uma atualização grande — 6 áreas novas, pensadas pra dar mais autonomia pras unidades e uma visão central pra liderança:
+Antes disso, uma atualização grande — 6 áreas novas, pensadas pra dar mais autonomia pras unidades e uma visão central pra liderança:
 
 - **Planejamento das Unidades**: cada unidade cria propostas de planejamento (título, data, horário, local, objetivo, descrição, observações) e envia pra liderança aprovar. A liderança vê todas as propostas de todas as unidades, com filtros por unidade/status/data, e pode **Aprovar** ou **Recusar** (recusar exige escrever o motivo). A unidade recebe um aviso (sino de notificações) com o resultado — se for recusada, vê o motivo, corrige e reenvia (volta pra pendente); depois de aprovada, a proposta não pode mais ser editada.
 - **Especialidades**: cada unidade cadastra as especialidades que os desbravadores estão fazendo (nome, instrutor, data de início, status, o que já foi concluído, o que falta, materiais necessários, observações), editável quantas vezes precisar. A liderança vê tudo isso de todas as unidades em tempo real, sem precisar perguntar unidade por unidade.
@@ -42,7 +45,7 @@ Essa foi uma atualização grande — 6 áreas novas, pensadas pra dar mais auto
 
 - **Lava-Jato voltou a ter agenda**: a página mostra os próximos domingos num grid — cinza com o número de vagas livres, laranja quando lota (só aceitamos **5 carros por domingo**), vermelho quando a liderança fecha o dia. Quem for se cadastrar escolhe o domingo (só aparecem datas com vaga). No painel da liderança, clicar num domingo aberto fecha ele (com um motivo opcional, tipo "sem lavagem esse domingo") — e clicar de novo reabre. Isso já empurra o pessoal a se agendar pro próximo domingo em vez do que foi fechado.
 - **Desbravadores podem ter o tipo sanguíneo registrado** (campo opcional no cadastro, dentro do painel da unidade) — bom ter à mão, mas não é obrigatório preencher.
-- **Mídia passou a mostrar as fotos direto no site** (buscando de uma pasta do Google Drive por link) — *substituído na atualização mais recente por upload manual direto no site, veja o topo desta seção*.
+- **Mídia passou a mostrar as fotos direto no site** (buscando de uma pasta do Google Drive por link) — *substituído depois por upload manual direto no site (Cloudinary), veja "Mídia" mais abaixo*.
 
 ### Mudanças de rodadas anteriores
 
@@ -92,6 +95,9 @@ Se alguma coisa não estiver funcionando depois de você mexer na configuração
 
 **"O Lava Jato diz que um domingo está lotado/fechado e não deixa cadastrar."**
 → Isso é esperado: só aceitamos 5 carros por domingo, e a liderança pode fechar um domingo específico pelo painel. A pessoa pode escolher outro domingo em aberto na mesma agenda.
+
+**"O botão 'Quero ajudar' do Campori continua abrindo o WhatsApp em vez de pedir pagamento."**
+→ Isso é esperado até você configurar o link de doação — veja o passo 1.7. Sem `RS_LINK_DOACAO_CAMPORI` preenchido em `assets/js/data.js`, o botão cai de volta pro WhatsApp de propósito, pra nunca ficar quebrado.
 
 **Testar antes de publicar de verdade:** rode o site localmente (veja "Testando localmente" mais abaixo) e olhe o console do navegador (F12) — é o jeito mais rápido de achar o erro exato antes de fazer commit e esperar o GitHub Pages atualizar.
 
@@ -157,7 +163,26 @@ O Cloud name e o nome do preset **não são segredo** — um preset "unsigned" s
 
 **Sobre excluir fotos**: como o site não tem servidor próprio, apagar uma foto pelo painel da liderança tira ela do site, mas o arquivo pode continuar existindo na sua conta do Cloudinary (o plano gratuito tem espaço de sobra pra isso não ser um problema num clube pequeno). Se quiser apagar de vez, dá pra entrar no painel do Cloudinary e remover manualmente.
 
-Isso limita o upload à liderança, só arquivos de imagem, até 15MB cada — o mesmo tipo de regra de segurança já usada no Firestore (passo 1.3).
+Isso limita o upload à liderança, só arquivos de imagem, até 10MB cada — o mesmo tipo de regra de segurança já usada no Firestore (passo 1.3).
+
+### 1.7. Configurar o link de doação do Campori (opcional)
+
+Sem esse passo, o botão **"Quero ajudar"** na página do Campori continua funcionando normalmente — só que abrindo uma conversa no WhatsApp, como já era antes. Pra transformar ele num link de pagamento de verdade (PIX, cartão ou boleto):
+
+1. Crie uma conta **pessoal** grátis em [mercadopago.com.br](https://www.mercadopago.com.br) (pode pedir uma verificação de identidade simples — normal, gratuita, e é a mesma conta que recebe o dinheiro depois).
+2. No app ou site do Mercado Pago, vá em **Cobrar → Link de pagamento** (ou "Ferramentas para vender").
+3. Escolha **valor livre/aberto** (assim quem doa decide quanto quer contribuir) e marque os meios de pagamento — deixe o **PIX** habilitado, já que é a preferência do clube.
+4. Configure a **URL de redirecionamento** (o campo pode aparecer como "link de retorno" ou similar) pra:
+   ```
+   https://<seu-usuário>.github.io/<repositório>/campori.html?doacao=obrigado
+   ```
+   É pra essa URL que a pessoa volta depois de pagar — o site já sabe mostrar a mensagem de agradecimento quando vê `?doacao=obrigado` no final do endereço.
+5. Copie o link gerado e cole em `RS_LINK_DOACAO_CAMPORI`, no arquivo [`assets/js/data.js`](./assets/js/data.js).
+6. Salve, faça commit e push.
+
+**Duas coisas importantes de saber antes de divulgar:**
+- O Mercado Pago cobra uma taxa por transação (o percentual varia por forma de pagamento — confira o valor atual direto no painel da sua conta antes de divulgar o link, pra saber quanto realmente sobra da doação).
+- Como o site não tem servidor próprio, a mensagem de "obrigado" depois do pagamento é baseada só nesse redirecionamento de volta — não é uma confirmação verificada de que o pagamento realmente foi aprovado (tecnicamente, alguém poderia visitar essa URL na mão sem ter pago nada). Pra uma arrecadação voluntária de um clube pequeno isso é uma limitação aceitável, mas não tem o mesmo nível de garantia de um sistema com servidor recebendo aviso direto do banco.
 
 ## 2. Publicar no GitHub Pages
 

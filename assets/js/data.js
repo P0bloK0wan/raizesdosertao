@@ -21,6 +21,15 @@ export const RS_LINKS = {
   youtubeIgreja: "https://youtube.com/@iasdvilaeduardo",
 };
 
+/* =========================================================
+   Doação pro Campori DSA 2027: link de pagamento do Mercado
+   Pago (PIX, cartão e boleto, valor livre). Preencha depois de
+   criar o link — veja o passo a passo no README.md. Enquanto
+   estiver vazio, o botão "Quero ajudar" cai de volta pro contato
+   direto no WhatsApp.
+   ========================================================= */
+export const RS_LINK_DOACAO_CAMPORI = "";
+
 export const RS_UNIDADES = [
   { id: "prea",      nome: "Preá",       img: "assets/img/unit_prea.png" },
   { id: "carcara",   nome: "Carcará",    img: "assets/img/unit_carcara.png" },

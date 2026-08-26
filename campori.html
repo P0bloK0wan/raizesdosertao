@@ -32,8 +32,14 @@
         <div class="box" style="background:var(--gold); color:var(--black);"><b data-c="s">00</b><span>seg</span></div>
       </div>
     </div>
+    <div class="alert alert-ok" id="doacao-obrigado" style="max-width:520px; margin:0 auto 20px;">
+      Muito obrigado pela sua doação! 🙏 Ela vai ajudar a levar mais desbravadores pro Campori DSA 2027.
+    </div>
     <div class="text-center" style="margin-top:28px;">
-      <a href="https://wa.me/5587988779496?text=Ol%C3%A1!%20Vim%20pelo%20site%20do%20Instagram%2C%20Eu%20gostaria%20de%20ajudar%2C%20o%20clube%20pro%20Campori%20DSA%202027!!" target="_blank" rel="noopener" class="btn btn-primary">👉 Quero ajudar</a>
+      <a href="#" id="btn-quero-ajudar" class="btn btn-primary">👉 Quero ajudar</a>
+      <p class="muted" style="margin-top:10px; font-size:.85rem;">
+        Prefere falar com a gente antes? <a href="https://wa.me/5587988779496?text=Ol%C3%A1!%20Vim%20pelo%20site%20do%20Instagram%2C%20Eu%20gostaria%20de%20ajudar%2C%20o%20clube%20pro%20Campori%20DSA%202027!!" target="_blank" rel="noopener">Chama no WhatsApp</a>.
+      </p>
     </div>
   </div>
 </section>
@@ -43,12 +49,34 @@
 <script type="module">
   import { watchCampori } from "./assets/js/store.js";
   import { iniciarContagem } from "./assets/js/main.js";
+  import { RS_LINK_DOACAO_CAMPORI, RS_LINKS } from "./assets/js/data.js";
+
   const el = document.querySelector("[data-countdown-campori]");
   let intervalo;
   watchCampori((campori) => {
     clearInterval(intervalo);
     intervalo = iniciarContagem(el, campori.data);
   });
+
+  /* Enquanto o link de doação não estiver configurado (veja o
+     README), o botão cai de volta pro contato direto no WhatsApp,
+     em vez de ficar quebrado. */
+  const btnAjudar = document.getElementById("btn-quero-ajudar");
+  btnAjudar.href = RS_LINK_DOACAO_CAMPORI || RS_LINKS.ajudarCampori;
+  if (!RS_LINK_DOACAO_CAMPORI) {
+    btnAjudar.target = "_blank";
+    btnAjudar.rel = "noopener";
+  }
+
+  /* O link de pagamento é configurado (no Mercado Pago) pra
+     redirecionar de volta pra cá com "?doacao=obrigado" depois
+     que a pessoa paga — sem servidor próprio, essa mensagem
+     confia no redirecionamento, não é uma confirmação verificada. */
+  if (new URLSearchParams(window.location.search).get("doacao") === "obrigado") {
+    const aviso = document.getElementById("doacao-obrigado");
+    aviso.classList.add("show");
+    aviso.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 </script>
 <script type="module" src="assets/js/main.js"></script>
 </body>
