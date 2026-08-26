@@ -32,6 +32,7 @@
       <li><a href="#especialidades-lideranca">🎖️ Especialidades</a></li>
       <li><a href="#compras">🛒 Lista de compras</a></li>
       <li><a href="#responsaveis">📞 Responsáveis</a></li>
+      <li><a href="#pedidos-senha">🔑 Pedidos de troca de senha</a></li>
       <li><a href="#planejamento-clube">📅 Planejamento do Clube</a></li>
       <li><a href="#midia">📸 Mídia</a></li>
       <li><a href="#campori">🏕️ Campori DSA 2027</a></li>
@@ -154,6 +155,13 @@
       </div>
     </section>
 
+    <section class="panel-block" id="pedidos-senha">
+      <div class="block-head"><h2>Pedidos de troca de senha</h2></div>
+      <p class="muted">A senha só fica visível aqui até você aprovar ou recusar — depois disso, ela some (a troca se aplica sozinha no próximo login da unidade, sem ninguém guardar a senha pra sempre).</p>
+      <div id="lista-pedidos-senha"></div>
+      <div class="empty-state" id="pedidos-senha-vazio" style="display:none;">Nenhum pedido de troca de senha no momento.</div>
+    </section>
+
     <section class="panel-block" id="planejamento-clube">
       <div class="block-head">
         <h2>Planejamento do Clube</h2>
@@ -267,12 +275,44 @@
 
 <div class="modal-backdrop" id="modal-recusa">
   <div class="modal">
-    <h2>Recusar proposta</h2>
+    <h2 id="modal-recusa-titulo">Recusar proposta</h2>
     <form id="form-recusa">
-      <div class="field"><label>Motivo da recusa (obrigatório)</label><textarea id="recusa-motivo" rows="3" required></textarea></div>
+      <div class="field"><label id="modal-recusa-label">Motivo da recusa (obrigatório)</label><textarea id="recusa-motivo" rows="3" required></textarea></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-recusa">Cancelar</button>
-        <button type="submit" class="btn btn-primary btn-block">Confirmar recusa</button>
+        <button type="submit" class="btn btn-primary btn-block" id="modal-recusa-confirmar">Confirmar recusa</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-membro-lideranca">
+  <div class="modal">
+    <h2>Editar desbravador</h2>
+    <form id="form-membro-lideranca">
+      <div class="field"><label>Nome completo</label><input type="text" id="mel-nome" required></div>
+      <div class="field"><label>Data de nascimento</label><input type="date" id="mel-nascimento"></div>
+      <div class="field"><label>Classe</label>
+        <select id="mel-classe">
+          <option value="">Selecione</option>
+          <option>Amigo</option><option>Companheiro</option><option>Pesquisador</option>
+          <option>Pioneiro</option><option>Excursionista</option><option>Guia</option>
+        </select>
+      </div>
+      <div class="field"><label>Idade</label><input type="number" id="mel-idade" min="0" max="21"></div>
+      <div class="field"><label>Tipo sanguíneo</label>
+        <select id="mel-tipo-sanguineo">
+          <option value="">Não informado</option>
+          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+          <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+        </select>
+      </div>
+      <div class="field"><label>Nome do responsável</label><input type="text" id="mel-responsavel"></div>
+      <div class="field"><label>Grau de parentesco</label><input type="text" id="mel-parentesco"></div>
+      <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="mel-telefone"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-membro-lideranca">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block">Salvar</button>
       </div>
     </form>
   </div>

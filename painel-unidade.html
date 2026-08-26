@@ -26,11 +26,14 @@
     </a>
     <ul class="app-nav">
       <li><a href="#visao-geral">📊 Visão geral</a></li>
+      <li><a href="#minha-unidade">🚩 Minha Unidade</a></li>
       <li><a href="#membros">🧑‍🤝‍🧑 Meus desbravadores</a></li>
+      <li><a href="#conselheiros">🎓 Conselheiros</a></li>
       <li><a href="#topicos">📝 Atividades / requisitos</a></li>
       <li><a href="#especialidades">🎖️ Especialidades</a></li>
       <li><a href="#materiais">🛒 O que falta comprar</a></li>
       <li><a href="#planejamento">📋 Planejamento</a></li>
+      <li><a href="#planejamento-clube">📅 Planejamento do Clube</a></li>
       <li><a href="#config">⚙️ Configurações</a></li>
       <li><a href="index.html">🌐 Ver site público</a></li>
     </ul>
@@ -63,6 +66,19 @@
       <div class="stat"><b id="s-especialidades">0</b><span>Especialidades em andamento</span></div>
     </section>
 
+    <section class="panel-block" id="minha-unidade">
+      <div class="block-head"><h2>Minha Unidade</h2></div>
+      <p class="muted">Personalize a logo e o grito de guerra da sua unidade — aparecem aqui no painel e também pra liderança.</p>
+      <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap; margin-bottom:16px;">
+        <img id="identidade-logo-preview" src="" alt="Logo da unidade" style="width:96px; height:96px; border-radius:50%; object-fit:cover; background:var(--bg); display:none;">
+        <div style="flex:1; min-width:220px;">
+          <div class="field"><label>Logo da unidade</label><input type="file" id="identidade-logo-input" accept="image/*"></div>
+        </div>
+      </div>
+      <div class="field"><label>Grito de guerra</label><textarea id="identidade-grito" rows="2" placeholder="Ex.: Unidade Preá, sempre alerta!"></textarea></div>
+      <button type="button" class="btn btn-primary btn-sm" id="btn-salvar-identidade">Salvar</button>
+    </section>
+
     <section class="panel-block" id="membros">
       <div class="block-head">
         <h2>Meus desbravadores</h2>
@@ -70,11 +86,25 @@
       </div>
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>Nome</th><th>Nascimento</th><th>Classe</th><th>Responsável</th><th>Telefone</th><th>Tipo sang.</th><th>Ações</th></tr></thead>
+          <thead><tr><th>Nome</th><th>Nascimento</th><th>Idade</th><th>Classe</th><th>Responsável</th><th>Telefone</th><th>Tipo sang.</th><th>Ações</th></tr></thead>
           <tbody id="tbody-membros"></tbody>
         </table>
       </div>
       <div class="empty-state" id="membros-vazio" style="display:none;">Nenhum desbravador cadastrado ainda. Clique em "Cadastrar desbravador".</div>
+    </section>
+
+    <section class="panel-block" id="conselheiros">
+      <div class="block-head">
+        <h2>Conselheiros</h2>
+        <button class="btn btn-primary btn-sm" id="btn-novo-conselheiro">+ Cadastrar conselheiro</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Nome</th><th>Idade</th><th>Telefone</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-conselheiros"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="conselheiros-vazio" style="display:none;">Nenhum conselheiro cadastrado ainda.</div>
     </section>
 
     <section class="panel-block" id="topicos">
@@ -114,18 +144,46 @@
       <div class="empty-state" id="planejamento-vazio" style="display:none;">Nenhuma proposta enviada ainda.</div>
     </section>
 
+    <section class="panel-block" id="planejamento-clube">
+      <div class="block-head">
+        <h2>Planejamento do Clube</h2>
+      </div>
+      <p class="muted">Calendário da liderança — só leitura, clique num evento pra ver os detalhes.</p>
+      <div class="calendario-nav">
+        <button type="button" class="btn btn-sm btn-outline" id="cal-anterior">← Mês anterior</button>
+        <strong id="cal-mes-atual"></strong>
+        <button type="button" class="btn btn-sm btn-outline" id="cal-proximo">Próximo mês →</button>
+      </div>
+      <div class="calendario-grid" id="calendario-grid"></div>
+      <p class="cal-aviso">⚠️ Sujeito a mudanças. As datas e atividades podem ser alteradas pela liderança a qualquer momento.</p>
+    </section>
+
     <section class="panel-block" id="config">
       <div class="block-head"><h2>Configurações</h2></div>
       <h3 style="font-size:1rem;">Trocar senha da unidade</h3>
+      <p class="muted">A troca passa pela aprovação da liderança. Depois de aprovada, ela vale sozinha na próxima vez que você entrar usando a senha atual.</p>
       <div class="alert alert-error" id="senha-erro"></div>
       <div class="alert alert-ok" id="senha-ok"></div>
+      <div class="alert alert-error show" id="senha-pendente-aviso" style="display:none; background:#fff4e0; border-color:#e97305; color:#8a5a00;"></div>
       <form class="inline-form" id="form-senha">
-        <div class="field"><label>Senha atual</label><input type="password" id="senha-atual" required></div>
         <div class="field"><label>Nova senha</label><input type="password" id="senha-nova" minlength="6" required></div>
-        <button class="btn btn-outline" type="submit">Atualizar senha</button>
+        <button class="btn btn-outline" type="submit" id="btn-pedir-senha">Pedir troca de senha</button>
       </form>
     </section>
   </main>
+</div>
+
+<div class="modal-backdrop" id="modal-evento-detalhe">
+  <div class="modal">
+    <h2 id="detalhe-nome"></h2>
+    <p id="detalhe-data" class="muted"></p>
+    <p><strong>Categoria:</strong> <span id="detalhe-categoria"></span></p>
+    <p id="detalhe-descricao"></p>
+    <p id="detalhe-observacoes" class="muted"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline btn-block" id="btn-fechar-detalhe">Fechar</button>
+    </div>
+  </div>
 </div>
 
 <div class="modal-backdrop" id="modal-membro">
@@ -134,6 +192,7 @@
     <form id="form-membro">
       <div class="field"><label>Nome completo</label><input type="text" id="m-nome" required></div>
       <div class="field"><label>Data de nascimento</label><input type="date" id="m-nascimento"></div>
+      <div class="field"><label>Idade</label><input type="number" id="m-idade" min="0" max="17"></div>
       <div class="field"><label>Classe</label>
         <select id="m-classe">
           <option value="">Selecione</option>
@@ -159,6 +218,21 @@
       <div class="field"><label>Observações</label><textarea id="m-observacoes-responsavel" rows="2"></textarea></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-membro">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modal-conselheiro">
+  <div class="modal">
+    <h2>Cadastrar conselheiro</h2>
+    <form id="form-conselheiro">
+      <div class="field"><label>Nome completo</label><input type="text" id="cs-nome" required></div>
+      <div class="field"><label>Idade</label><input type="number" id="cs-idade" min="14" max="99"></div>
+      <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="cs-telefone" placeholder="(87) 9XXXX-XXXX"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-conselheiro">Cancelar</button>
         <button type="submit" class="btn btn-primary btn-block">Salvar</button>
       </div>
     </form>

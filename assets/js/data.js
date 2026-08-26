@@ -97,11 +97,18 @@ export const RS_TIPOS_SANGUINEOS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", 
 
 /* =========================================================
    Mídia: fotos enviadas direto no painel da liderança, guardadas
-   no Firebase Storage (sem redimensionar nada — baixar sempre
-   pega o arquivo original). Mesmo limite de tamanho usado na
-   validação do formulário e em storage.rules.
+   no Cloudinary (sem redimensionar nada — baixar sempre pega o
+   arquivo original). Preencha depois de criar uma conta grátis em
+   cloudinary.com e um "upload preset" do tipo unsigned (veja o
+   README.md) — sem isso, o upload de fotos não funciona.
    ========================================================= */
-export const RS_MIDIA_TAMANHO_MAXIMO_MB = 15;
+export const RS_CLOUDINARY_CLOUD_NAME = "";
+export const RS_CLOUDINARY_UPLOAD_PRESET = "";
+
+/* Limite de tamanho por foto, conferido no navegador antes de
+   enviar (o Cloudinary também pode ser configurado com o mesmo
+   limite no próprio upload preset, como segunda trava). */
+export const RS_MIDIA_TAMANHO_MAXIMO_MB = 10;
 
 /* =========================================================
    Contas de acesso.

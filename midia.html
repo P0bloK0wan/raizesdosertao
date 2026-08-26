@@ -33,7 +33,8 @@
 <div data-site-footer></div>
 
 <script type="module">
-  import { watchMidia, listarFotosMidia } from "./assets/js/store.js";
+  import { watchMidia, watchFotosMidia } from "./assets/js/store.js";
+  import { urlComDownloadForcado } from "./assets/js/cloudinary.js";
 
   const wrap = document.getElementById("midia-pastas");
   const lightbox = document.getElementById("lightbox");
@@ -43,7 +44,7 @@
   function abrirLightbox(foto) {
     lightboxImg.src = foto.url;
     lightboxImg.alt = foto.nome;
-    lightboxBaixar.href = foto.url;
+    lightboxBaixar.href = urlComDownloadForcado(foto.url);
     lightbox.classList.add("show");
   }
   function fecharLightbox() {
@@ -64,51 +65,68 @@
       </div>`;
   }
 
-  function cardPasta(p, fotos) {
-    if (!fotos.length) {
-      return `
-        <div class="pasta-bloco">
-          <div class="pasta-cabecalho"><h3>📁 ${p.nome}</h3></div>
-          <div class="empty-state">Nenhuma foto nessa pasta ainda.</div>
-        </div>`;
-    }
-
-    const grade = fotos.map((f) => `
-      <button class="foto-thumb" data-foto-nome="${f.nome}" aria-label="Ver foto ${f.nome}">
-        <img src="${f.url}" alt="${f.nome}" loading="lazy">
-      </button>`).join("");
-
-    return `
-      <div class="pasta-bloco">
-        <div class="pasta-cabecalho"><h3>📁 ${p.nome}</h3></div>
-        <div class="foto-grid" data-fotos="${p.id}">${grade}</div>
-      </div>`;
+  function gradeFotos(fotos) {
+    if (!fotos.length) return "<div class='empty-state'>Nenhuma foto nessa pasta ainda.</div>";
+    return `<div class="foto-grid">${fotos
+      .map((f) => `
+        <button class="foto-thumb" data-foto-id="${f.id}" aria-label="Ver foto ${f.nome}">
+          <img src="${f.url}" alt="${f.nome}" loading="lazy">
+        </button>`)
+      .join("")}</div>`;
   }
 
-  watchMidia(async (pastas) => {
+  const fotosPorPasta = {}; // pastaId -> [{id, nome, url}]
+  const fotosUnsubs = {};
+
+  watchMidia((pastas) => {
     if (!pastas.length) {
       wrap.innerHTML = `<div class="empty-state">Ainda não há pastas publicadas. A diretoria pode adicionar pelo painel da liderança.</div>`;
       return;
     }
 
-    wrap.innerHTML = `<div class="empty-state">Carregando fotos...</div>`;
-    const comFotos = await Promise.all(
-      pastas.map(async (p) => ({ pasta: p, fotos: p.link ? null : await listarFotosMidia(p.id) }))
-    );
-    wrap.innerHTML = comFotos
-      .map(({ pasta, fotos }) => (fotos === null ? cardPastaAntiga(pasta) : cardPasta(pasta, fotos)))
+    const idsAtuais = new Set(pastas.map((p) => p.id));
+    pastas.forEach((p) => {
+      if (p.link || fotosUnsubs[p.id]) return;
+      fotosUnsubs[p.id] = watchFotosMidia(p.id, (fotos) => {
+        fotosPorPasta[p.id] = fotos;
+        renderizar(pastas);
+      });
+    });
+    Object.keys(fotosUnsubs).forEach((pastaId) => {
+      if (!idsAtuais.has(pastaId)) {
+        fotosUnsubs[pastaId]();
+        delete fotosUnsubs[pastaId];
+        delete fotosPorPasta[pastaId];
+      }
+    });
+
+    renderizar(pastas);
+  });
+
+  function renderizar(pastas) {
+    wrap.innerHTML = pastas
+      .map((p) => {
+        if (p.link) return cardPastaAntiga(p);
+        const fotos = fotosPorPasta[p.id] || [];
+        return `
+          <div class="pasta-bloco">
+            <div class="pasta-cabecalho"><h3>📁 ${p.nome}</h3></div>
+            <div data-fotos="${p.id}">${gradeFotos(fotos)}</div>
+          </div>`;
+      })
       .join("");
 
-    comFotos.forEach(({ pasta, fotos }) => {
-      if (!fotos) return;
-      const el = wrap.querySelector(`[data-fotos="${pasta.id}"]`);
+    pastas.forEach((p) => {
+      if (p.link) return;
+      const fotos = fotosPorPasta[p.id] || [];
+      const el = wrap.querySelector(`[data-fotos="${p.id}"]`);
       if (!el) return;
-      el.querySelectorAll("[data-foto-nome]").forEach((btn) => {
-        const foto = fotos.find((f) => f.nome === btn.dataset.fotoNome);
+      el.querySelectorAll("[data-foto-id]").forEach((btn) => {
+        const foto = fotos.find((f) => f.id === btn.dataset.fotoId);
         if (foto) btn.addEventListener("click", () => abrirLightbox(foto));
       });
     });
-  });
+  }
 </script>
 <script type="module" src="assets/js/main.js"></script>
 </body>

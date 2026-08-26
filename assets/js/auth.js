@@ -62,6 +62,13 @@ export async function trocarSenha(senhaAtual, senhaNova) {
   await updatePassword(user, senhaNova);
 }
 
+/* Aplica uma troca de senha já aprovada pela liderança — chamada
+   logo após um login bem-sucedido (a sessão está "recente", o
+   Firebase não exige reautenticar de novo nesse momento). */
+export function aplicarSenhaAprovada(senhaNova) {
+  return updatePassword(auth.currentUser, senhaNova);
+}
+
 export function mensagemErroFirebase(err) {
   const codigo = err && err.code;
   const mapa = {

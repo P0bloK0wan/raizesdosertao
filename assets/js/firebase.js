@@ -14,11 +14,6 @@ import {
   connectFirestoreEmulator
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-import {
-  getStorage,
-  connectStorageEmulator
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
-
 
 /* =========================================================
    CONFIGURAÇÃO
@@ -46,8 +41,6 @@ export const auth = getAuth(app);
 
 export const db = getFirestore(app);
 
-export const storage = getStorage(app);
-
 
 /* =========================================================
    EMULADOR LOCAL
@@ -74,12 +67,6 @@ if (usandoEmulador) {
       db,
       "127.0.0.1",
       8080
-    );
-
-    connectStorageEmulator(
-      storage,
-      "127.0.0.1",
-      9199
     );
 
     console.log("Firebase Emulator ativado.");

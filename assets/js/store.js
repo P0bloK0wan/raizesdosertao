@@ -4,15 +4,13 @@
    cuida de tudo, no plano gratuito.
    ========================================================= */
 
-import { db, storage } from "./firebase.js";
+import { db } from "./firebase.js";
 import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO } from "./data.js";
 import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDoc, getDocs,
   onSnapshot, serverTimestamp, orderBy, query, runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-import {
-  ref, uploadBytes, getDownloadURL, listAll, deleteObject,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+import { enviarImagemCloudinary } from "./cloudinary.js";
 
 /* ---------- tema (só de exibição, pode ficar local) ---------- */
 export function getTheme() {
@@ -31,8 +29,38 @@ export function watchMembros(unidadeId, cb) {
 export function addMembro(unidadeId, membro) {
   return addDoc(collection(db, "unidades", unidadeId, "membros"), membro);
 }
+export function updateMembro(unidadeId, membroId, dados) {
+  return updateDoc(doc(db, "unidades", unidadeId, "membros", membroId), dados);
+}
 export function deleteMembro(unidadeId, membroId) {
   return deleteDoc(doc(db, "unidades", unidadeId, "membros", membroId));
+}
+
+/* ---------- conselheiros por unidade ---------- */
+export function watchConselheiros(unidadeId, cb) {
+  return onSnapshot(collection(db, "unidades", unidadeId, "conselheiros"), (snap) => {
+    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  });
+}
+export function addConselheiro(unidadeId, conselheiro) {
+  return addDoc(collection(db, "unidades", unidadeId, "conselheiros"), {
+    ...conselheiro, criadoEm: serverTimestamp(),
+  });
+}
+export function deleteConselheiro(unidadeId, conselheiroId) {
+  return deleteDoc(doc(db, "unidades", unidadeId, "conselheiros", conselheiroId));
+}
+
+/* ---------- identidade da unidade (logo + grito de guerra) ---------- */
+export function watchIdentidadeUnidade(unidadeId, cb) {
+  return onSnapshot(doc(db, "unidades", unidadeId), (d) => {
+    cb(d.exists() ? d.data() : { logoUrl: "", gritoDeGuerra: "" });
+  });
+}
+export function salvarIdentidadeUnidade(unidadeId, { logoUrl, gritoDeGuerra }) {
+  return setDoc(doc(db, "unidades", unidadeId), {
+    logoUrl, gritoDeGuerra, atualizadoEm: serverTimestamp(),
+  }, { merge: true });
 }
 
 /* ---------- registros de requisitos por desbravador ----------
@@ -155,8 +183,13 @@ export function recusarPlanejamento(unidadeId, planId, titulo, motivo) {
     })
   );
 }
-export function deletePlanejamento(unidadeId, planId) {
-  return deleteDoc(doc(db, "unidades", unidadeId, "planejamentos", planId));
+export function deletePlanejamento(unidadeId, planId, titulo, motivo) {
+  return criarNotificacaoUnidade(unidadeId, {
+    tipo: "planejamento_excluido",
+    mensagem: `Seu planejamento "${titulo}" foi excluído pela liderança.`,
+    motivo,
+    planId,
+  }).then(() => deleteDoc(doc(db, "unidades", unidadeId, "planejamentos", planId)));
 }
 
 /* ---------- Notificações ---------- */
@@ -166,7 +199,7 @@ export function watchNotificacoesUnidade(unidadeId, cb) {
     (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
   );
 }
-function criarNotificacaoUnidade(unidadeId, dados) {
+export function criarNotificacaoUnidade(unidadeId, dados) {
   return addDoc(collection(db, "unidades", unidadeId, "notificacoes"), {
     ...dados, lida: false, criadoEm: serverTimestamp(),
   });
@@ -175,6 +208,9 @@ export function marcarNotificacoesUnidadeLidas(unidadeId, ids) {
   return Promise.all(
     ids.map((id) => updateDoc(doc(db, "unidades", unidadeId, "notificacoes", id), { lida: true }))
   );
+}
+export function deleteNotificacaoUnidade(unidadeId, notifId) {
+  return deleteDoc(doc(db, "unidades", unidadeId, "notificacoes", notifId));
 }
 export function watchNotificacoesLideranca(cb) {
   return onSnapshot(
@@ -191,6 +227,52 @@ export function marcarNotificacoesLiderancaLidas(ids) {
   return Promise.all(
     ids.map((id) => updateDoc(doc(db, "notificacoesLideranca", id), { lida: true }))
   );
+}
+export function deleteNotificacaoLideranca(notifId) {
+  return deleteDoc(doc(db, "notificacoesLideranca", notifId));
+}
+
+/* ---------- Pedido de troca de senha (unidade → aprovação da liderança) ----------
+   Sem servidor próprio, só quem consegue trocar a senha de verdade
+   é a própria unidade, na própria sessão — por isso o fluxo é:
+   unidade propõe (fica pendente), liderança aprova/recusa, e a
+   troca se aplica sozinha no PRÓXIMO login da unidade (ver
+   auth.js + login-unidade.html). Nada fica guardado depois de
+   aplicado ou recusado — o doc é sempre apagado em seguida. */
+export function solicitarTrocaSenha(unidadeId, senhaNova) {
+  return setDoc(doc(db, "unidades", unidadeId, "senha", "pedido"), {
+    senhaNova, status: "pendente", motivoRecusa: "", criadoEm: serverTimestamp(),
+  }).then(() => criarNotificacaoLideranca({
+    tipo: "pedido_senha",
+    mensagem: `A unidade ${unidadeId} pediu pra trocar a senha de login.`,
+    unidadeId,
+  }));
+}
+export function watchPedidoSenha(unidadeId, cb) {
+  return onSnapshot(doc(db, "unidades", unidadeId, "senha", "pedido"), (d) => {
+    cb(d.exists() ? { id: d.id, ...d.data() } : null);
+  });
+}
+export async function consultarPedidoSenha(unidadeId) {
+  const d = await getDoc(doc(db, "unidades", unidadeId, "senha", "pedido"));
+  return d.exists() ? { id: d.id, ...d.data() } : null;
+}
+export function aprovarTrocaSenha(unidadeId) {
+  return updateDoc(doc(db, "unidades", unidadeId, "senha", "pedido"), {
+    status: "aprovada", atualizadoEm: serverTimestamp(),
+  });
+}
+export function recusarTrocaSenha(unidadeId, motivo) {
+  return updateDoc(doc(db, "unidades", unidadeId, "senha", "pedido"), {
+    status: "recusada", motivoRecusa: motivo, atualizadoEm: serverTimestamp(),
+  }).then(() => criarNotificacaoUnidade(unidadeId, {
+    tipo: "senha_recusada",
+    mensagem: "Seu pedido de troca de senha foi recusado.",
+    motivo,
+  }));
+}
+export function limparPedidoSenha(unidadeId) {
+  return deleteDoc(doc(db, "unidades", unidadeId, "senha", "pedido"));
 }
 
 /* ---------- Planejamento do Clube (calendário privado) ---------- */
@@ -333,12 +415,18 @@ export function watchLavaJato(cb) {
 }
 
 /* ---------- Mídia: pastas com fotos enviadas direto pelo painel ----------
-   A pasta em si é só um nome no Firestore; as fotos ficam no
-   Firebase Storage, em "midia/{pastaId}/{nomeDoArquivo}" — sem
-   redimensionar nada, então baixar sempre pega o arquivo original.
+   A pasta é um doc no Firestore; cada foto dela sobe pro Cloudinary
+   (upload "unsigned", sem precisar de servidor nem de chave secreta
+   — veja assets/js/cloudinary.js) e vira um doc na subcoleção
+   "fotos" com a URL do arquivo original (sem redimensionar nada).
    Pastas antigas (criadas quando a Mídia usava link do Google
    Drive) ainda têm o campo "link" — tratado como caso legado nas
-   páginas que exibem a Mídia. */
+   páginas que exibem a Mídia.
+
+   Excluir uma foto tira ela do site (apaga só o doc), mas o
+   arquivo pode continuar existindo na conta do Cloudinary — sem
+   servidor próprio não dá pra assinar um pedido de exclusão de
+   verdade lá. */
 export function watchMidia(cb) {
   return onSnapshot(query(collection(db, "midia"), orderBy("criadoEm", "asc")), (snap) => {
     cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -348,27 +436,24 @@ export function addPastaMidia(nome) {
   return addDoc(collection(db, "midia"), { nome, criadoEm: serverTimestamp() });
 }
 export async function deletePastaMidia(pastaId) {
-  const fotos = await listarFotosMidia(pastaId);
-  await Promise.all(fotos.map((f) => deleteFotoMidia(pastaId, f.nome)));
+  const snap = await getDocs(collection(db, "midia", pastaId, "fotos"));
+  await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
   await deleteDoc(doc(db, "midia", pastaId));
 }
-
-/* contentDisposition "attachment" garante que o botão de baixar
-   force o download do arquivo original (em vez de só abrir a foto
-   numa aba), já que o Storage fica num domínio diferente do site. */
-export function uploadFotoMidia(pastaId, arquivo) {
-  return uploadBytes(ref(storage, `midia/${pastaId}/${arquivo.name}`), arquivo, {
-    contentDisposition: `attachment; filename="${arquivo.name}"`,
-  });
-}
-export async function listarFotosMidia(pastaId) {
-  const lista = await listAll(ref(storage, `midia/${pastaId}`));
-  return Promise.all(
-    lista.items.map(async (item) => ({ nome: item.name, url: await getDownloadURL(item) }))
+export function watchFotosMidia(pastaId, cb) {
+  return onSnapshot(
+    query(collection(db, "midia", pastaId, "fotos"), orderBy("criadoEm", "asc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
   );
 }
-export function deleteFotoMidia(pastaId, nomeArquivo) {
-  return deleteObject(ref(storage, `midia/${pastaId}/${nomeArquivo}`));
+export async function uploadFotoMidia(pastaId, arquivo) {
+  const { url, publicId } = await enviarImagemCloudinary(arquivo);
+  return addDoc(collection(db, "midia", pastaId, "fotos"), {
+    nome: arquivo.name, url, publicId, criadoEm: serverTimestamp(),
+  });
+}
+export function deleteFotoMidia(pastaId, fotoId) {
+  return deleteDoc(doc(db, "midia", pastaId, "fotos", fotoId));
 }
 
 /* ---------- Campori: data do evento (configurável pela liderança) ---------- */
@@ -384,6 +469,7 @@ export function setCamporiData(data) {
 /* ---------- backup (exportar tudo em .json, só leitura) ---------- */
 export async function exportarBackup() {
   const membros = {};
+  const conselheiros = {};
   const planejamentos = {};
   for (const u of RS_UNIDADES) {
     const mSnap = await getDocs(collection(db, "unidades", u.id, "membros"));
@@ -402,12 +488,20 @@ export async function exportarBackup() {
     }
     membros[u.id] = lista;
 
+    const cSnap = await getDocs(collection(db, "unidades", u.id, "conselheiros"));
+    conselheiros[u.id] = cSnap.docs.map((c) => ({ id: c.id, ...c.data() }));
+
     const pSnap = await getDocs(collection(db, "unidades", u.id, "planejamentos"));
     planejamentos[u.id] = pSnap.docs.map((p) => ({ id: p.id, ...p.data() }));
   }
   const lavajatoSnap = await getDocs(collection(db, "lavajato"));
   const domingosSnap = await getDocs(collection(db, "lavajato_domingos"));
   const midiaSnap = await getDocs(collection(db, "midia"));
+  const midia = [];
+  for (const p of midiaSnap.docs) {
+    const fSnap = await getDocs(collection(db, "midia", p.id, "fotos"));
+    midia.push({ id: p.id, ...p.data(), fotos: fSnap.docs.map((f) => ({ id: f.id, ...f.data() })) });
+  }
   const camporiDoc = await getDoc(doc(db, "config", "campori"));
   const planejamentoClubeSnap = await getDocs(collection(db, "planejamentoClube"));
 
@@ -415,10 +509,11 @@ export async function exportarBackup() {
     tipo: "rs-backup-completo",
     exportadoEm: new Date().toISOString(),
     membros,
+    conselheiros,
     planejamentos,
     lavajato: lavajatoSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
     lavajatoDomingos: domingosSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
-    midia: midiaSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
+    midia,
     campori: camporiDoc.exists() ? camporiDoc.data() : null,
     planejamentoClube: planejamentoClubeSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
   };

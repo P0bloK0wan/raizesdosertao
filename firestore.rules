@@ -29,9 +29,15 @@ service cloud.firestore {
       allow write: if eLideranca();
     }
 
-    // Pastas de mídia (links do Google Drive/Fotos) — públicas
-    // pra leitura, só a liderança publica/edita/remove.
+    // Pastas de mídia — públicas pra leitura, só a liderança
+    // publica/edita/remove. Pastas antigas ainda têm um campo
+    // "link" (formato Google Drive); pastas novas não têm link,
+    // as fotos ficam na subcoleção "fotos" abaixo (Cloudinary).
     match /midia/{pastaId} {
+      allow read: if true;
+      allow write: if eLideranca();
+    }
+    match /midia/{pastaId}/fotos/{fotoId} {
       allow read: if true;
       allow write: if eLideranca();
     }
@@ -82,11 +88,44 @@ service cloud.firestore {
         );
     }
 
+    // Documento "pai" da unidade (identidade: logo, grito de
+    // guerra) — qualquer conta logada pode ler, só a própria
+    // unidade ou a liderança altera.
+    match /unidades/{unidadeId} {
+      allow read: if estaLogado();
+      allow write: if eLideranca() || eDaUnidade(unidadeId);
+    }
+
     // Desbravadores de cada unidade — só a própria unidade e a
     // liderança podem ler e escrever; outras unidades não têm
     // acesso nenhum aos dados de uma unidade que não é a sua.
     match /unidades/{unidadeId}/membros/{membroId} {
       allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+    }
+
+    // Conselheiros de cada unidade — mesma regra dos membros.
+    match /unidades/{unidadeId}/conselheiros/{conselheiroId} {
+      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+    }
+
+    // Pedido de troca de senha da unidade: a unidade propõe (só
+    // pode criar como "pendente", ou reenviar depois de uma
+    // recusa), só a liderança aprova/recusa. Qualquer um dos dois
+    // pode apagar (a unidade apaga depois de aplicar a troca no
+    // próprio login; a liderança pode limpar se precisar). Nunca
+    // fica registrado como "senha atual" permanente — é só um
+    // pedido temporário, apagado assim que aplicado ou recusado.
+    match /unidades/{unidadeId}/senha/{docId} {
+      allow read: if eLideranca() || eDaUnidade(unidadeId);
+      allow create: if eDaUnidade(unidadeId) &&
+        request.resource.data.status == 'pendente' &&
+        request.resource.data.keys().hasAll(['senhaNova', 'status']);
+      allow update: if eLideranca() || (
+        eDaUnidade(unidadeId) &&
+        resource.data.status == 'recusada' &&
+        request.resource.data.status == 'pendente'
+      );
+      allow delete: if eLideranca() || eDaUnidade(unidadeId);
     }
 
     // Registros de requisitos por desbravador (histórico de
@@ -121,13 +160,13 @@ service cloud.firestore {
       allow delete: if eLideranca() || (eDaUnidade(unidadeId) && resource.data.status != 'aprovado');
     }
 
-    // Notificações pra unidade (aviso de planejamento aprovado ou
-    // recusado) — só a liderança cria, a própria unidade só lê e
-    // marca como lida.
+    // Notificações pra unidade (aviso de planejamento aprovado,
+    // recusado, excluído, item alterado pela liderança etc.) — só
+    // a liderança cria; a própria unidade lê, marca como lida e
+    // pode apagar as que já leu (some só da própria lista dela).
     match /unidades/{unidadeId}/notificacoes/{notifId} {
-      allow read, update: if eLideranca() || eDaUnidade(unidadeId);
+      allow read, update, delete: if eLideranca() || eDaUnidade(unidadeId);
       allow create: if eLideranca();
-      allow delete: if eLideranca();
     }
 
     // Notificações pra liderança (aviso de novo planejamento

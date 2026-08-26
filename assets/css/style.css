@@ -607,7 +607,11 @@ button.agenda-dia { cursor: pointer; font: inherit; font-family: var(--font-titl
   color: #fff;
   position: relative;
   overflow: hidden;
+  animation: auth-card-entrar .5s cubic-bezier(.22,1,.36,1) both;
+  transition: transform .2s ease, box-shadow .2s ease;
 }
+.access-card:hover { transform: translateY(-3px); box-shadow: 0 16px 36px rgba(0,0,0,.28); }
+.access-card.unidade { animation-delay: .08s; }
 .access-card.lideranca { background: linear-gradient(140deg, var(--black), #2b2419); }
 .access-card.unidade { background: linear-gradient(140deg, var(--green), #4f7a26); }
 .access-card h3 { color: #fff; font-size: 1.5rem; }
@@ -664,6 +668,18 @@ button.agenda-dia { cursor: pointer; font: inherit; font-family: var(--font-titl
   padding: 24px;
   background: radial-gradient(circle at top, #241e14, var(--black));
 }
+@keyframes auth-card-entrar {
+  from { opacity: 0; transform: translateY(18px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes auth-brand-entrar {
+  from { opacity: 0; transform: scale(.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-card, .auth-card .brand img { animation: none; }
+}
+
 .auth-card {
   width: 100%;
   max-width: 420px;
@@ -671,8 +687,10 @@ button.agenda-dia { cursor: pointer; font: inherit; font-family: var(--font-titl
   border-radius: var(--radius-lg);
   padding: 36px 30px;
   box-shadow: 0 24px 60px rgba(0,0,0,.4);
+  animation: auth-card-entrar .5s cubic-bezier(.22,1,.36,1) both;
 }
 .auth-card .brand { justify-content: center; margin-bottom: 8px; }
+.auth-card .brand img { animation: auth-brand-entrar .6s cubic-bezier(.22,1,.36,1) .1s both; }
 .auth-card h1 { text-align: center; font-size: 1.5rem; }
 .auth-card .sub { text-align: center; margin-bottom: 26px; }
 .field { margin-bottom: 16px; }
@@ -687,8 +705,10 @@ button.agenda-dia { cursor: pointer; font: inherit; font-family: var(--font-titl
   color: var(--text);
   font-size: 1rem;
   font-family: var(--font-body);
+  transition: border-color .2s ease, box-shadow .2s ease;
 }
-.field select:focus, .field input:focus { outline: 2px solid var(--orange); outline-offset: 1px; }
+.field select:focus, .field input:focus { outline: 2px solid var(--orange); outline-offset: 1px; border-color: var(--orange); }
+.auth-card .btn-block { transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
 .form-note { font-size: .78rem; color: var(--text-muted); margin-top: 14px; text-align: center; }
 .alert {
   padding: 10px 14px;
@@ -879,6 +899,8 @@ tr.comprado td { text-decoration: line-through; }
 .notif-item:last-child { border-bottom: none; }
 .notif-item p { margin: 0; }
 .notif-item.nao-lida { background: color-mix(in srgb, var(--orange) 8%, transparent); }
+.notif-del { flex-shrink: 0; align-self: flex-start; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: .8rem; padding: 2px 4px; line-height: 1; }
+.notif-del:hover { color: #c1443a; }
 
 /* ---------- Filtros (Planejamento das Unidades) ---------- */
 .filtros-bar { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 20px; }

@@ -8,11 +8,25 @@ HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pag
 
 ## 📝 O que mudou na última atualização
 
-- **O site tinha parado de novo**: o arquivo `assets/js/firebase.js` (o "coração" do site — é ele que conecta tudo ao Firebase) tinha sido sobrescrito por engano com outro conteúdo que não é código válido, quebrando login, painéis e Mídia ao mesmo tempo. Já corrigido — veja o novo item no checklist de erros comuns logo abaixo pra reconhecer esse sintoma se acontecer de novo.
-- **Mídia agora é upload manual, com download em resolução completa**: em vez de colar o link de uma pasta do Google Drive, a liderança clica em **"+ Nova pasta"** no painel, dá um nome, e sobe as fotos direto pelo site (**"Adicionar fotos"**, escolhe uma ou várias imagens do computador/celular). As fotos ficam guardadas no **Firebase Storage** (armazenamento de arquivos do próprio Firebase, também gratuito). Qualquer visitante vê a pasta em `Mídia`, clica numa foto pra ampliar e tem um botão **Baixar** que entrega o arquivo **original, sem nenhum redimensionamento** — a mesma resolução que foi enviada. Limite de 15MB por foto, só arquivos de imagem. Pastas antigas que ainda tinham link do Drive continuam funcionando normalmente (mostram "Abrir no Drive ↗").
-- Isso exige um passo novo e manual no Firebase Console: **ativar o Storage** (veja o passo 1.6 abaixo) — sem isso, o upload de fotos falha mesmo com o código certo.
+Essa rodada juntou vários pedidos pequenos — mais controle pra liderança, mais identidade pras unidades, e a troca da Mídia pra um jeito que não depende de cartão de crédito:
+
+- **Mídia trocou de Firebase Storage pra Cloudinary**: o Storage do Firebase passou a exigir plano pago (Blaze) pra ser ativado em projetos novos — mesmo sem cobrar nada dentro da cota grátis, ele pede cartão, o que não rolava pra esse projeto. A Mídia agora sobe as fotos pro **Cloudinary** (outro serviço gratuito, sem cartão, feito exatamente pra isso). O jeito de usar não muda nada pra liderança (mesmos botões "+ Nova pasta" / "Adicionar fotos"), só o passo de configuração inicial — veja "Configurar o Cloudinary" abaixo. Uma ressalva: como não há servidor próprio pra confirmar uma exclusão de verdade, apagar uma foto tira ela do site, mas o arquivo pode continuar existindo na conta do Cloudinary.
+- **Liderança agora pode apagar planejamentos de qualquer unidade** (antes só dava pra aprovar/recusar) — apagar pede um motivo, e a unidade recebe um aviso.
+- **Liderança pode editar ou apagar o que uma unidade cadastrou**: desbravadores, especialidades e itens da lista de compras. Toda edição/exclusão feita pela liderança pede um motivo, e a unidade recebe uma notificação explicando o que mudou e por quê.
+- **Planejamento do Clube agora aparece pras unidades também** (antes só a liderança via o calendário) — as unidades veem em modo só-leitura, sem poder editar.
+- **Notificações ganharam um botão de excluir individual** (✕) — antes só dava pra marcar tudo como lido de uma vez; agora dá pra remover uma notificação específica da lista.
+- **Troca de senha das unidades passou a depender de aprovação da liderança**: a unidade pede a troca (digita a senha nova), a liderança aprova ou recusa (com motivo). Se aprovar, a troca se aplica sozinha na próxima vez que a unidade entrar com a senha atual — ninguém precisa ficar repassando senha por mensagem. A senha não fica guardada em lugar nenhum depois de aplicada (nem a liderança consegue "consultar" a senha de uma unidade depois do fato).
+- **Cada unidade pode configurar sua própria logo e grito de guerra** (frase/lema da unidade), numa seção nova "Minha Unidade" no painel — aparece no próprio painel e também pra liderança.
+- **Cadastro de conselheiros por unidade**: nova seção no painel da unidade pra cadastrar os conselheiros dela (nome, idade, telefone) — a liderança vê a lista de conselheiros de cada unidade.
+- **Campo de idade no cadastro do desbravador** (além da data de nascimento que já existia).
+- **Animação nas telas de login** (entrada suave do card, pequenos efeitos ao passar o mouse) — só visual, não muda nenhum fluxo.
 
 ### Rodada anterior
+
+- **O site tinha parado de novo**: o arquivo `assets/js/firebase.js` tinha sido sobrescrito por engano com outro conteúdo que não é código válido, quebrando login, painéis e Mídia ao mesmo tempo. Corrigido.
+- **Mídia passou a ser upload manual, com download em resolução completa**: em vez de colar o link de uma pasta do Google Drive, a liderança sobe as fotos direto pelo site. *Nessa mesma rodada isso usava o Firebase Storage — substituído pelo Cloudinary na atualização mais recente, veja o topo desta seção.*
+
+### Duas rodadas atrás
 
 Essa foi uma atualização grande — 6 áreas novas, pensadas pra dar mais autonomia pras unidades e uma visão central pra liderança:
 
@@ -50,7 +64,7 @@ Se alguma coisa não estiver funcionando depois de você mexer na configuração
   - Com o conteúdo do arquivo `firestore.rules` colado dentro dele por engano (`firebase.js` é **JavaScript** — as chaves do site; `firestore.rules` é a **linguagem de regras do Firestore** — nunca colar o conteúdo de um dentro do outro).
   - Com pedaços de um `git diff` colados dentro (sinal claro: linhas começando com `@@ -alguma coisa @@`, ou o mesmo trecho de código aparecendo repetido/fora de ordem no arquivo).
 
-  Em qualquer um desses casos, abra `assets/js/firebase.js` e confira se `firebaseConfig`, `app`, `auth`, `db` e `storage` aparecem **uma única vez** cada, e se o arquivo só tem JavaScript (nada de `service cloud.firestore`, nada de `@@`). Se estiver estranho, apague tudo e cole de novo o conteúdo do passo 1.4 abaixo — o conteúdo novo deve **substituir** o arquivo inteiro, não ser adicionado no topo dele.
+  Em qualquer um desses casos, abra `assets/js/firebase.js` e confira se `firebaseConfig`, `app`, `auth` e `db` aparecem **uma única vez** cada, e se o arquivo só tem JavaScript (nada de `service cloud.firestore`, nada de `@@`). Se estiver estranho, apague tudo e cole de novo o conteúdo do passo 1.4 abaixo — o conteúdo novo deve **substituir** o arquivo inteiro, não ser adicionado no topo dele.
 
 **"Consigo abrir o site, mas o login não aparece / os botões não fazem nada."**
 → Mesma causa acima na maioria das vezes: algum arquivo `.js` com erro de sintaxe quebra o carregamento de todos os outros (eles dependem uns dos outros). Abra o site, aperte F12 (ferramentas do desenvolvedor) → aba **Console** → veja se aparece algo em vermelho tipo "Uncaught SyntaxError" e em qual arquivo.
@@ -67,8 +81,11 @@ Se alguma coisa não estiver funcionando depois de você mexer na configuração
 **"O Firebase Console recusa publicar as regras (`firestore.rules`), ou dá um erro de sintaxe ao colar."**
 → Mesmo problema do `firebase.js` acima, só que no arquivo de regras: alguém colou um conteúdo novo **por cima** do antigo, em vez de apagar tudo e colar de novo — isso duplica o bloco `service cloud.firestore { ... }`, e regras do Firestore só aceitam **um** bloco desses por arquivo. Se isso acontecer, abra o arquivo e confira se a palavra `service` aparece **uma única vez**; se aparecer duas vezes, o arquivo está com conteúdo duplicado e precisa ser substituído inteiro pela versão certa (a que está neste repositório).
 
-**"Não consigo subir fotos na Mídia / dá erro de permissão ao enviar."**
-→ O **Storage** do Firebase provavelmente não foi ativado, ou o arquivo `storage.rules` não foi publicado — veja o passo 1.6 abaixo. Sem isso, o upload falha mesmo com o código do site certinho.
+**"Não consigo subir fotos na Mídia / dá erro dizendo que o Cloudinary não foi configurado."**
+→ Confira se `RS_CLOUDINARY_CLOUD_NAME` e `RS_CLOUDINARY_UPLOAD_PRESET`, no arquivo `assets/js/data.js`, estão preenchidos (veja o passo 1.6 abaixo) e se o preset foi criado como **Unsigned** no painel do Cloudinary. Sem isso, o upload falha mesmo com o resto do site funcionando.
+
+**"Pedi pra trocar a senha da unidade e a liderança aprovou, mas a senha antiga continua funcionando."**
+→ Isso é esperado até a unidade **entrar de novo** com a senha atual — é só nesse momento (logo após o login) que o site aplica a troca sozinho. Se demorar demais, confira se a unidade realmente saiu e entrou de novo depois da aprovação.
 
 **"Uma pasta antiga de Mídia só mostra o link 'Abrir no Drive', em vez das fotos."**
 → Isso é esperado — é uma pasta criada antes da mudança pra upload manual (quando a Mídia ainda buscava fotos de uma pasta do Google Drive por link). Ela continua funcionando como estava; se quiser trocar pra fotos direto no site, crie uma pasta nova pelo painel e suba as fotos nela.
@@ -121,13 +138,24 @@ O site precisa de um projeto Firebase gratuito pra funcionar. Leva uns 10-15 min
 
 Essas chaves **não são segredo** — é normal elas aparecerem no código de um app Firebase. Quem protege os dados de verdade são as regras do Firestore (passo 1.3), não esconder essas chaves.
 
-### 1.6. Ativar o Storage (necessário para a Mídia)
+### 1.6. Configurar o Cloudinary (necessário para a Mídia)
 
-O Storage é onde ficam guardadas as fotos que a liderança sobe pela página de Mídia. Sem esse passo, o upload de fotos falha (mesmo o resto do site funcionando normalmente):
+As fotos da página de Mídia ficam guardadas no **Cloudinary** (não no Firebase) — um serviço à parte, também gratuito e sem pedir cartão de crédito, feito justamente pra permitir que um site sem servidor próprio receba upload de imagens com segurança:
 
-1. No menu lateral: **Compilação → Storage → Introdução**.
-2. Escolha uma localização (a mesma região que você usou no Firestore, ex. `southamerica-east1`) → **Concluído**.
-3. Vá na aba **Regras (Rules)**, apague o conteúdo e cole o conteúdo do arquivo [`storage.rules`](./storage.rules) deste repositório → **Publicar**.
+1. Crie uma conta grátis em [cloudinary.com](https://cloudinary.com) (não precisa cartão).
+2. No painel do Cloudinary, anote o **Cloud name** que aparece no topo (ex.: `dxyz1234`).
+3. Vá em **Settings → Upload → Upload presets → Add upload preset**.
+4. Configure o preset:
+   - **Signing Mode**: `Unsigned` (é isso que permite o site enviar fotos sem precisar de uma chave secreta escondida em algum lugar).
+   - (Recomendado) **Folder**: algo como `raizes-do-sertao`, pra organizar.
+   - (Recomendado) Em **Upload Manipulations**, limite o **tamanho máximo do arquivo** (ex.: 10MB, o mesmo limite já usado no site) e restrinja os **Allowed formats** a `jpg,png,webp` — assim, mesmo que alguém tente abusar do preset, ele não consegue subir nada fora disso.
+   - Salve e anote o **nome do preset** que você deu a ele.
+5. Abra o arquivo [`assets/js/data.js`](./assets/js/data.js) e preencha `RS_CLOUDINARY_CLOUD_NAME` (o Cloud name do passo 2) e `RS_CLOUDINARY_UPLOAD_PRESET` (o nome do preset do passo 4).
+6. Salve, faça commit e push.
+
+O Cloud name e o nome do preset **não são segredo** — um preset "unsigned" só permite enviar dentro do que foi configurado ali (tamanho, formato, pasta), nunca dá acesso de leitura ou exclusão da sua conta Cloudinary. É a mesma lógica das chaves do Firebase (passo 1.4): aparecem no código, mas não são a camada que protege de verdade.
+
+**Sobre excluir fotos**: como o site não tem servidor próprio, apagar uma foto pelo painel da liderança tira ela do site, mas o arquivo pode continuar existindo na sua conta do Cloudinary (o plano gratuito tem espaço de sobra pra isso não ser um problema num clube pequeno). Se quiser apagar de vez, dá pra entrar no painel do Cloudinary e remover manualmente.
 
 Isso limita o upload à liderança, só arquivos de imagem, até 15MB cada — o mesmo tipo de regra de segurança já usada no Firestore (passo 1.3).
 
@@ -139,14 +167,14 @@ Isso limita o upload à liderança, só arquivos de imagem, até 15MB cada — o
 
 ## Mídia (fotos e vídeos)
 
-As fotos ficam guardadas no **Firebase Storage** (armazenamento de arquivos do próprio Firebase, gratuito até 5GB de espaço e 1GB de download por dia — de sobra pro volume de um clube pequeno):
+As fotos ficam guardadas no **Cloudinary** (serviço gratuito de imagens, sem cartão de crédito — veja o passo 1.6 acima):
 
 1. No painel da liderança → **Mídia** → **+ Nova pasta**, dê um nome (ex.: "Acampamento 2026").
-2. Abra a pasta criada e clique **Adicionar fotos** — escolha uma ou várias imagens do computador/celular (até 15MB cada).
+2. Abra a pasta criada e clique **Adicionar fotos** — escolha uma ou várias imagens do computador/celular (até 10MB cada).
 3. A pasta aparece automaticamente na página pública de **Mídia**, com uma grade das fotos. Qualquer visitante clica numa foto pra ampliar e tem um botão **Baixar** que entrega o arquivo **original, sem redimensionar** — a mesma resolução que foi enviada.
-4. Pra remover uma foto ou a pasta inteira, use os botões de excluir no painel da liderança.
+4. Pra remover uma foto ou a pasta inteira, use os botões de excluir no painel da liderança (isso tira a foto do site — veja a ressalva sobre exclusão no passo 1.6).
 
-Requer o Storage ativado no Firebase (passo 1.6 acima). Pastas antigas que ainda tinham um link do Google Drive continuam mostrando o botão "Abrir no Drive ↗" normalmente.
+Requer o Cloudinary configurado (passo 1.6 acima). Pastas antigas que ainda tinham um link do Google Drive continuam mostrando o botão "Abrir no Drive ↗" normalmente.
 
 ## Contas de acesso (login)
 
@@ -160,25 +188,30 @@ Requer o Storage ativado no Firebase (passo 1.6 acima). Pastas antigas que ainda
 ## O que dá pra fazer em cada painel
 
 **Painel da liderança** (`painel-lideranca.html`)
-- Ver e filtrar (por unidade/status/data) todas as propostas de Planejamento das Unidades, aprovar ou recusar (com motivo obrigatório).
-- Ver as especialidades de todos os desbravadores de todas as unidades, com progresso, o que falta e materiais necessários.
-- Ver a lista geral de compras (materiais pendentes de todos os desbravadores) e marcar como comprado.
+- Ver e filtrar (por unidade/status/data) todas as propostas de Planejamento das Unidades, aprovar, recusar ou **excluir** (tudo com motivo obrigatório, avisando a unidade).
+- Ver as especialidades de todos os desbravadores de todas as unidades, com progresso, o que falta e materiais necessários — **editar o progresso ou excluir uma especialidade**, com motivo.
+- Ver a lista geral de compras (materiais pendentes de todos os desbravadores), marcar como comprado ou **excluir um item**, com motivo.
 - Ver os contatos de todos os responsáveis, de todas as unidades.
 - Gerenciar o Planejamento do Clube: calendário privado por mês, adicionar/editar/excluir eventos, carregar o planejamento padrão do semestre com um clique.
 - Abrir/fechar domingos na agenda do Lava Jato (com motivo opcional) e ver, em tempo real e de qualquer aparelho, todos os cadastros — avisada (notificação + contador no menu) quando alguém cancela.
-- Ver os desbravadores (inclusive tipo sanguíneo) e o histórico de requisitos de cada uma das 6 unidades.
-- Publicar/remover pastas de Mídia.
+- Ver os desbravadores (inclusive idade e tipo sanguíneo) e o histórico de requisitos de cada uma das 6 unidades — **editar o cadastro de um desbravador, excluir um desbravador ou um registro**, tudo com motivo obrigatório e aviso automático pra unidade.
+- Ver a logo, o grito de guerra e a lista de conselheiros de cada unidade.
+- Aprovar ou recusar pedidos de troca de senha das unidades (a senha em si nunca fica salva depois de aplicada).
+- Publicar/remover pastas de Mídia, subir/excluir fotos.
 - Configurar a data do Campori DSA 2027 (alimenta o cronômetro da página pública).
 - Acompanhar um dashboard com os principais números do clube (planejamentos, especialidades, compras pendentes, cadastros incompletos etc.).
 - Baixar um backup completo em `.json`.
 
 **Painel da unidade** (`painel-unidade.html`)
-- Cadastrar os desbravadores da unidade, com responsável (obrigatório, com telefone), segundo responsável opcional e tipo sanguíneo opcional.
+- Configurar a logo e o grito de guerra da própria unidade ("Minha Unidade").
+- Cadastrar os desbravadores da unidade (com idade, responsável obrigatório com telefone, segundo responsável opcional e tipo sanguíneo opcional) e os conselheiros da unidade (nome, idade, telefone).
 - Abrir o nome de cada desbravador e lançar quantos registros de requisito quiser (Bíblia/Lição, Uniforme, Pontualidade, Participação, Comportamento ou outro), cada um com a data em que foi cumprido — e excluir um registro se precisar corrigir.
 - Cadastrar e atualizar as especialidades de cada desbravador (progresso, o que falta, materiais necessários).
 - Listar o que falta comprar pra cada desbravador e marcar como comprado.
 - Enviar propostas de Planejamento pra liderança aprovar, acompanhar o status e — se for recusada — corrigir e reenviar.
-- Receber avisos (sino de notificações) quando a liderança aprova ou recusa uma proposta.
+- Ver o Planejamento do Clube (calendário da liderança), só leitura.
+- Pedir troca de senha (a liderança precisa aprovar — a troca se aplica sozinha no próximo login).
+- Receber avisos (sino de notificações, com botão de excluir um aviso específico) quando a liderança aprova/recusa uma proposta, ou edita/exclui algo que a unidade cadastrou.
 
 Tudo isso sincroniza automaticamente — uma unidade pode cadastrar pelo celular no meio da reunião e a liderança já vê no computador dela, em outro lugar, na hora.
 
@@ -205,8 +238,10 @@ Já estão implementadas no site:
 - ✅ Backup em `.json`
 - ✅ Página 404 personalizada
 - ✅ Estilo de impressão
+- ✅ Upload direto de fotos pelo painel (Cloudinary)
+- ✅ Liderança editando/apagando o que uma unidade cadastrou, com aviso do motivo
 
 Boas próximas adições, se quiser evoluir o site:
-- Notificação por e-mail/WhatsApp de verdade quando alguém cancela o Lava Jato (precisaria de uma Cloud Function do Firebase — ainda gratuita nesse volume, mas exige habilitar o plano "Blaze" com cartão cadastrado, mesmo ficando em R$ 0).
-- Upload direto de fotos pelo painel (hoje é só link) usando o Firebase Storage, que já está disponível no mesmo projeto gratuito.
+- Notificação por e-mail/WhatsApp de verdade quando alguém cancela o Lava Jato ou quando a liderança altera algo (precisaria de uma Cloud Function do Firebase — ainda gratuita nesse volume, mas exige habilitar o plano "Blaze" com cartão cadastrado, mesmo ficando em R$ 0).
+- Mostrar a logo de cada unidade já na tela de login (hoje ela só aparece depois de entrar nos painéis).
 - QR code na entrada do clube apontando pro site, pra facilitar o acesso de visitantes ao Lava Jato.

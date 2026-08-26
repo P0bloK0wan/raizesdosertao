@@ -3,15 +3,20 @@
    ========================================================= */
 
 import { RS_UNIDADES, RS_TOPICOS_PADRAO, RS_PLANEJAMENTO_STATUS } from "./data.js";
-import { exigirSessao, logout, trocarSenha } from "./auth.js";
+import { exigirSessao, logout } from "./auth.js";
 import {
   watchMembros, addMembro, deleteMembro,
+  watchConselheiros, addConselheiro, deleteConselheiro,
   watchRegistrosMembro, addRegistro, deleteRegistro,
   watchEspecialidadesMembro, addEspecialidade, updateEspecialidade, deleteEspecialidade,
   watchMateriaisMembro, addMaterial, toggleMaterial, deleteMaterial,
   watchPlanejamentos, addPlanejamento, editarPlanejamento,
-  watchNotificacoesUnidade, marcarNotificacoesUnidadeLidas,
+  watchNotificacoesUnidade, marcarNotificacoesUnidadeLidas, deleteNotificacaoUnidade,
+  watchPedidoSenha, solicitarTrocaSenha,
+  watchIdentidadeUnidade, salvarIdentidadeUnidade,
 } from "./store.js";
+import { criarCalendarioClube } from "./calendario-clube.js";
+import { enviarImagemCloudinary } from "./cloudinary.js";
 import { mostrarToast } from "./main.js";
 
 exigirSessao("unidade", (sessao) => {
@@ -62,7 +67,7 @@ function criarFanOutPorMembro(unidadeId, watchFn, onChange) {
 }
 
 function iniciarPainel(unidadeId) {
-  const estado = { membros: [], planejamentos: [], notificacoes: [] };
+  const estado = { membros: [], conselheiros: [], planejamentos: [], notificacoes: [] };
   const abertosRequisitos = new Set();
   const abertosEspecialidades = new Set();
   const abertosMateriais = new Set();
@@ -96,6 +101,7 @@ function iniciarPainel(unidadeId) {
       tr.innerHTML = `
         <td>${m.nome}</td>
         <td>${m.nascimento ? new Date(m.nascimento + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</td>
+        <td>${m.idade ?? "—"}</td>
         <td>${m.classe || "—"}</td>
         <td>${m.responsavel || "—"}</td>
         <td>${m.telefone || "—"}</td>
@@ -121,6 +127,7 @@ function iniciarPainel(unidadeId) {
     await addMembro(unidadeId, {
       nome: document.getElementById("m-nome").value.trim(),
       nascimento: document.getElementById("m-nascimento").value,
+      idade: document.getElementById("m-idade").value ? Number(document.getElementById("m-idade").value) : null,
       classe: document.getElementById("m-classe").value,
       tipoSanguineo: document.getElementById("m-tipo-sanguineo").value,
       responsavel: document.getElementById("m-responsavel").value.trim(),
@@ -133,6 +140,52 @@ function iniciarPainel(unidadeId) {
     modalMembro.classList.remove("show");
     e.target.reset();
     mostrarToast("Desbravador cadastrado.");
+  });
+
+  /* ---------------- Conselheiros ---------------- */
+  watchConselheiros(unidadeId, (conselheiros) => {
+    estado.conselheiros = conselheiros;
+    renderConselheiros();
+  });
+
+  function renderConselheiros() {
+    const tbody = document.getElementById("tbody-conselheiros");
+    const vazio = document.getElementById("conselheiros-vazio");
+    vazio.style.display = estado.conselheiros.length ? "none" : "block";
+
+    tbody.innerHTML = estado.conselheiros
+      .map(
+        (c) => `<tr>
+        <td>${c.nome}</td>
+        <td>${c.idade ?? "—"}</td>
+        <td>${c.telefone || "—"}</td>
+        <td class="row-actions"><button class="danger" data-del-cs="${c.id}">Excluir</button></td>
+      </tr>`
+      )
+      .join("");
+
+    tbody.querySelectorAll("[data-del-cs]").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        if (!confirm("Excluir este conselheiro?")) return;
+        await deleteConselheiro(unidadeId, btn.dataset.delCs);
+        mostrarToast("Conselheiro removido.");
+      })
+    );
+  }
+
+  const modalConselheiro = document.getElementById("modal-conselheiro");
+  document.getElementById("btn-novo-conselheiro").addEventListener("click", () => modalConselheiro.classList.add("show"));
+  document.getElementById("btn-cancelar-conselheiro").addEventListener("click", () => modalConselheiro.classList.remove("show"));
+  document.getElementById("form-conselheiro").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    await addConselheiro(unidadeId, {
+      nome: document.getElementById("cs-nome").value.trim(),
+      idade: document.getElementById("cs-idade").value ? Number(document.getElementById("cs-idade").value) : null,
+      telefone: document.getElementById("cs-telefone").value.trim(),
+    });
+    modalConselheiro.classList.remove("show");
+    e.target.reset();
+    mostrarToast("Conselheiro cadastrado.");
   });
 
   /* ---------------- Requisitos: histórico individual por desbravador ---------------- */
@@ -456,6 +509,21 @@ function iniciarPainel(unidadeId) {
     modalPlanejamento.classList.remove("show");
   });
 
+  /* ---------------- Planejamento do Clube (só leitura) ---------------- */
+  const modalDetalheEvento = document.getElementById("modal-evento-detalhe");
+  criarCalendarioClube({
+    aoClicarEvento: (ev) => {
+      document.getElementById("detalhe-nome").textContent = ev.nome;
+      document.getElementById("detalhe-data").textContent =
+        `${fmtDataBr(ev.data)}${ev.dataFim && ev.dataFim !== ev.data ? " a " + fmtDataBr(ev.dataFim) : ""}${ev.horario ? " · " + ev.horario : ""}`;
+      document.getElementById("detalhe-categoria").textContent = ev.categoria;
+      document.getElementById("detalhe-descricao").textContent = ev.descricao || "";
+      document.getElementById("detalhe-observacoes").textContent = ev.observacoes ? "Observações: " + ev.observacoes : "";
+      modalDetalheEvento.classList.add("show");
+    },
+  });
+  document.getElementById("btn-fechar-detalhe").addEventListener("click", () => modalDetalheEvento.classList.remove("show"));
+
   /* ---------------- Notificações ---------------- */
   const notifDropdown = document.getElementById("notif-dropdown");
   watchNotificacoesUnidade(unidadeId, (lista) => { estado.notificacoes = lista; renderNotificacoes(); });
@@ -473,8 +541,15 @@ function iniciarPainel(unidadeId) {
       .map((n) => `<div class="notif-item ${n.lida ? "" : "nao-lida"}">
         <span>${n.tipo === "planejamento_aprovado" ? "✅" : "⚠️"}</span>
         <div><p>${n.mensagem}</p>${n.motivo ? `<p class="muted">Motivo: ${n.motivo}</p>` : ""}</div>
+        <button type="button" class="notif-del" data-del-notif="${n.id}" aria-label="Remover notificação">✕</button>
       </div>`)
       .join("");
+    listaEl.querySelectorAll("[data-del-notif]").forEach((btn) =>
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteNotificacaoUnidade(unidadeId, btn.dataset.delNotif);
+      })
+    );
   }
 
   document.getElementById("btn-notif").addEventListener("click", () => {
@@ -498,15 +573,70 @@ function iniciarPainel(unidadeId) {
     document.getElementById("s-especialidades").textContent = emAndamento;
   }
 
-  /* ---------------- Trocar senha ---------------- */
+  /* ---------------- Minha Unidade (identidade: logo + grito de guerra) ---------------- */
+  let identidadeAtual = { logoUrl: "", gritoDeGuerra: "" };
+  const logoPreview = document.getElementById("identidade-logo-preview");
+  watchIdentidadeUnidade(unidadeId, (identidade) => {
+    identidadeAtual = identidade;
+    document.getElementById("identidade-grito").value = identidade.gritoDeGuerra || "";
+    if (identidade.logoUrl) {
+      logoPreview.src = identidade.logoUrl;
+      logoPreview.style.display = "block";
+    } else {
+      logoPreview.style.display = "none";
+    }
+  });
+
+  document.getElementById("btn-salvar-identidade").addEventListener("click", async (e) => {
+    const btn = e.target;
+    btn.disabled = true;
+    try {
+      const arquivo = document.getElementById("identidade-logo-input").files[0];
+      let logoUrl = identidadeAtual.logoUrl || "";
+      if (arquivo) {
+        const enviado = await enviarImagemCloudinary(arquivo);
+        logoUrl = enviado.url;
+      }
+      const gritoDeGuerra = document.getElementById("identidade-grito").value.trim();
+      await salvarIdentidadeUnidade(unidadeId, { logoUrl, gritoDeGuerra });
+      document.getElementById("identidade-logo-input").value = "";
+      mostrarToast("Identidade da unidade atualizada.");
+    } catch (err) {
+      mostrarToast(err.message || "Não foi possível salvar.");
+    }
+    btn.disabled = false;
+  });
+
+  /* ---------------- Trocar senha (por aprovação da liderança) ---------------- */
+  if (new URLSearchParams(window.location.search).has("senha-trocada")) {
+    mostrarToast("Sua senha foi trocada com sucesso, conforme aprovado pela liderança.");
+  }
+
+  const senhaPendenteAviso = document.getElementById("senha-pendente-aviso");
+  const btnPedirSenha = document.getElementById("btn-pedir-senha");
+  watchPedidoSenha(unidadeId, (pedido) => {
+    if (pedido && pedido.status === "pendente") {
+      senhaPendenteAviso.textContent = "Pedido de troca de senha enviado — aguardando aprovação da liderança.";
+      senhaPendenteAviso.style.display = "block";
+      btnPedirSenha.disabled = true;
+    } else if (pedido && pedido.status === "recusada") {
+      senhaPendenteAviso.textContent = `Seu pedido de troca de senha foi recusado. Motivo: ${pedido.motivoRecusa || "não informado"}. Você pode pedir de novo.`;
+      senhaPendenteAviso.style.display = "block";
+      btnPedirSenha.disabled = false;
+    } else {
+      senhaPendenteAviso.style.display = "none";
+      btnPedirSenha.disabled = false;
+    }
+  });
+
   document.getElementById("form-senha").addEventListener("submit", async (e) => {
     e.preventDefault();
     const erro = document.getElementById("senha-erro");
     const ok = document.getElementById("senha-ok");
     erro.classList.remove("show"); ok.classList.remove("show");
     try {
-      await trocarSenha(document.getElementById("senha-atual").value, document.getElementById("senha-nova").value);
-      ok.textContent = "Senha atualizada com sucesso!";
+      await solicitarTrocaSenha(unidadeId, document.getElementById("senha-nova").value);
+      ok.textContent = "Pedido enviado! Assim que a liderança aprovar, a troca acontece sozinha no seu próximo login.";
       ok.classList.add("show");
       e.target.reset();
     } catch (err) {

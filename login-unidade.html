@@ -38,7 +38,8 @@
 <script type="module">
   import "./assets/js/main.js";
   import { RS_UNIDADES, emailDaUnidade } from "./assets/js/data.js";
-  import { loginUnidade, mensagemErroFirebase, firebaseConfigurado } from "./assets/js/auth.js";
+  import { loginUnidade, aplicarSenhaAprovada, mensagemErroFirebase, firebaseConfigurado } from "./assets/js/auth.js";
+  import { consultarPedidoSenha, limparPedidoSenha } from "./assets/js/store.js";
   import { auth } from "./assets/js/firebase.js";
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 
@@ -53,9 +54,16 @@
     erro.classList.add("show");
   }
 
+  /* Enquanto o formulário estiver processando o login (incluindo a
+     checagem de troca de senha aprovada), esse redirecionamento
+     automático fica pausado — senão ele dispara assim que o login
+     autentica e "ganha a corrida" da navegação antes da checagem de
+     senha terminar. Ele serve pra quando alguém já está logado e
+     visita essa página direto (sem passar pelo formulário). */
+  let enviandoFormulario = false;
   const emailsDeUnidade = RS_UNIDADES.map((u) => emailDaUnidade(u.id));
   onAuthStateChanged(auth, (user) => {
-    if (user && emailsDeUnidade.includes(user.email)) {
+    if (!enviandoFormulario && user && emailsDeUnidade.includes(user.email)) {
       window.location.href = "painel-unidade.html";
     }
   });
@@ -65,10 +73,25 @@
     erro.classList.remove("show");
     const btn = form.querySelector("button[type=submit]");
     btn.disabled = true;
+    enviandoFormulario = true;
     try {
       await loginUnidade(select.value, form.senha.value);
-      window.location.href = "painel-unidade.html";
+
+      let senhaTrocada = false;
+      try {
+        const pedido = await consultarPedidoSenha(select.value);
+        if (pedido && pedido.status === "aprovada") {
+          await aplicarSenhaAprovada(pedido.senhaNova);
+          await limparPedidoSenha(select.value);
+          senhaTrocada = true;
+        }
+      } catch (erroSenha) {
+        console.warn("Não foi possível aplicar a troca de senha aprovada:", erroSenha);
+      }
+
+      window.location.href = "painel-unidade.html" + (senhaTrocada ? "?senha-trocada=1" : "");
     } catch (err) {
+      enviandoFormulario = false;
       erro.textContent = mensagemErroFirebase(err);
       erro.classList.add("show");
       btn.disabled = false;

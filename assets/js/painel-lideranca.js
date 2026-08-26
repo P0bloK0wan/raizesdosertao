@@ -11,16 +11,21 @@ import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
   watchLavaJato, deleteRegistroLavaJato,
   watchDomingos, fecharDomingo, abrirDomingo,
-  watchMembros, deleteMembro,
-  watchRegistrosMembro,
-  watchEspecialidadesMembro, watchMateriaisMembro, toggleMaterial,
-  watchPlanejamentos, aprovarPlanejamento, recusarPlanejamento,
-  watchNotificacoesLideranca, marcarNotificacoesLiderancaLidas,
-  watchPlanejamentoClube, addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
-  watchMidia, addPastaMidia, deletePastaMidia, uploadFotoMidia, listarFotosMidia, deleteFotoMidia,
+  watchMembros, updateMembro, deleteMembro,
+  watchRegistrosMembro, deleteRegistro,
+  watchEspecialidadesMembro, updateEspecialidade, deleteEspecialidade,
+  watchMateriaisMembro, toggleMaterial, deleteMaterial,
+  criarNotificacaoUnidade,
+  watchPlanejamentos, aprovarPlanejamento, recusarPlanejamento, deletePlanejamento,
+  watchNotificacoesLideranca, marcarNotificacoesLiderancaLidas, deleteNotificacaoLideranca,
+  watchPedidoSenha, aprovarTrocaSenha, recusarTrocaSenha,
+  watchIdentidadeUnidade, watchConselheiros,
+  addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
+  watchMidia, addPastaMidia, deletePastaMidia, uploadFotoMidia, watchFotosMidia, deleteFotoMidia,
   watchCampori, setCamporiData,
   exportarBackup,
 } from "./store.js";
+import { criarCalendarioClube } from "./calendario-clube.js";
 import { mostrarToast } from "./main.js";
 
 exigirSessao("lideranca", (sessao) => {
@@ -41,9 +46,6 @@ function fmtDataBr(dataStr) {
 }
 function nomeDaUnidade(id) {
   return (RS_UNIDADES.find((u) => u.id === id) || {}).nome || id;
-}
-function categoriaClasse(categoria) {
-  return "cat-" + (categoria || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-");
 }
 
 /* Observa uma subcoleção por-desbravador (especialidades,
@@ -86,6 +88,9 @@ function iniciarPainel() {
     notificacoes: [],
     eventosClube: [],
     midia: [],
+    pedidosSenhaPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, null])),
+    identidadePorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, {}])),
+    conselheirosPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
   };
   const idsJaNotificados = new Set();
   let primeiraLeitura = true;
@@ -222,15 +227,22 @@ function iniciarPainel() {
         .map((m) => {
           const regs = estado.registrosPorMembro[m.id] || [];
           const linhasRegs = regs
-            .map((r) => `<li><span class="rg-criterio">${r.criterio}</span><span class="rg-data">${fmtDataBr(r.data)}</span></li>`)
+            .map((r) => `<li>
+              <span class="rg-criterio">${r.criterio}</span>
+              <span class="rg-data">${fmtDataBr(r.data)}</span>
+              <button data-del-registro="${u.id}:${m.id}:${r.id}" style="background:none; border:none; color:#c1443a; font-weight:700; cursor:pointer;">Excluir</button>
+            </li>`)
             .join("");
           return `
           <details class="month-acc" style="margin-top:8px;" data-membro-acc="${m.id}"${membrosAbertos.has(m.id) ? " open" : ""}>
             <summary>${m.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${m.classe || "sem classe"} · ${regs.length} registro(s))</span>
-              <button class="danger" data-del-membro="${u.id}:${m.id}" style="margin-left:auto;">Excluir</button>
+              <span style="margin-left:auto; display:flex; gap:8px;">
+                <button type="button" class="btn btn-outline btn-sm" data-editar-membro="${u.id}:${m.id}">Editar</button>
+                <button class="danger" data-del-membro="${u.id}:${m.id}">Excluir</button>
+              </span>
             </summary>
             <div style="padding:14px 20px 18px;">
-              <p class="muted" style="margin:0 0 8px;">Nascimento: ${m.nascimento || "—"} · Tipo sanguíneo: ${m.tipoSanguineo || "—"}</p>
+              <p class="muted" style="margin:0 0 8px;">Nascimento: ${m.nascimento || "—"} · Idade: ${m.idade ?? "—"} · Tipo sanguíneo: ${m.tipoSanguineo || "—"}</p>
               <p class="muted" style="margin:0 0 8px;">Responsável: ${m.responsavel || "—"} (${m.parentesco || "—"}) · Telefone: ${m.telefone || "—"}</p>
               ${m.responsavel2Nome ? `<p class="muted" style="margin:0 0 8px;">2º responsável: ${m.responsavel2Nome} · Telefone: ${m.responsavel2Telefone || "—"}</p>` : ""}
               <ul class="registro-list">${linhasRegs || "<li class='muted' style='border:none;'>Nenhum registro lançado ainda.</li>"}</ul>
@@ -238,9 +250,22 @@ function iniciarPainel() {
           </details>`;
         })
         .join("");
+      const identidade = estado.identidadePorUnidade[u.id] || {};
       det.innerHTML = `
         <summary>${u.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${membros.length} desbravador(es) · ${totalRegistros} registro(s) de requisitos)</span></summary>
         <div style="padding:14px 20px 18px;">
+          ${identidade.logoUrl || identidade.gritoDeGuerra ? `
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; padding-bottom:14px; border-bottom:1px dashed var(--border);">
+            ${identidade.logoUrl ? `<img src="${identidade.logoUrl}" alt="Logo ${u.nome}" style="width:56px; height:56px; border-radius:50%; object-fit:cover;">` : ""}
+            ${identidade.gritoDeGuerra ? `<p style="margin:0; font-style:italic;">"${identidade.gritoDeGuerra}"</p>` : ""}
+          </div>` : ""}
+          ${(estado.conselheirosPorUnidade[u.id] || []).length ? `
+          <p class="muted" style="margin:0 0 6px; font-weight:700;">Conselheiros</p>
+          <ul style="margin:0 0 14px; padding-left:18px;">
+            ${(estado.conselheirosPorUnidade[u.id] || [])
+              .map((c) => `<li>${c.nome}${c.idade ? ` (${c.idade} anos)` : ""}${c.telefone ? ` · ${c.telefone}` : ""}</li>`)
+              .join("")}
+          </ul>` : ""}
           ${membros.length ? blocosMembros : `<p class="empty-state">Nenhum desbravador cadastrado por esta unidade ainda.</p>`}
         </div>`;
       wrap.appendChild(det);
@@ -260,18 +285,108 @@ function iniciarPainel() {
     );
 
     wrap.querySelectorAll("[data-del-membro]").forEach((btn) =>
-      btn.addEventListener("click", async (e) => {
+      btn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         const [uid, mid] = btn.dataset.delMembro.split(":");
-        if (!confirm("Excluir este desbravador? Todo o histórico de requisitos dele também será perdido.")) return;
-        await deleteMembro(uid, mid);
-        mostrarToast("Desbravador removido.");
+        const m = (estado.membrosPorUnidade[uid] || []).find((x) => x.id === mid);
+        abrirModalMotivo({
+          titulo: "Excluir desbravador",
+          label: "Motivo da exclusão (obrigatório — a unidade recebe um aviso)",
+          textoBotao: "Confirmar exclusão",
+          acao: async (motivo) => {
+            await deleteMembro(uid, mid);
+            await criarNotificacaoUnidade(uid, {
+              tipo: "item_alterado",
+              mensagem: `A liderança excluiu o cadastro de "${m ? m.nome : mid}".`,
+              motivo,
+            });
+            mostrarToast("Desbravador removido.");
+          },
+        });
+      })
+    );
+    wrap.querySelectorAll("[data-editar-membro]").forEach((btn) =>
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const [uid, mid] = btn.dataset.editarMembro.split(":");
+        abrirModalEditarMembro(uid, mid);
+      })
+    );
+    wrap.querySelectorAll("[data-del-registro]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        const [uid, mid, rid] = btn.dataset.delRegistro.split(":");
+        const m = (estado.membrosPorUnidade[uid] || []).find((x) => x.id === mid);
+        const r = (estado.registrosPorMembro[mid] || []).find((x) => x.id === rid);
+        abrirModalMotivo({
+          titulo: "Excluir registro",
+          label: "Motivo da exclusão (obrigatório — a unidade recebe um aviso)",
+          textoBotao: "Confirmar exclusão",
+          acao: async (motivo) => {
+            await deleteRegistro(uid, mid, rid);
+            await criarNotificacaoUnidade(uid, {
+              tipo: "item_alterado",
+              mensagem: `A liderança excluiu o registro "${r ? r.criterio : ""}" de ${m ? m.nome : mid}.`,
+              motivo,
+            });
+            mostrarToast("Registro removido.");
+          },
+        });
       })
     );
 
     renderResponsaveis();
   }
+
+  const modalMembro = document.getElementById("modal-membro-lideranca");
+  const formMembroLideranca = document.getElementById("form-membro-lideranca");
+  let membroEmEdicao = null;
+  function abrirModalEditarMembro(unidadeId, membroId) {
+    const m = (estado.membrosPorUnidade[unidadeId] || []).find((x) => x.id === membroId);
+    if (!m) return;
+    membroEmEdicao = { unidadeId, membroId };
+    document.getElementById("mel-nome").value = m.nome || "";
+    document.getElementById("mel-nascimento").value = m.nascimento || "";
+    document.getElementById("mel-classe").value = m.classe || "";
+    document.getElementById("mel-idade").value = m.idade ?? "";
+    document.getElementById("mel-tipo-sanguineo").value = m.tipoSanguineo || "";
+    document.getElementById("mel-responsavel").value = m.responsavel || "";
+    document.getElementById("mel-parentesco").value = m.parentesco || "";
+    document.getElementById("mel-telefone").value = m.telefone || "";
+    modalMembro.classList.add("show");
+  }
+  document.getElementById("btn-cancelar-membro-lideranca").addEventListener("click", () => modalMembro.classList.remove("show"));
+  formMembroLideranca.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!membroEmEdicao) return;
+    const { unidadeId, membroId } = membroEmEdicao;
+    const dados = {
+      nome: document.getElementById("mel-nome").value.trim(),
+      nascimento: document.getElementById("mel-nascimento").value,
+      classe: document.getElementById("mel-classe").value,
+      idade: document.getElementById("mel-idade").value ? Number(document.getElementById("mel-idade").value) : null,
+      tipoSanguineo: document.getElementById("mel-tipo-sanguineo").value,
+      responsavel: document.getElementById("mel-responsavel").value.trim(),
+      parentesco: document.getElementById("mel-parentesco").value.trim(),
+      telefone: document.getElementById("mel-telefone").value.trim(),
+    };
+    modalMembro.classList.remove("show");
+    abrirModalMotivo({
+      titulo: "Motivo da edição",
+      label: "Por que está editando esse cadastro? (obrigatório — a unidade recebe um aviso)",
+      textoBotao: "Salvar edição",
+      acao: async (motivo) => {
+        await updateMembro(unidadeId, membroId, dados);
+        await criarNotificacaoUnidade(unidadeId, {
+          tipo: "item_alterado",
+          mensagem: `A liderança editou o cadastro de "${dados.nome}".`,
+          motivo,
+        });
+        mostrarToast("Cadastro atualizado.");
+      },
+    });
+  });
 
   RS_UNIDADES.forEach((u) => {
     watchMembros(u.id, (membros) => {
@@ -340,14 +455,21 @@ function iniciarPainel() {
           const linhasEsp = lista
             .map((e) => `<tr>
               <td>${e.nome}</td>
-              <td><span class="pill ${e.status === "concluida" ? "pill-open" : e.status === "andamento" ? "pill-pending" : "pill-closed"}">${e.status === "concluida" ? "Concluída" : e.status === "andamento" ? "Em andamento" : "Pendente"}</span></td>
+              <td>
+                <select class="esp-status-select" data-esp="${u.id}:${m.id}:${e.id}">
+                  <option value="andamento"${e.status === "andamento" ? " selected" : ""}>Em andamento</option>
+                  <option value="concluida"${e.status === "concluida" ? " selected" : ""}>Concluída</option>
+                  <option value="pendente"${e.status === "pendente" ? " selected" : ""}>Pendente</option>
+                </select>
+              </td>
               <td>${e.falta || "—"}</td>
               <td>${e.materiais || "—"}</td>
+              <td><button data-del-esp="${u.id}:${m.id}:${e.id}" style="background:none; border:none; color:#c1443a; font-weight:700; cursor:pointer;">Excluir</button></td>
             </tr>`)
             .join("");
           return `<h4 style="margin:14px 0 6px; font-size:.9rem;">${m.nome}</h4>
             <div class="table-wrap"><table class="data-table">
-              <thead><tr><th>Especialidade</th><th>Progresso</th><th>Falta</th><th>Materiais</th></tr></thead>
+              <thead><tr><th>Especialidade</th><th>Progresso</th><th>Falta</th><th>Materiais</th><th></th></tr></thead>
               <tbody>${linhasEsp}</tbody>
             </table></div>`;
         })
@@ -358,6 +480,46 @@ function iniciarPainel() {
 
     wrap.innerHTML = blocos;
     vazio.style.display = total ? "none" : "block";
+
+    wrap.querySelectorAll(".esp-status-select").forEach((sel) =>
+      sel.addEventListener("change", () => {
+        const [uid, mid, eid] = sel.dataset.esp.split(":");
+        const novoStatus = sel.value;
+        abrirModalMotivo({
+          titulo: "Motivo da alteração",
+          label: "Por que está mudando o progresso dessa especialidade? (obrigatório — a unidade recebe um aviso)",
+          textoBotao: "Salvar",
+          acao: async (motivo) => {
+            await updateEspecialidade(uid, mid, eid, { status: novoStatus });
+            await criarNotificacaoUnidade(uid, {
+              tipo: "item_alterado",
+              mensagem: "A liderança alterou o progresso de uma especialidade.",
+              motivo,
+            });
+            mostrarToast("Especialidade atualizada.");
+          },
+        });
+      })
+    );
+    wrap.querySelectorAll("[data-del-esp]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        const [uid, mid, eid] = btn.dataset.delEsp.split(":");
+        abrirModalMotivo({
+          titulo: "Excluir especialidade",
+          label: "Motivo da exclusão (obrigatório — a unidade recebe um aviso)",
+          textoBotao: "Confirmar exclusão",
+          acao: async (motivo) => {
+            await deleteEspecialidade(uid, mid, eid);
+            await criarNotificacaoUnidade(uid, {
+              tipo: "item_alterado",
+              mensagem: "A liderança excluiu uma especialidade.",
+              motivo,
+            });
+            mostrarToast("Especialidade excluída.");
+          },
+        });
+      })
+    );
   }
 
   /* ---------------- Lista geral de compras ---------------- */
@@ -386,7 +548,10 @@ function iniciarPainel() {
               <td>${unidade}</td>
               <td>${item.especialidade || "—"}</td>
               <td><span class="pill ${item.status === "comprado" ? "pill-open" : "pill-pending"}">${item.status === "comprado" ? "Comprado" : "Pendente"}</span></td>
-              <td class="row-actions"><button data-toggle-compra="${unidadeId}:${membroId}:${item.id}:${item.status}">${item.status === "comprado" ? "Marcar pendente" : "Marcar comprado"}</button></td>
+              <td class="row-actions">
+                <button data-toggle-compra="${unidadeId}:${membroId}:${item.id}:${item.status}">${item.status === "comprado" ? "Marcar pendente" : "Marcar comprado"}</button>
+                <button data-del-material="${unidadeId}:${membroId}:${item.id}" style="color:#c1443a;">Excluir</button>
+              </td>
             </tr>`
             )
             .join("")}</tbody>
@@ -399,6 +564,25 @@ function iniciarPainel() {
         await toggleMaterial(uid, mid, iid, statusAtual === "comprado" ? "pendente" : "comprado");
       })
     );
+    wrap.querySelectorAll("[data-del-material]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        const [uid, mid, iid] = btn.dataset.delMaterial.split(":");
+        abrirModalMotivo({
+          titulo: "Excluir item da lista de compras",
+          label: "Motivo da exclusão (obrigatório — a unidade recebe um aviso)",
+          textoBotao: "Confirmar exclusão",
+          acao: async (motivo) => {
+            await deleteMaterial(uid, mid, iid);
+            await criarNotificacaoUnidade(uid, {
+              tipo: "item_alterado",
+              mensagem: "A liderança excluiu um item da lista de compras.",
+              motivo,
+            });
+            mostrarToast("Item excluído.");
+          },
+        });
+      })
+    );
   }
 
   /* ---------------- Planejamento das Unidades ---------------- */
@@ -409,6 +593,74 @@ function iniciarPainel() {
       renderStats();
     });
   });
+
+  /* ---------------- Identidade das unidades (logo + grito de guerra) ---------------- */
+  RS_UNIDADES.forEach((u) => {
+    watchIdentidadeUnidade(u.id, (identidade) => {
+      estado.identidadePorUnidade[u.id] = identidade;
+      renderDesbravadores();
+    });
+  });
+
+  /* ---------------- Conselheiros (só leitura pra liderança) ---------------- */
+  RS_UNIDADES.forEach((u) => {
+    watchConselheiros(u.id, (conselheiros) => {
+      estado.conselheirosPorUnidade[u.id] = conselheiros;
+      renderDesbravadores();
+    });
+  });
+
+  /* ---------------- Pedidos de troca de senha ---------------- */
+  RS_UNIDADES.forEach((u) => {
+    watchPedidoSenha(u.id, (pedido) => {
+      estado.pedidosSenhaPorUnidade[u.id] = pedido;
+      renderPedidosSenha();
+    });
+  });
+
+  function renderPedidosSenha() {
+    const wrap = document.getElementById("lista-pedidos-senha");
+    const vazio = document.getElementById("pedidos-senha-vazio");
+    const pendentes = RS_UNIDADES
+      .map((u) => ({ unidade: u, pedido: estado.pedidosSenhaPorUnidade[u.id] }))
+      .filter(({ pedido }) => pedido && pedido.status === "pendente");
+
+    vazio.style.display = pendentes.length ? "none" : "block";
+    wrap.innerHTML = pendentes
+      .map(
+        ({ unidade }) => `
+      <div class="card" style="margin-bottom:14px;">
+        <h3 style="margin:0;">Unidade ${unidade.nome}</h3>
+        <p class="muted" style="margin:6px 0 0;">Pediu pra trocar a senha de login.</p>
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <button type="button" class="btn btn-green btn-sm" data-aprovar-senha="${unidade.id}">✅ Aprovar</button>
+          <button type="button" class="btn btn-outline btn-sm" data-recusar-senha="${unidade.id}" style="border-color:#c1443a; color:#c1443a;">❌ Recusar</button>
+        </div>
+      </div>`
+      )
+      .join("");
+
+    wrap.querySelectorAll("[data-aprovar-senha]").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        await aprovarTrocaSenha(btn.dataset.aprovarSenha);
+        mostrarToast("Troca de senha aprovada — vale assim que a unidade entrar de novo.");
+      })
+    );
+    wrap.querySelectorAll("[data-recusar-senha]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        const uid = btn.dataset.recusarSenha;
+        abrirModalMotivo({
+          titulo: "Recusar troca de senha",
+          label: "Motivo da recusa (obrigatório)",
+          textoBotao: "Confirmar recusa",
+          acao: async (motivo) => {
+            await recusarTrocaSenha(uid, motivo);
+            mostrarToast("Troca de senha recusada.");
+          },
+        });
+      })
+    );
+  }
 
   document.getElementById("filtro-unidade").innerHTML =
     `<option value="">Todas as unidades</option>` + RS_UNIDADES.map((u) => `<option value="${u.id}">${u.nome}</option>`).join("");
@@ -462,11 +714,12 @@ function iniciarPainel() {
           <p style="margin:6px 0 0;">${p.descricao || ""}</p>
           ${p.observacoes ? `<p class="muted" style="margin:6px 0 0;"><strong>Observações:</strong> ${p.observacoes}</p>` : ""}
           ${p.status === "recusado" ? `<div class="alert alert-error show" style="margin-top:10px;"><strong>Motivo da recusa:</strong> ${p.motivoRecusa}</div>` : ""}
-          ${p.status === "pendente" ? `
-          <div style="display:flex; gap:10px; margin-top:12px;">
+          <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+            ${p.status === "pendente" ? `
             <button type="button" class="btn btn-green btn-sm" data-aprovar="${p.unidadeId}:${p.id}">✅ Aprovar</button>
-            <button type="button" class="btn btn-outline btn-sm" data-recusar="${p.unidadeId}:${p.id}" style="border-color:#c1443a; color:#c1443a;">❌ Recusar</button>
-          </div>` : ""}
+            <button type="button" class="btn btn-outline btn-sm" data-recusar="${p.unidadeId}:${p.id}" style="border-color:#c1443a; color:#c1443a;">❌ Recusar</button>` : ""}
+            <button type="button" class="btn btn-outline btn-sm" data-excluir-plano="${p.unidadeId}:${p.id}" style="border-color:#c1443a; color:#c1443a; margin-left:auto;">🗑️ Excluir</button>
+          </div>
         </div>`;
       })
       .join("");
@@ -480,27 +733,57 @@ function iniciarPainel() {
       })
     );
     wrap.querySelectorAll("[data-recusar]").forEach((btn) =>
-      btn.addEventListener("click", () => abrirModalRecusa(btn.dataset.recusar))
+      btn.addEventListener("click", () => {
+        const [uid, pid] = btn.dataset.recusar.split(":");
+        const p = (estado.planejamentosPorUnidade[uid] || []).find((x) => x.id === pid);
+        abrirModalMotivo({
+          titulo: "Recusar proposta",
+          label: "Motivo da recusa (obrigatório)",
+          textoBotao: "Confirmar recusa",
+          acao: async (motivo) => {
+            await recusarPlanejamento(uid, pid, p ? p.titulo : "", motivo);
+            mostrarToast("Planejamento recusado.");
+          },
+        });
+      })
+    );
+    wrap.querySelectorAll("[data-excluir-plano]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        const [uid, pid] = btn.dataset.excluirPlano.split(":");
+        const p = (estado.planejamentosPorUnidade[uid] || []).find((x) => x.id === pid);
+        abrirModalMotivo({
+          titulo: "Excluir planejamento",
+          label: "Motivo da exclusão (obrigatório — a unidade recebe um aviso)",
+          textoBotao: "Confirmar exclusão",
+          acao: async (motivo) => {
+            await deletePlanejamento(uid, pid, p ? p.titulo : "", motivo);
+            mostrarToast("Planejamento excluído.");
+          },
+        });
+      })
     );
   }
 
+  /* Modal genérico de "motivo obrigatório" — reaproveitado por
+     recusar planejamento, excluir planejamento e (mais abaixo)
+     qualquer edição/exclusão da liderança em algo de uma unidade. */
   const modalRecusa = document.getElementById("modal-recusa");
-  let recusaAlvo = null;
-  function abrirModalRecusa(chave) {
-    recusaAlvo = chave;
+  let motivoAcao = null;
+  function abrirModalMotivo({ titulo, label, textoBotao, acao }) {
+    document.getElementById("modal-recusa-titulo").textContent = titulo;
+    document.getElementById("modal-recusa-label").textContent = label;
+    document.getElementById("modal-recusa-confirmar").textContent = textoBotao;
     document.getElementById("recusa-motivo").value = "";
+    motivoAcao = acao;
     modalRecusa.classList.add("show");
   }
   document.getElementById("btn-cancelar-recusa").addEventListener("click", () => modalRecusa.classList.remove("show"));
   document.getElementById("form-recusa").addEventListener("submit", async (e) => {
     e.preventDefault();
     const motivo = document.getElementById("recusa-motivo").value.trim();
-    if (!motivo || !recusaAlvo) return;
-    const [uid, pid] = recusaAlvo.split(":");
-    const p = (estado.planejamentosPorUnidade[uid] || []).find((x) => x.id === pid);
-    await recusarPlanejamento(uid, pid, p ? p.titulo : "", motivo);
+    if (!motivo || !motivoAcao) return;
+    await motivoAcao(motivo);
     modalRecusa.classList.remove("show");
-    mostrarToast("Planejamento recusado.");
   });
 
   /* ---------------- Notificações ---------------- */
@@ -520,8 +803,15 @@ function iniciarPainel() {
       .map((n) => `<div class="notif-item ${n.lida ? "" : "nao-lida"}">
         <span>📋</span>
         <div><p>${n.mensagem}</p></div>
+        <button type="button" class="notif-del" data-del-notif="${n.id}" aria-label="Remover notificação">✕</button>
       </div>`)
       .join("");
+    listaEl.querySelectorAll("[data-del-notif]").forEach((btn) =>
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteNotificacaoLideranca(btn.dataset.delNotif);
+      })
+    );
   }
 
   document.getElementById("btn-notif").addEventListener("click", () => {
@@ -536,57 +826,13 @@ function iniciarPainel() {
   });
 
   /* ---------------- Planejamento do Clube (calendário) ---------------- */
-  const calendario = { mesAtual: new Date(new Date().getFullYear(), new Date().getMonth(), 1) };
-
-  watchPlanejamentoClube((lista) => { estado.eventosClube = lista; renderCalendario(); });
-
   document.getElementById("ev-categoria").innerHTML =
     RS_PLANEJAMENTO_CLUBE_CATEGORIAS.map((c) => `<option value="${c}">${c}</option>`).join("");
 
-  document.getElementById("cal-anterior").addEventListener("click", () => {
-    calendario.mesAtual = new Date(calendario.mesAtual.getFullYear(), calendario.mesAtual.getMonth() - 1, 1);
-    renderCalendario();
+  criarCalendarioClube({
+    aoAtualizarLista: (lista) => { estado.eventosClube = lista; },
+    aoClicarEvento: (ev) => abrirDetalheEvento(ev.id),
   });
-  document.getElementById("cal-proximo").addEventListener("click", () => {
-    calendario.mesAtual = new Date(calendario.mesAtual.getFullYear(), calendario.mesAtual.getMonth() + 1, 1);
-    renderCalendario();
-  });
-
-  function eventosNoDia(iso) {
-    return estado.eventosClube.filter((ev) => {
-      const fim = ev.dataFim || ev.data;
-      return iso >= ev.data && iso <= fim;
-    });
-  }
-
-  function renderCalendario() {
-    const ano = calendario.mesAtual.getFullYear();
-    const mes = calendario.mesAtual.getMonth();
-    document.getElementById("cal-mes-atual").textContent =
-      calendario.mesAtual.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-
-    const primeiroDia = new Date(ano, mes, 1);
-    const ultimoDia = new Date(ano, mes + 1, 0);
-    const offsetInicio = primeiroDia.getDay(); // 0 = domingo
-    const totalDias = ultimoDia.getDate();
-
-    const celulas = [];
-    ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].forEach((d) => celulas.push(`<div class="cal-cabecalho">${d}</div>`));
-    for (let i = 0; i < offsetInicio; i++) celulas.push(`<div class="cal-dia cal-vazio"></div>`);
-    for (let dia = 1; dia <= totalDias; dia++) {
-      const iso = `${ano}-${String(mes + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-      const eventos = eventosNoDia(iso);
-      celulas.push(`<div class="cal-dia">
-        <span class="cal-numero">${dia}</span>
-        ${eventos.map((ev) => `<button type="button" class="cal-evento ${categoriaClasse(ev.categoria)}" data-evento="${ev.id}">${ev.nome}</button>`).join("")}
-      </div>`);
-    }
-
-    document.getElementById("calendario-grid").innerHTML = celulas.join("");
-    document.querySelectorAll("[data-evento]").forEach((btn) =>
-      btn.addEventListener("click", () => abrirDetalheEvento(btn.dataset.evento))
-    );
-  }
 
   const modalEvento = document.getElementById("modal-evento");
   const modalDetalhe = document.getElementById("modal-evento-detalhe");
@@ -667,24 +913,34 @@ function iniciarPainel() {
   });
 
   /* ---------------- Mídia ---------------- */
-  const fotosPorPasta = {}; // pastaId -> [{nome, url}]
+  const fotosPorPasta = {}; // pastaId -> [{id, nome, url}]
+  const fotosUnsubs = {}; // pastaId -> função pra parar de observar
   const midiaAbertas = new Set();
 
   watchMidia((pastas) => {
     estado.midia = pastas;
+    const idsAtuais = new Set(pastas.map((p) => p.id));
+
     pastas.forEach((p) => {
-      if (p.link || fotosPorPasta[p.id]) return; // pasta antiga (Drive) não tem fotos no Storage
-      carregarFotosPasta(p.id);
+      if (p.link || fotosUnsubs[p.id]) return; // pasta antiga (Drive) não tem fotos no Cloudinary
+      fotosUnsubs[p.id] = watchFotosMidia(p.id, (fotos) => {
+        fotosPorPasta[p.id] = fotos;
+        renderMidia();
+        renderStats();
+      });
     });
+
+    Object.keys(fotosUnsubs).forEach((pastaId) => {
+      if (!idsAtuais.has(pastaId)) {
+        fotosUnsubs[pastaId]();
+        delete fotosUnsubs[pastaId];
+        delete fotosPorPasta[pastaId];
+      }
+    });
+
     renderMidia();
     renderStats();
   });
-
-  async function carregarFotosPasta(pastaId) {
-    fotosPorPasta[pastaId] = await listarFotosMidia(pastaId);
-    renderMidia();
-    renderStats();
-  }
 
   function renderMidia() {
     const wrap = document.getElementById("lista-midia");
@@ -709,7 +965,7 @@ function iniciarPainel() {
           .map(
             (f) => `<div class="foto-thumb-wrap">
               <img src="${f.url}" alt="${f.nome}" loading="lazy">
-              <button type="button" class="foto-del" data-del-foto="${p.id}:${f.nome}" aria-label="Excluir foto">✕</button>
+              <button type="button" class="foto-del" data-del-foto="${p.id}:${f.id}" aria-label="Excluir foto">✕</button>
             </div>`
           )
           .join("");
@@ -741,6 +997,10 @@ function iniciarPainel() {
         e.preventDefault();
         e.stopPropagation();
         if (!confirm("Excluir esta pasta e todas as fotos dela?")) return;
+        if (fotosUnsubs[btn.dataset.delPasta]) {
+          fotosUnsubs[btn.dataset.delPasta]();
+          delete fotosUnsubs[btn.dataset.delPasta];
+        }
         await deletePastaMidia(btn.dataset.delPasta);
         delete fotosPorPasta[btn.dataset.delPasta];
         mostrarToast("Pasta removida.");
@@ -748,10 +1008,9 @@ function iniciarPainel() {
     );
     wrap.querySelectorAll("[data-del-foto]").forEach((btn) =>
       btn.addEventListener("click", async () => {
-        const [pastaId, nomeArquivo] = btn.dataset.delFoto.split(/:(.+)/);
+        const [pastaId, fotoId] = btn.dataset.delFoto.split(":");
         if (!confirm("Excluir esta foto?")) return;
-        await deleteFotoMidia(pastaId, nomeArquivo);
-        await carregarFotosPasta(pastaId);
+        await deleteFotoMidia(pastaId, fotoId);
         mostrarToast("Foto removida.");
       })
     );
@@ -771,15 +1030,18 @@ function iniciarPainel() {
 
         const btn = form.querySelector("button[type=submit]");
         btn.disabled = true;
-        for (let i = 0; i < arquivos.length; i++) {
-          btn.textContent = `Enviando ${i + 1} de ${arquivos.length}...`;
-          await uploadFotoMidia(pastaId, arquivos[i]);
+        try {
+          for (let i = 0; i < arquivos.length; i++) {
+            btn.textContent = `Enviando ${i + 1} de ${arquivos.length}...`;
+            await uploadFotoMidia(pastaId, arquivos[i]);
+          }
+          mostrarToast(`${arquivos.length} foto(s) enviada(s).`);
+        } catch (err) {
+          mostrarToast(err.message || "Não foi possível enviar a foto.");
         }
         btn.disabled = false;
         btn.textContent = "Enviar";
         input.value = "";
-        await carregarFotosPasta(pastaId);
-        mostrarToast(`${arquivos.length} foto(s) enviada(s).`);
       })
     );
   }
