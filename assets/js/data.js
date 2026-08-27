@@ -114,7 +114,7 @@ export const RS_TIPOS_SANGUINEOS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", 
    README.md) — sem isso, o upload de fotos não funciona.
    ========================================================= */
 export const RS_CLOUDINARY_CLOUD_NAME = "yb6xrmhv";
-export const RS_CLOUDINARY_UPLOAD_PRESET = "dxyz1234";
+export const RS_CLOUDINARY_UPLOAD_PRESET = "raizes-do-sertao";
 
 /* Limite de tamanho por foto, conferido no navegador antes de
    enviar (o Cloudinary também pode ser configurado com o mesmo
