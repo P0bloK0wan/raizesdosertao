@@ -30,7 +30,8 @@ export const RS_LINKS = {
    README.md. Enquanto estiver vazio, o botão "Quero ajudar" cai
    de volta pro contato direto no WhatsApp.
    ========================================================= */
-export const RS_API_DOACAO_CAMPORI = "";
+export const RS_API_DOACAO_CAMPORI = "https://raizes-doacao-campori.pablokawan58.workers.dev";
+
 
 export const RS_UNIDADES = [
   { id: "prea",      nome: "Preá",       img: "assets/img/unit_prea.png" },
