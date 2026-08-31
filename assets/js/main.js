@@ -149,29 +149,7 @@ if (sidebar && sidebarToggle && sidebarOverlay) {
 }
 
 /* "Aparecer ao rolar" — elementos com [data-reveal] ganham .in-view quando
-   entram na tela (ex.: dispara o desenho de uma seta em .scribble-arrow).
-   Quem também tem [data-count-to] ganha uma contagem de 0 até o número ali,
-   em vez de simplesmente aparecer pronto (ex.: os números do hero). */
-const prefereReduzirMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-function animarContador(el) {
-  const alvo = parseInt(el.dataset.countTo, 10);
-  if (Number.isNaN(alvo)) return;
-  const sufixo = el.dataset.countSuffix || "";
-  if (prefereReduzirMovimento) {
-    el.textContent = alvo + sufixo;
-    return;
-  }
-  const duracao = 1200;
-  const inicio = performance.now();
-  function passo(agora) {
-    const progresso = Math.min((agora - inicio) / duracao, 1);
-    el.textContent = Math.round(alvo * progresso) + sufixo;
-    if (progresso < 1) requestAnimationFrame(passo);
-  }
-  requestAnimationFrame(passo);
-}
-
+   entram na tela (ex.: dispara o desenho de uma seta em .scribble-arrow). */
 const elementosRevelar = document.querySelectorAll("[data-reveal]");
 if (elementosRevelar.length) {
   const observador = new IntersectionObserver(
@@ -179,7 +157,6 @@ if (elementosRevelar.length) {
       entradas.forEach((entrada) => {
         if (entrada.isIntersecting) {
           entrada.target.classList.add("in-view");
-          if (entrada.target.dataset.countTo) animarContador(entrada.target);
           observador.unobserve(entrada.target);
         }
       });
