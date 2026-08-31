@@ -110,13 +110,20 @@ document.querySelectorAll("[data-theme-toggle]").forEach((btn) => {
 const navToggle = document.querySelector("[data-nav-toggle]");
 const navLinks = document.querySelector("[data-nav-links]");
 if (navToggle && navLinks) {
-  navToggle.addEventListener("click", () => {
-    navLinks.classList.toggle("open");
-    navToggle.setAttribute("aria-expanded", navLinks.classList.contains("open"));
-  });
-  navLinks.querySelectorAll("a").forEach((a) =>
-    a.addEventListener("click", () => navLinks.classList.remove("open"))
-  );
+  const abrirNav = () => {
+    navLinks.classList.add("open");
+    navToggle.classList.add("open");
+    navToggle.setAttribute("aria-expanded", "true");
+    document.body.classList.add("scroll-lock");
+  };
+  const fecharNav = () => {
+    navLinks.classList.remove("open");
+    navToggle.classList.remove("open");
+    navToggle.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("scroll-lock");
+  };
+  navToggle.addEventListener("click", () => (navLinks.classList.contains("open") ? fecharNav() : abrirNav()));
+  navLinks.querySelectorAll("a").forEach((a) => a.addEventListener("click", fecharNav));
 }
 
 /* Sidebar dos painéis (mobile) */
@@ -124,8 +131,18 @@ const sidebar = document.querySelector("[data-sidebar]");
 const sidebarToggle = document.querySelector("[data-sidebar-toggle]");
 const sidebarOverlay = document.querySelector("[data-sidebar-overlay]");
 if (sidebar && sidebarToggle && sidebarOverlay) {
-  const abrir = () => { sidebar.classList.add("open"); sidebarOverlay.classList.add("show"); };
-  const fechar = () => { sidebar.classList.remove("open"); sidebarOverlay.classList.remove("show"); };
+  const abrir = () => {
+    sidebar.classList.add("open");
+    sidebarOverlay.classList.add("show");
+    sidebarToggle.classList.add("open");
+    document.body.classList.add("scroll-lock");
+  };
+  const fechar = () => {
+    sidebar.classList.remove("open");
+    sidebarOverlay.classList.remove("show");
+    sidebarToggle.classList.remove("open");
+    document.body.classList.remove("scroll-lock");
+  };
   sidebarToggle.addEventListener("click", abrir);
   sidebarOverlay.addEventListener("click", fechar);
   sidebar.querySelectorAll("a").forEach((a) => a.addEventListener("click", fechar));

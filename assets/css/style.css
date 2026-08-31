@@ -52,6 +52,12 @@ body {
   transition: background .2s ease, color .2s ease;
 }
 
+/* Trava o scroll da página por trás quando o menu mobile (site) ou a
+   barra lateral (painéis) está aberta em cima, como uma janela fixa —
+   sem isso, no celular o scroll de fundo "briga" com o do menu e dá a
+   sensação de travar depois de fechar. */
+body.scroll-lock { overflow: hidden; }
+
 img { max-width: 100%; display: block; }
 
 h1, h2, h3, h4 {
@@ -214,7 +220,9 @@ a { color: inherit; }
   background: var(--bg-elevated);
   cursor: pointer;
   color: var(--text);
+  transition: transform .25s ease;
 }
+[data-sidebar-toggle].open { transform: rotate(90deg); }
 
 .nav-toggle {
   display: none;
@@ -227,10 +235,14 @@ a { color: inherit; }
   justify-content: center;
 }
 .nav-toggle span, .nav-toggle span::before, .nav-toggle span::after {
-  content: ''; display: block; width: 20px; height: 2px; background: var(--text); position: relative; transition: .2s;
+  content: ''; display: block; width: 20px; height: 2px; background: var(--text); position: relative; transition: .25s ease;
 }
 .nav-toggle span::before { position: absolute; top: -6px; }
 .nav-toggle span::after { position: absolute; top: 6px; }
+/* Aberto: as 3 linhas do hambúrguer viram um X. */
+.nav-toggle.open span { background: transparent; }
+.nav-toggle.open span::before { top: 0; transform: rotate(45deg); }
+.nav-toggle.open span::after { top: 0; transform: rotate(-45deg); }
 
 @media (max-width: 1520px) {
   .nav-toggle { display: inline-flex; }
@@ -629,6 +641,9 @@ button.agenda-dia { cursor: pointer; font: inherit; font-family: var(--font-titl
 }
 @media (prefers-reduced-motion: reduce) {
   .auth-card, .auth-card .brand img { animation: none; }
+  html { scroll-behavior: auto; }
+  .nav-toggle span, .nav-toggle span::before, .nav-toggle span::after,
+  .icon-btn { transition: none; }
 }
 
 .auth-card {
