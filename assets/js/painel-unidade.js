@@ -10,6 +10,8 @@ import {
   watchRegistrosMembro, addRegistro, deleteRegistro,
   watchEspecialidadesMembro, addEspecialidade, updateEspecialidade, deleteEspecialidade,
   watchMateriaisMembro, addMaterial, toggleMaterial, deleteMaterial,
+  watchPresencas, salvarPresenca, deletePresenca,
+  watchPontuacaoAcampamento,
   watchPlanejamentos, addPlanejamento, editarPlanejamento,
   watchNotificacoesUnidade, marcarNotificacoesUnidadeLidas, deleteNotificacaoUnidade,
   watchPedidoSenha, solicitarTrocaSenha,
@@ -66,7 +68,7 @@ function criarFanOutPorMembro(unidadeId, watchFn, onChange) {
 }
 
 function iniciarPainel(unidadeId) {
-  const estado = { membros: [], conselheiros: [], planejamentos: [], notificacoes: [] };
+  const estado = { membros: [], conselheiros: [], planejamentos: [], notificacoes: [], presencas: [], pontuacao: [] };
   const abertosRequisitos = new Set();
   const abertosEspecialidades = new Set();
   const abertosMateriais = new Set();
@@ -82,6 +84,8 @@ function iniciarPainel(unidadeId) {
     fanOutMateriais.sincronizar(membros);
 
     renderMembros();
+    renderChamadaAtual();
+    renderHistoricoPresencas();
     renderRequisitos();
     renderEspecialidades();
     renderMateriais();
@@ -186,6 +190,104 @@ function iniciarPainel(unidadeId) {
     e.target.reset();
     mostrarToast("Conselheiro cadastrado.");
   });
+
+  /* ---------------- Presença / chamada por reunião ---------------- */
+  watchPresencas(unidadeId, (presencas) => {
+    estado.presencas = presencas;
+    renderChamadaAtual();
+    renderHistoricoPresencas();
+  });
+
+  const inputDataChamada = document.getElementById("pr-data");
+  inputDataChamada.value = hojeISO();
+  inputDataChamada.addEventListener("change", renderChamadaAtual);
+
+  function renderChamadaAtual() {
+    const wrap = document.getElementById("lista-chamada");
+    const vazio = document.getElementById("chamada-vazio");
+    if (!wrap) return;
+    vazio.style.display = estado.membros.length ? "none" : "block";
+    const existente = estado.presencas.find((p) => p.id === inputDataChamada.value);
+    const presentesAtuais = new Set(existente ? existente.presentes : []);
+    wrap.innerHTML = estado.membros
+      .map(
+        (m) => `<label class="presenca-row">
+          <input type="checkbox" data-presente="${m.id}" ${presentesAtuais.has(m.id) ? "checked" : ""}>
+          ${m.nome}
+        </label>`
+      )
+      .join("");
+  }
+
+  document.getElementById("btn-salvar-presenca").addEventListener("click", async () => {
+    const data = inputDataChamada.value;
+    if (!data) { mostrarToast("Escolha uma data."); return; }
+    const presentes = Array.from(document.querySelectorAll("#lista-chamada input:checked")).map((el) => el.dataset.presente);
+    await salvarPresenca(unidadeId, data, presentes);
+    mostrarToast("Chamada salva.");
+  });
+
+  function renderHistoricoPresencas() {
+    const tbody = document.getElementById("tbody-presencas");
+    const vazio = document.getElementById("presencas-vazio");
+    if (!tbody) return;
+    vazio.style.display = estado.presencas.length ? "none" : "block";
+    tbody.innerHTML = estado.presencas
+      .map(
+        (p) => `<tr>
+          <td>${fmtDataBr(p.data)}</td>
+          <td>${(p.presentes || []).length} de ${estado.membros.length}</td>
+          <td class="row-actions"><button class="danger" data-del-presenca="${p.id}">Excluir</button></td>
+        </tr>`
+      )
+      .join("");
+    tbody.querySelectorAll("[data-del-presenca]").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        if (!confirm("Excluir esta chamada?")) return;
+        await deletePresenca(unidadeId, btn.dataset.delPresenca);
+        mostrarToast("Chamada removida.");
+      })
+    );
+  }
+
+  /* ---------------- Placar do Acampamento (só leitura) ---------------- */
+  watchPontuacaoAcampamento((lancamentos) => {
+    estado.pontuacao = lancamentos;
+    renderPlacar();
+  });
+
+  function renderPlacar() {
+    const ranking = document.getElementById("placar-ranking");
+    const historico = document.getElementById("placar-historico");
+    if (!ranking) return;
+    const totais = RS_UNIDADES.map((u) => {
+      const doUnidade = estado.pontuacao.filter((l) => l.unidadeId === u.id);
+      const total = doUnidade.reduce((soma, l) => soma + (l.tipo === "perdeu" ? -l.pontos : l.pontos), 0);
+      return { ...u, total };
+    }).sort((a, b) => b.total - a.total);
+
+    ranking.innerHTML = totais
+      .map(
+        (u, i) => `<div class="placar-linha ${u.id === unidadeId ? "placar-minha" : ""}">
+          <span class="placar-pos">${i + 1}º</span>
+          <span class="placar-nome">${u.nome}${u.id === unidadeId ? " (sua unidade)" : ""}</span>
+          <span class="placar-pontos">${u.total} pts</span>
+        </div>`
+      )
+      .join("");
+
+    historico.innerHTML = estado.pontuacao.length
+      ? estado.pontuacao
+          .map((l) => {
+            const nomeUnidade = RS_UNIDADES.find((u) => u.id === l.unidadeId)?.nome || l.unidadeId;
+            return `<div class="placar-log-item">
+              <span class="pill ${l.tipo === "perdeu" ? "pill-closed" : "pill-open"}">${l.tipo === "perdeu" ? "−" : "+"}${l.pontos} — ${nomeUnidade}</span>
+              ${l.motivo ? `<span class="muted">${l.motivo}</span>` : ""}
+            </div>`;
+          })
+          .join("")
+      : `<div class="empty-state">Nenhum lançamento ainda.</div>`;
+  }
 
   /* ---------------- Requisitos: histórico individual por desbravador ---------------- */
   function renderRequisitos() {

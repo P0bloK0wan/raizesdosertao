@@ -8,14 +8,14 @@ HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pag
 
 ## 📝 O que mudou na última atualização
 
-- **Corrigido um bug importante que fazia o site parecer "travado numa versão antiga"** mesmo depois de uma atualização já publicada: o Service Worker (`sw.js`, que guarda uma cópia local das páginas pra abrir mais rápido) nunca teve sua versão de cache atualizada nas últimas rodadas, então o navegador de quem já tinha visitado o site continuava servindo arquivos antigos — inclusive uma referência a um arquivo (`midia-drive.js`) que nem existe mais. Corrigido: a versão do cache foi atualizada (isso já força uma atualização pra quem visitar de novo) e a estratégia mudou pra sempre buscar a versão mais nova primeiro, só usando a cópia local se a internet cair. Veja "Resolver problemas no Firebase" abaixo se ainda aparecer algo desatualizado depois disso.
-- Corrigido um texto desatualizado no painel da liderança (seção Mídia) que ainda falava em "envie as fotos direto por aqui" — sobrou de quando a Mídia usava upload (Cloudinary); o texto agora descreve certinho o fluxo atual (nome + link do Google Drive).
+- **Novo na página Início**: um mapa (com endereço da sede em Petrolina-PE) e um botão "Abrir no Google Maps", além de uma seção de **Perguntas frequentes** (idade mínima, se precisa ser adventista, como se inscrever, onde fica a sede etc.).
+- **Chamada de presença por reunião**, no painel da unidade: escolhe a data, marca quem veio, salva — a liderança acompanha as últimas chamadas de cada unidade (só leitura) dentro de "Unidades e desbravadores".
+- **Placar do Acampamento**: nova seção no painel da liderança pra publicar pontos ganhos ou perdidos por unidade durante um acampamento (perda sempre pede o motivo) — as unidades acompanham o mesmo placar em tempo real pelo próprio painel, com um botão pra zerar tudo quando começar um acampamento novo.
 
 ### Rodada anterior
 
-- **Publicar o Cloudflare Worker do Mercado Pago agora pode ser feito sem computador** — um botão "Deploy to Cloudflare" que funciona direto no navegador do celular, sem precisar de terminal nem instalar nada. O caminho antigo por linha de comando (`wrangler`) continua disponível como alternativa pra quem tem computador.
-- **Mídia voltou a ser só link do Google Drive** — a liderança publica uma pasta com nome + link (compartilhado como "Qualquer pessoa com o link"), sem upload de fotos pelo site. O upload manual pelo Cloudinary foi abandonado pra Mídia — o Cloudinary continua sendo usado só pra logo das unidades.
-- **Logo, grito de guerra e cor de cada unidade agora só a liderança define**, numa seção "Identidade das Unidades" no painel dela (a seção "Minha Unidade", que existia no painel de cada unidade pra troca autoatendida, foi removida). A cor é escolhida numa paleta de cores prontas pra clicar (ou um seletor de cor pra uma escolha específica) e aparece nos botões principais e numa faixa no topo do painel daquela unidade — não no site inteiro nem no fundo da barra lateral.
+- Corrigido um bug importante que fazia o site parecer "travado numa versão antiga" mesmo depois de uma atualização já publicada: o cache do Service Worker (`sw.js`) nunca era atualizado, então o navegador de quem já visitou o site continuava servindo arquivos velhos — corrigido (bump de versão + estratégia "rede primeiro"); corrigido também um texto desatualizado sobre upload de fotos que sobrou no painel da liderança.
+- Publicar o Cloudflare Worker do Mercado Pago agora pode ser feito sem computador (botão "Deploy to Cloudflare" direto do navegador do celular); Mídia voltou a ser só link do Google Drive; logo, grito de guerra e cor de cada unidade agora só a liderança define, em "Identidade das Unidades".
 
 ### Rodadas anteriores (mais recente primeiro)
 
@@ -258,7 +258,8 @@ O site não guarda arquivos — as fotos continuam morando no **Google Drive**, 
 - Abrir/fechar domingos na agenda do Lava Jato (com motivo opcional) e ver, em tempo real e de qualquer aparelho, todos os cadastros — avisada (notificação + contador no menu) quando alguém cancela.
 - Ver os desbravadores (inclusive idade e tipo sanguíneo) e o histórico de requisitos de cada uma das 6 unidades — **editar o cadastro de um desbravador, excluir um desbravador ou um registro**, tudo com motivo obrigatório e aviso automático pra unidade.
 - Configurar a logo, o grito de guerra e a cor de cada unidade em "Identidade das Unidades" (a cor aparece nos botões e numa faixa no topo do painel daquela unidade) — só a liderança define isso agora.
-- Ver a lista de conselheiros de cada unidade.
+- Ver a lista de conselheiros de cada unidade e as últimas chamadas de presença de cada uma (só leitura).
+- Publicar pontos ganhos/perdidos por unidade em "Placar do Acampamento" (perda sempre exige motivo) — as unidades acompanham o mesmo placar em tempo real; dá pra zerar tudo com um clique quando começar um acampamento novo.
 - Aprovar ou recusar pedidos de troca de senha das unidades (a senha em si nunca fica salva depois de aplicada).
 - Publicar/remover pastas de Mídia (nome + link do Google Drive).
 - Configurar a data do Campori DSA 2027 (alimenta o cronômetro da página pública).
@@ -268,6 +269,8 @@ O site não guarda arquivos — as fotos continuam morando no **Google Drive**, 
 **Painel da unidade** (`painel-unidade.html`)
 - Ver a própria logo e o grito de guerra (definidos pela liderança, em "Identidade das Unidades") — só leitura.
 - Cadastrar os desbravadores da unidade (com idade, responsável obrigatório com telefone, segundo responsável opcional e tipo sanguíneo opcional) e os conselheiros da unidade (nome, idade, telefone).
+- Fazer a chamada de presença por reunião — escolhe a data, marca quem veio, salva; já existe uma chamada nesse dia? é atualizada, não duplica.
+- Ver o Placar do Acampamento (pontos publicados pela liderança, por unidade, com o motivo de cada perda) — só leitura, atualiza em tempo real.
 - Abrir o nome de cada desbravador e lançar quantos registros de requisito quiser (Bíblia/Lição, Uniforme, Pontualidade, Participação, Comportamento ou outro), cada um com a data em que foi cumprido — e excluir um registro se precisar corrigir.
 - Cadastrar e atualizar as especialidades de cada desbravador (progresso, o que falta, materiais necessários).
 - Listar o que falta comprar pra cada desbravador e marcar como comprado.

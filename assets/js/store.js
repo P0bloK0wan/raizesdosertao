@@ -121,6 +121,24 @@ export function deleteMaterial(unidadeId, membroId, itemId) {
   return deleteDoc(doc(db, "unidades", unidadeId, "membros", membroId, "materiais", itemId));
 }
 
+/* ---------- Presença / chamada por reunião ---------- */
+export function watchPresencas(unidadeId, cb) {
+  return onSnapshot(
+    query(collection(db, "unidades", unidadeId, "presencas"), orderBy("data", "desc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+}
+export function salvarPresenca(unidadeId, data, presentes) {
+  return setDoc(
+    doc(db, "unidades", unidadeId, "presencas", data),
+    { data, presentes, atualizadoEm: serverTimestamp() },
+    { merge: true }
+  );
+}
+export function deletePresenca(unidadeId, presencaId) {
+  return deleteDoc(doc(db, "unidades", unidadeId, "presencas", presencaId));
+}
+
 /* ---------- Planejamento das Unidades ---------- */
 export function watchPlanejamentos(unidadeId, cb) {
   return onSnapshot(
@@ -299,6 +317,25 @@ export async function seedPlanejamentoClube(eventos) {
   if (!snap.empty) return false;
   await Promise.all(eventos.map((ev) => addEventoClube(ev)));
   return true;
+}
+
+/* ---------- Placar de pontos do acampamento ----------
+   Cada lançamento é um ganho ou uma perda de pontos de uma unidade
+   (tipo "ganhou"/"perdeu"), com motivo — o total de cada unidade é
+   calculado no cliente somando os lançamentos dela. */
+export function watchPontuacaoAcampamento(cb) {
+  return onSnapshot(
+    query(collection(db, "pontuacaoAcampamento"), orderBy("criadoEm", "desc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+  );
+}
+export function addPontuacaoAcampamento(unidadeId, tipo, pontos, motivo) {
+  return addDoc(collection(db, "pontuacaoAcampamento"), {
+    unidadeId, tipo, pontos, motivo: motivo || "", criadoEm: serverTimestamp(),
+  });
+}
+export function deletePontuacaoAcampamento(lancamentoId) {
+  return deleteDoc(doc(db, "pontuacaoAcampamento", lancamentoId));
 }
 
 /* ---------- Lava Jato: agenda de domingos + cadastros ----------

@@ -179,6 +179,23 @@ service cloud.firestore {
       allow write: if eLideranca();
     }
 
+    // Presença/chamada por reunião de cada unidade (ID do documento
+    // = a data "AAAA-MM-DD", pra nunca duplicar chamada do mesmo
+    // dia) — mesma regra dos membros.
+    match /unidades/{unidadeId}/presencas/{presencaId} {
+      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+    }
+
+    // Placar de pontos do acampamento (coleção única, no topo, pra
+    // todas as unidades) — qualquer conta logada (liderança ou
+    // unidade) pode ler o placar; só a liderança lança pontos
+    // ganhos/perdidos ou apaga um lançamento (corrigir erro / zerar
+    // pra um acampamento novo).
+    match /pontuacaoAcampamento/{lancamentoId} {
+      allow read: if estaLogado();
+      allow write: if eLideranca();
+    }
+
     // Qualquer outra coleção não prevista acima fica bloqueada
     // por padrão.
     match /{document=**} {

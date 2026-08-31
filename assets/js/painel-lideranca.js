@@ -15,6 +15,8 @@ import {
   watchRegistrosMembro, deleteRegistro,
   watchEspecialidadesMembro, updateEspecialidade, deleteEspecialidade,
   watchMateriaisMembro, toggleMaterial, deleteMaterial,
+  watchPresencas,
+  watchPontuacaoAcampamento, addPontuacaoAcampamento, deletePontuacaoAcampamento,
   criarNotificacaoUnidade,
   watchPlanejamentos, aprovarPlanejamento, recusarPlanejamento, deletePlanejamento,
   watchNotificacoesLideranca, marcarNotificacoesLiderancaLidas, deleteNotificacaoLideranca,
@@ -92,6 +94,8 @@ function iniciarPainel() {
     pedidosSenhaPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, null])),
     identidadePorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, {}])),
     conselheirosPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
+    presencasPorUnidade: Object.fromEntries(RS_UNIDADES.map((u) => [u.id, []])),
+    pontuacao: [],
   };
   const idsJaNotificados = new Set();
   let primeiraLeitura = true;
@@ -267,6 +271,14 @@ function iniciarPainel() {
               .map((c) => `<li>${c.nome}${c.idade ? ` (${c.idade} anos)` : ""}${c.telefone ? ` · ${c.telefone}` : ""}</li>`)
               .join("")}
           </ul>` : ""}
+          <p class="muted" style="margin:0 0 6px; font-weight:700;">Presença (últimas chamadas)</p>
+          ${(estado.presencasPorUnidade[u.id] || []).length ? `
+          <ul style="margin:0 0 14px; padding-left:18px;">
+            ${(estado.presencasPorUnidade[u.id] || [])
+              .slice(0, 5)
+              .map((p) => `<li>${fmtDataBr(p.data)} — ${(p.presentes || []).length} de ${membros.length} presente(s)</li>`)
+              .join("")}
+          </ul>` : `<p class="empty-state" style="margin-bottom:14px;">Nenhuma chamada registrada ainda.</p>`}
           ${membros.length ? blocosMembros : `<p class="empty-state">Nenhum desbravador cadastrado por esta unidade ainda.</p>`}
         </div>`;
       wrap.appendChild(det);
@@ -688,6 +700,89 @@ function iniciarPainel() {
       estado.conselheirosPorUnidade[u.id] = conselheiros;
       renderDesbravadores();
     });
+  });
+
+  /* ---------------- Presença (só leitura pra liderança) ---------------- */
+  RS_UNIDADES.forEach((u) => {
+    watchPresencas(u.id, (presencas) => {
+      estado.presencasPorUnidade[u.id] = presencas;
+      renderDesbravadores();
+    });
+  });
+
+  /* ---------------- Placar do Acampamento ---------------- */
+  watchPontuacaoAcampamento((lancamentos) => {
+    estado.pontuacao = lancamentos;
+    renderPlacar();
+  });
+
+  document.getElementById("pt-unidade").innerHTML =
+    `<option value="">Selecione</option>` + RS_UNIDADES.map((u) => `<option value="${u.id}">${u.nome}</option>`).join("");
+
+  function renderPlacar() {
+    const ranking = document.getElementById("placar-ranking");
+    const historico = document.getElementById("placar-historico");
+
+    const totais = RS_UNIDADES.map((u) => {
+      const doUnidade = estado.pontuacao.filter((l) => l.unidadeId === u.id);
+      const total = doUnidade.reduce((soma, l) => soma + (l.tipo === "perdeu" ? -l.pontos : l.pontos), 0);
+      return { ...u, total };
+    }).sort((a, b) => b.total - a.total);
+
+    ranking.innerHTML = totais
+      .map(
+        (u, i) => `<div class="placar-linha">
+          <span class="placar-pos">${i + 1}º</span>
+          <span class="placar-nome">${u.nome}</span>
+          <span class="placar-pontos">${u.total} pts</span>
+        </div>`
+      )
+      .join("");
+
+    historico.innerHTML = estado.pontuacao.length
+      ? estado.pontuacao
+          .map((l) => {
+            const nomeUnidade = RS_UNIDADES.find((u) => u.id === l.unidadeId)?.nome || l.unidadeId;
+            return `<div class="placar-log-item">
+              <span class="pill ${l.tipo === "perdeu" ? "pill-closed" : "pill-open"}">${l.tipo === "perdeu" ? "−" : "+"}${l.pontos} — ${nomeUnidade}</span>
+              ${l.motivo ? `<span class="muted">${l.motivo}</span>` : ""}
+              <button data-del-pontuacao="${l.id}" style="margin-left:auto; background:none; border:none; color:#c1443a; font-weight:700; cursor:pointer;">Excluir</button>
+            </div>`;
+          })
+          .join("")
+      : `<div class="empty-state">Nenhum lançamento ainda.</div>`;
+
+    historico.querySelectorAll("[data-del-pontuacao]").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        if (!confirm("Excluir este lançamento?")) return;
+        await deletePontuacaoAcampamento(btn.dataset.delPontuacao);
+        mostrarToast("Lançamento removido.");
+      })
+    );
+  }
+
+  document.getElementById("form-placar").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const unidadeId = document.getElementById("pt-unidade").value;
+    const tipo = document.getElementById("pt-tipo").value;
+    const pontos = Number(document.getElementById("pt-pontos").value);
+    const motivo = document.getElementById("pt-motivo").value.trim();
+    if (!unidadeId || !pontos) return;
+    if (tipo === "perdeu" && !motivo) {
+      mostrarToast("Escreva o motivo da perda de pontos.");
+      return;
+    }
+    await addPontuacaoAcampamento(unidadeId, tipo, pontos, motivo);
+    e.target.reset();
+    document.getElementById("pt-tipo").value = "ganhou";
+    mostrarToast("Placar atualizado.");
+  });
+
+  document.getElementById("btn-zerar-placar").addEventListener("click", async () => {
+    if (!estado.pontuacao.length) return;
+    if (!confirm("Zerar o placar inteiro? Isso apaga todos os lançamentos — ideal pra começar um acampamento novo.")) return;
+    await Promise.all(estado.pontuacao.map((l) => deletePontuacaoAcampamento(l.id)));
+    mostrarToast("Placar zerado.");
   });
 
   /* ---------------- Pedidos de troca de senha ---------------- */

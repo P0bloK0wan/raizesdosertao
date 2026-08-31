@@ -29,11 +29,13 @@
       <li><a href="#visao-geral">📊 Visão geral</a></li>
       <li><a href="#membros">🧑‍🤝‍🧑 Meus desbravadores</a></li>
       <li><a href="#conselheiros">🎓 Conselheiros</a></li>
+      <li><a href="#presenca">✅ Presença</a></li>
       <li><a href="#topicos">📝 Atividades / requisitos</a></li>
       <li><a href="#especialidades">🎖️ Especialidades</a></li>
       <li><a href="#materiais">🛒 O que falta comprar</a></li>
       <li><a href="#planejamento">📋 Planejamento</a></li>
       <li><a href="#planejamento-clube">📅 Planejamento do Clube</a></li>
+      <li><a href="#placar-acampamento">🏆 Placar do Acampamento</a></li>
       <li><a href="#config">⚙️ Configurações</a></li>
       <li><a href="index.html">🌐 Ver site público</a></li>
     </ul>
@@ -94,6 +96,26 @@
       <div class="empty-state" id="conselheiros-vazio" style="display:none;">Nenhum conselheiro cadastrado ainda.</div>
     </section>
 
+    <section class="panel-block" id="presenca">
+      <div class="block-head">
+        <h2>Presença</h2>
+      </div>
+      <p class="muted">Escolha a data da reunião, marque quem esteve presente e salve. Se já existir uma chamada nesse dia, ela é atualizada — não duplica.</p>
+      <div class="field" style="max-width:220px;"><label>Data da reunião</label><input type="date" id="pr-data"></div>
+      <div id="lista-chamada"></div>
+      <div class="empty-state" id="chamada-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra fazer a chamada.</div>
+      <button type="button" class="btn btn-primary btn-sm" id="btn-salvar-presenca" style="margin-top:14px;">Salvar chamada</button>
+
+      <h3 style="margin-top:30px; font-size:1rem;">Histórico de chamadas</h3>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Data</th><th>Presentes</th><th>Ações</th></tr></thead>
+          <tbody id="tbody-presencas"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="presencas-vazio" style="display:none;">Nenhuma chamada registrada ainda.</div>
+    </section>
+
     <section class="panel-block" id="topicos">
       <div class="block-head">
         <h2>Atividades / requisitos</h2>
@@ -143,6 +165,16 @@
       </div>
       <div class="calendario-grid" id="calendario-grid"></div>
       <p class="cal-aviso">⚠️ Sujeito a mudanças. As datas e atividades podem ser alteradas pela liderança a qualquer momento.</p>
+    </section>
+
+    <section class="panel-block" id="placar-acampamento">
+      <div class="block-head">
+        <h2>Placar do Acampamento</h2>
+      </div>
+      <p class="muted">Pontos publicados pela liderança durante o acampamento — só leitura.</p>
+      <div id="placar-ranking" style="margin-bottom:22px;"></div>
+      <h3 style="font-size:1rem;">Histórico de lançamentos</h3>
+      <div id="placar-historico"></div>
     </section>
 
     <section class="panel-block" id="config">

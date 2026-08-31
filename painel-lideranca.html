@@ -35,6 +35,7 @@
       <li><a href="#identidade-unidades">🚩 Identidade das Unidades</a></li>
       <li><a href="#pedidos-senha">🔑 Pedidos de troca de senha</a></li>
       <li><a href="#planejamento-clube">📅 Planejamento do Clube</a></li>
+      <li><a href="#placar-acampamento">🏆 Placar do Acampamento</a></li>
       <li><a href="#midia">📸 Mídia</a></li>
       <li><a href="#campori">🏕️ Campori DSA 2027</a></li>
       <li><a href="#dados">📁 Backup</a></li>
@@ -185,6 +186,35 @@
       </div>
       <div class="calendario-grid" id="calendario-grid"></div>
       <p class="cal-aviso">⚠️ Sujeito a mudanças. As datas e atividades podem ser alteradas pela liderança a qualquer momento.</p>
+    </section>
+
+    <section class="panel-block" id="placar-acampamento">
+      <div class="block-head">
+        <h2>Placar do Acampamento</h2>
+        <button type="button" class="btn btn-outline btn-sm" id="btn-zerar-placar">Zerar placar</button>
+      </div>
+      <p class="muted">Publique pontos ganhos ou perdidos por unidade durante o acampamento — as unidades também veem esse placar pelo próprio painel, em tempo real.</p>
+      <form class="inline-form" id="form-placar">
+        <div class="field"><label>Unidade</label><select id="pt-unidade" required><option value="">Selecione</option></select></div>
+        <div class="field">
+          <label>Tipo</label>
+          <select id="pt-tipo">
+            <option value="ganhou">Ganhou pontos</option>
+            <option value="perdeu">Perdeu pontos</option>
+          </select>
+        </div>
+        <div class="field"><label>Quantos pontos</label><input type="number" id="pt-pontos" min="1" required></div>
+        <div class="field" style="flex:1; min-width:220px;">
+          <label>Motivo <span class="muted" style="font-weight:400;">(obrigatório se perdeu pontos)</span></label>
+          <input type="text" id="pt-motivo" placeholder="ex.: Uniforme incompleto na formatura">
+        </div>
+        <button type="submit" class="btn btn-primary">Publicar</button>
+      </form>
+
+      <div id="placar-ranking" style="margin:24px 0 22px;"></div>
+
+      <h3 style="font-size:1rem;">Histórico de lançamentos</h3>
+      <div id="placar-historico"></div>
     </section>
 
     <section class="panel-block" id="midia">
