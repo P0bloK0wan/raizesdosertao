@@ -779,7 +779,6 @@ body.painel-unidade .btn-primary:hover { box-shadow: 0 10px 26px color-mix(in sr
 }
 .panel-block .block-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
 .panel-block .block-head h2 { margin: 0; font-size: 1.15rem; }
-.panel-rodape-sair { background: transparent; border-style: dashed; text-align: center; }
 
 table.data-table { width: 100%; border-collapse: collapse; font-size: .92rem; }
 table.data-table th, table.data-table td { text-align: left; padding: 11px 10px; border-bottom: 1px solid var(--border); }

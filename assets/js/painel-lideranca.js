@@ -35,7 +35,6 @@ exigirSessao("lideranca", (sessao) => {
 });
 
 document.getElementById("btn-sair").addEventListener("click", logout);
-document.getElementById("btn-sair-rodape").addEventListener("click", logout);
 
 function fmtData(ts) {
   if (!ts) return "—";
