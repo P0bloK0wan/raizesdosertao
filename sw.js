@@ -1,7 +1,7 @@
 /* Service worker simples — cache do "app shell" para o site
    abrir rápido e funcionar offline depois da primeira visita. */
 
-const CACHE_NAME = "raizes-do-sertao-v5";
+const CACHE_NAME = "raizes-do-sertao-v6";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -23,7 +23,7 @@ const APP_SHELL = [
   "./assets/js/firebase.js",
   "./assets/js/auth.js",
   "./assets/js/main.js",
-  "./assets/js/midia-drive.js",
+  "./assets/js/cloudinary.js",
   "./assets/js/painel-lideranca.js",
   "./assets/js/painel-unidade.js",
   "./assets/img/logo.png",
@@ -58,18 +58,19 @@ self.addEventListener("fetch", (event) => {
   // Só cuida dos arquivos do próprio site — deixa passar direto
   // qualquer chamada pro Firebase, fontes do Google, etc.
   if (new URL(event.request.url).origin !== self.location.origin) return;
+  // Rede primeiro: o site muda com frequência, então busca a versão
+  // nova sempre que houver internet; só cai pro cache quando a rede
+  // falhar (offline) — evita ficar até um dia inteiro mostrando uma
+  // versão antiga do código antes de a rede "vencer" a corrida.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request)
-        .then((resp) => {
-          if (resp && resp.ok) {
-            const clone = resp.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return resp;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
+    fetch(event.request)
+      .then((resp) => {
+        if (resp && resp.ok) {
+          const clone = resp.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return resp;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
