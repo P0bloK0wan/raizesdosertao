@@ -15,6 +15,7 @@ export const RS_CLUBE = {
 
 export const RS_LINKS = {
   juntarSe: "https://wa.link/b84jhp",
+  juntarSeLideranca: "https://wa.link/t5av1s",
   ajudarCampori: "https://wa.link/b84jh",
   instagramClube: "https://www.instagram.com/cluberaizesdosertao",
   instagramIgreja: "https://www.instagram.com/iasdvilaeduardo",
