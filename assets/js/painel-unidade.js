@@ -27,6 +27,7 @@ exigirSessao("unidade", (sessao) => {
 });
 
 document.getElementById("btn-sair").addEventListener("click", logout);
+document.getElementById("btn-sair-rodape").addEventListener("click", logout);
 
 function fmtDataBr(dataStr) {
   if (!dataStr) return "—";
