@@ -42,6 +42,24 @@ export const RS_UNIDADES = [
   { id: "beijaflor", nome: "Beija-Flor", img: "assets/img/unit_andorinha1.png" },
 ];
 
+/* Paleta de cores prontas pra liderança escolher ao configurar a
+   identidade de cada unidade — já pensadas pra combinar com o
+   visual do site e terem contraste bom com texto branco em cima
+   (viram fundo de botão). Além delas, um seletor de cor livre fica
+   disponível pra quem quiser algo bem específico. */
+export const RS_CORES_UNIDADE = [
+  "#E97305", // laranja do clube
+  "#78A83B", // verde do clube
+  "#D09D1A", // dourado do clube
+  "#4F7A26", // verde-oliva
+  "#2E7D6B", // verde-jade
+  "#1F5E8C", // azul petróleo
+  "#5B3A8E", // roxo
+  "#A6484B", // vinho
+  "#8C4A2F", // terracota
+  "#C1443A", // vermelho-terra
+];
+
 /* Linha do tempo da história do clube — usada na página
    "Nossa História". Cada marco mostra o período, quem dirigia o
    clube naquele momento, e o que aconteceu. */
@@ -108,20 +126,21 @@ export function rsProximosDomingos(qtd = 8) {
 export const RS_TIPOS_SANGUINEOS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 /* =========================================================
-   Mídia: fotos enviadas direto no painel da liderança, guardadas
-   no Cloudinary (sem redimensionar nada — baixar sempre pega o
-   arquivo original). Preencha depois de criar uma conta grátis em
-   cloudinary.com e um "upload preset" do tipo unsigned (veja o
-   README.md) — sem isso, o upload de fotos não funciona.
+   Logo das unidades: a liderança sobe a imagem em "Identidade das
+   Unidades" (painel da liderança) e ela é guardada no Cloudinary
+   (sem redimensionar nada). Preencha depois de criar uma conta
+   grátis em cloudinary.com e um "upload preset" do tipo unsigned
+   (veja o README.md) — sem isso, o upload da logo não funciona.
+   (A Mídia — fotos de eventos — voltou a usar link do Google
+   Drive, não passa mais pelo Cloudinary.)
    ========================================================= */
 export const RS_CLOUDINARY_CLOUD_NAME = "yb6xrmhv";
 export const RS_CLOUDINARY_UPLOAD_PRESET = "dxyz1234";
 
-
-/* Limite de tamanho por foto, conferido no navegador antes de
+/* Limite de tamanho por imagem, conferido no navegador antes de
    enviar (o Cloudinary também pode ser configurado com o mesmo
    limite no próprio upload preset, como segunda trava). */
-export const RS_MIDIA_TAMANHO_MAXIMO_MB = 10;
+export const RS_IMAGEM_TAMANHO_MAXIMO_MB = 10;
 
 /* =========================================================
    Contas de acesso.

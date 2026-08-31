@@ -30,12 +30,3 @@ export async function enviarImagemCloudinary(arquivo) {
   const dados = await resp.json();
   return { url: dados.secure_url, publicId: dados.public_id };
 }
-
-/* O atributo HTML "download" não funciona em links pra outro
-   domínio (o navegador ignora e só abre a imagem) — o Cloudinary
-   resolve isso com a flag "fl_attachment" na própria URL, que faz
-   o servidor dele mandar o arquivo como download de verdade. */
-export function urlComDownloadForcado(url) {
-  if (!url || !url.includes("/upload/")) return url;
-  return url.replace("/upload/", "/upload/fl_attachment/");
-}

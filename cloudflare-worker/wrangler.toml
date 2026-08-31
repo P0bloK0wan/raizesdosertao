@@ -13,9 +13,12 @@ compatibility_date = "2026-01-01"
 [vars]
 # Endereço completo da página do Campori no seu site publicado —
 # é pra onde o Mercado Pago redireciona a pessoa depois de pagar.
-SITE_URL_CAMPORI = "https://SEU-USUARIO.github.io/SEU-REPOSITORIO/campori.html"
+# Já preenchido com o endereço real deste site — se você copiar este
+# projeto pro seu próprio usuário/repositório do GitHub, ajuste aqui
+# (dá pra editar sem CLI: Workers & Pages → seu Worker → Settings →
+# Variables and Secrets).
+SITE_URL_CAMPORI = "https://p0blok0wan.github.io/raizesdosertao/campori.html"
 
 # Endereço "de origem" do seu site (sem barra no final) — usado só
-# pra liberar a chamada do navegador pro Worker (CORS). Ajuste pro
-# seu domínio real.
-SITE_ORIGIN = "https://SEU-USUARIO.github.io"
+# pra liberar a chamada do navegador pro Worker (CORS).
+SITE_ORIGIN = "https://p0blok0wan.github.io"

@@ -445,55 +445,6 @@ a { color: inherit; }
 }
 .pasta-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .pasta-cabecalho h3 { margin: 0; font-size: 1.05rem; }
-.foto-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 10px;
-}
-.foto-thumb {
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  aspect-ratio: 1 / 1;
-  background: var(--bg);
-  transition: transform .15s ease;
-}
-.foto-thumb:hover { transform: scale(1.03); }
-.foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-/* Miniatura com botão de excluir (painel da liderança) */
-.foto-thumb-wrap {
-  position: relative;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  aspect-ratio: 1 / 1;
-  background: var(--bg);
-}
-.foto-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.foto-del {
-  position: absolute; top: 4px; right: 4px;
-  width: 24px; height: 24px;
-  border: none; border-radius: 50%;
-  background: rgba(6,4,3,.7); color: #fff;
-  cursor: pointer; font-size: .8rem; line-height: 1;
-  display: flex; align-items: center; justify-content: center;
-}
-
-.lightbox-backdrop {
-  position: fixed; inset: 0; z-index: 200;
-  display: none; align-items: center; justify-content: center;
-  flex-direction: column; gap: 16px;
-  background: rgba(6,4,3,.9);
-  padding: 24px;
-}
-.lightbox-backdrop.show { display: flex; }
-.lightbox-backdrop img { max-width: min(90vw, 900px); max-height: 70vh; border-radius: var(--radius-sm); object-fit: contain; }
-.lightbox-close {
-  position: absolute; top: 18px; right: 22px;
-  background: none; border: none; color: #fff; font-size: 1.6rem; cursor: pointer;
-}
 
 /* Agenda do Lava Jato — um quadrado por domingo */
 .agenda-grid {
@@ -759,6 +710,21 @@ button.agenda-dia { cursor: pointer; font: inherit; font-family: var(--font-titl
 .app-main { flex: 1; padding: 28px 30px 60px; max-width: 100%; overflow-x: hidden; }
 .app-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; flex-wrap: wrap; gap: 12px; }
 .app-topbar h1 { font-size: 1.6rem; margin: 0; }
+
+/* Cor de identidade da unidade (definida pela liderança em
+   "Identidade das Unidades") — uma faixa discreta no topo do
+   painel e os botões principais, só no painel da própria unidade. */
+body.painel-unidade .app-main { border-top: 5px solid var(--cor-unidade, var(--orange)); }
+body.painel-unidade .btn-primary { background: var(--cor-unidade, var(--orange)); box-shadow: 0 8px 20px color-mix(in srgb, var(--cor-unidade, var(--orange)) 35%, transparent); }
+body.painel-unidade .btn-primary:hover { box-shadow: 0 10px 26px color-mix(in srgb, var(--cor-unidade, var(--orange)) 45%, transparent); }
+
+/* Paleta de cores prontas (painel da liderança, Identidade das Unidades) */
+.cores-paleta { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 12px; }
+.cor-swatch {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer; padding: 0;
+}
+.cor-swatch.selecionada { border-color: var(--text); box-shadow: 0 0 0 2px var(--bg-elevated), 0 0 0 4px var(--text); }
 
 .mobile-topbar { display: none; }
 @media (max-width: 900px) {

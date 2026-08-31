@@ -18,115 +18,35 @@
     <div class="section-head">
       <span class="eyebrow">Registros</span>
       <h1>Mídia</h1>
-      <p>Fotos dos nossos eventos, acampamentos e edições do Lava Jato — organizadas em pastas pela diretoria. Clique numa foto pra ampliar e baixar em resolução completa.</p>
+      <p>Fotos dos nossos eventos, acampamentos e edições do Lava Jato — organizadas em pastas pela diretoria. Clique em "Abrir no Drive" pra ver e baixar as fotos.</p>
     </div>
     <div id="midia-pastas"></div>
   </div>
 </section>
 
-<div class="lightbox-backdrop" id="lightbox">
-  <button class="lightbox-close" id="lightbox-fechar" aria-label="Fechar">✕</button>
-  <img id="lightbox-img" alt="">
-  <a class="btn btn-primary" id="lightbox-baixar" download target="_blank" rel="noopener">⬇️ Baixar foto</a>
-</div>
-
 <div data-site-footer></div>
 
 <script type="module">
-  import { watchMidia, watchFotosMidia } from "./assets/js/store.js";
-  import { urlComDownloadForcado } from "./assets/js/cloudinary.js";
+  import { watchMidia } from "./assets/js/store.js";
 
   const wrap = document.getElementById("midia-pastas");
-  const lightbox = document.getElementById("lightbox");
-  const lightboxImg = document.getElementById("lightbox-img");
-  const lightboxBaixar = document.getElementById("lightbox-baixar");
-
-  function abrirLightbox(foto) {
-    lightboxImg.src = foto.url;
-    lightboxImg.alt = foto.nome;
-    lightboxBaixar.href = urlComDownloadForcado(foto.url);
-    lightbox.classList.add("show");
-  }
-  function fecharLightbox() {
-    lightbox.classList.remove("show");
-    lightboxImg.src = "";
-  }
-  document.getElementById("lightbox-fechar").addEventListener("click", fecharLightbox);
-  lightbox.addEventListener("click", (e) => { if (e.target === lightbox) fecharLightbox(); });
-
-  function cardPastaAntiga(p) {
-    return `
-      <div class="pasta-bloco">
-        <div class="pasta-cabecalho">
-          <h3>📁 ${p.nome}</h3>
-          <a class="btn btn-outline btn-sm" href="${p.link}" target="_blank" rel="noopener">Abrir no Drive ↗</a>
-        </div>
-        <div class="empty-state">Essa pasta ainda usa o link antigo do Google Drive.</div>
-      </div>`;
-  }
-
-  function gradeFotos(fotos) {
-    if (!fotos.length) return "<div class='empty-state'>Nenhuma foto nessa pasta ainda.</div>";
-    return `<div class="foto-grid">${fotos
-      .map((f) => `
-        <button class="foto-thumb" data-foto-id="${f.id}" aria-label="Ver foto ${f.nome}">
-          <img src="${f.url}" alt="${f.nome}" loading="lazy">
-        </button>`)
-      .join("")}</div>`;
-  }
-
-  const fotosPorPasta = {}; // pastaId -> [{id, nome, url}]
-  const fotosUnsubs = {};
 
   watchMidia((pastas) => {
     if (!pastas.length) {
       wrap.innerHTML = `<div class="empty-state">Ainda não há pastas publicadas. A diretoria pode adicionar pelo painel da liderança.</div>`;
       return;
     }
-
-    const idsAtuais = new Set(pastas.map((p) => p.id));
-    pastas.forEach((p) => {
-      if (p.link || fotosUnsubs[p.id]) return;
-      fotosUnsubs[p.id] = watchFotosMidia(p.id, (fotos) => {
-        fotosPorPasta[p.id] = fotos;
-        renderizar(pastas);
-      });
-    });
-    Object.keys(fotosUnsubs).forEach((pastaId) => {
-      if (!idsAtuais.has(pastaId)) {
-        fotosUnsubs[pastaId]();
-        delete fotosUnsubs[pastaId];
-        delete fotosPorPasta[pastaId];
-      }
-    });
-
-    renderizar(pastas);
-  });
-
-  function renderizar(pastas) {
     wrap.innerHTML = pastas
-      .map((p) => {
-        if (p.link) return cardPastaAntiga(p);
-        const fotos = fotosPorPasta[p.id] || [];
-        return `
-          <div class="pasta-bloco">
-            <div class="pasta-cabecalho"><h3>📁 ${p.nome}</h3></div>
-            <div data-fotos="${p.id}">${gradeFotos(fotos)}</div>
-          </div>`;
-      })
+      .map(
+        (p) => `<div class="pasta-bloco">
+          <div class="pasta-cabecalho">
+            <h3>📁 ${p.nome}</h3>
+            <a class="btn btn-outline btn-sm" href="${p.link}" target="_blank" rel="noopener">Abrir no Drive ↗</a>
+          </div>
+        </div>`
+      )
       .join("");
-
-    pastas.forEach((p) => {
-      if (p.link) return;
-      const fotos = fotosPorPasta[p.id] || [];
-      const el = wrap.querySelector(`[data-fotos="${p.id}"]`);
-      if (!el) return;
-      el.querySelectorAll("[data-foto-id]").forEach((btn) => {
-        const foto = fotos.find((f) => f.id === btn.dataset.fotoId);
-        if (foto) btn.addEventListener("click", () => abrirLightbox(foto));
-      });
-    });
-  }
+  });
 </script>
 <script type="module" src="assets/js/main.js"></script>
 </body>

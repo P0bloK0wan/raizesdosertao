@@ -5,7 +5,7 @@
 import {
   RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, rsProximosDomingos,
   RS_PLANEJAMENTO_STATUS, RS_PLANEJAMENTO_CLUBE_CATEGORIAS, RS_PLANEJAMENTO_CLUBE_SEED,
-  RS_MIDIA_TAMANHO_MAXIMO_MB,
+  RS_CORES_UNIDADE,
 } from "./data.js";
 import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
@@ -19,13 +19,14 @@ import {
   watchPlanejamentos, aprovarPlanejamento, recusarPlanejamento, deletePlanejamento,
   watchNotificacoesLideranca, marcarNotificacoesLiderancaLidas, deleteNotificacaoLideranca,
   watchPedidoSenha, aprovarTrocaSenha, recusarTrocaSenha,
-  watchIdentidadeUnidade, watchConselheiros,
+  watchIdentidadeUnidade, salvarIdentidadeUnidade, watchConselheiros,
   addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
-  watchMidia, addPastaMidia, deletePastaMidia, uploadFotoMidia, watchFotosMidia, deleteFotoMidia,
+  watchMidia, addPastaMidia, deletePastaMidia,
   watchCampori, setCamporiData,
   exportarBackup,
 } from "./store.js";
 import { criarCalendarioClube } from "./calendario-clube.js";
+import { enviarImagemCloudinary } from "./cloudinary.js";
 import { mostrarToast } from "./main.js";
 
 exigirSessao("lideranca", (sessao) => {
@@ -594,11 +595,90 @@ function iniciarPainel() {
     });
   });
 
-  /* ---------------- Identidade das unidades (logo + grito de guerra) ---------------- */
+  /* ---------------- Identidade das unidades (logo + grito de guerra + cor) ----------------
+     Só a liderança edita — a própria unidade só lê (ver painel-unidade.js). */
+  document.getElementById("lista-identidade-unidades").innerHTML = RS_UNIDADES
+    .map(
+      (u) => `<div class="card" style="margin-bottom:14px;" data-identidade-card="${u.id}">
+        <h3 style="margin:0 0 10px;">${u.nome}</h3>
+        <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+          <img class="identidade-logo-preview" src="" alt="Logo ${u.nome}" style="width:64px; height:64px; border-radius:50%; object-fit:cover; background:var(--bg); display:none;">
+          <div class="field" style="flex:1; min-width:200px; margin:0;"><label>Logo</label><input type="file" class="identidade-logo-input" accept="image/*"></div>
+        </div>
+        <div class="field"><label>Grito de guerra</label><input type="text" class="identidade-grito-input" placeholder="Ex.: Unidade ${u.nome}, sempre alerta!"></div>
+        <div class="field">
+          <label>Cor da unidade</label>
+          <div class="cores-paleta">
+            ${RS_CORES_UNIDADE.map((c) => `<button type="button" class="cor-swatch" data-cor="${c}" style="background:${c};" aria-label="Cor ${c}"></button>`).join("")}
+            <input type="color" class="identidade-cor-input" title="Escolher outra cor">
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" data-salvar-identidade="${u.id}">Salvar</button>
+      </div>`
+    )
+    .join("");
+
+  document.querySelectorAll("[data-identidade-card]").forEach((card) => {
+    const corInput = card.querySelector(".identidade-cor-input");
+    card.querySelectorAll(".cor-swatch").forEach((sw) =>
+      sw.addEventListener("click", () => {
+        card.querySelectorAll(".cor-swatch").forEach((s) => s.classList.remove("selecionada"));
+        sw.classList.add("selecionada");
+        corInput.value = sw.dataset.cor;
+      })
+    );
+  });
+
+  document.querySelectorAll("[data-salvar-identidade]").forEach((btn) =>
+    btn.addEventListener("click", async () => {
+      const unidadeId = btn.dataset.salvarIdentidade;
+      const card = btn.closest("[data-identidade-card]");
+      btn.disabled = true;
+      try {
+        const arquivo = card.querySelector(".identidade-logo-input").files[0];
+        let logoUrl = (estado.identidadePorUnidade[unidadeId] || {}).logoUrl || "";
+        if (arquivo) {
+          const enviado = await enviarImagemCloudinary(arquivo);
+          logoUrl = enviado.url;
+        }
+        const gritoDeGuerra = card.querySelector(".identidade-grito-input").value.trim();
+        const cor = card.querySelector(".identidade-cor-input").value;
+        await salvarIdentidadeUnidade(unidadeId, { logoUrl, gritoDeGuerra, cor });
+        card.querySelector(".identidade-logo-input").value = "";
+        mostrarToast(`Identidade de ${nomeDaUnidade(unidadeId)} atualizada.`);
+      } catch (err) {
+        mostrarToast(err.message || "Não foi possível salvar.");
+      }
+      btn.disabled = false;
+    })
+  );
+
+  function renderIdentidadeUnidades() {
+    RS_UNIDADES.forEach((u) => {
+      const card = document.querySelector(`[data-identidade-card="${u.id}"]`);
+      if (!card) return;
+      const identidade = estado.identidadePorUnidade[u.id] || {};
+      const preview = card.querySelector(".identidade-logo-preview");
+      if (identidade.logoUrl) {
+        preview.src = identidade.logoUrl;
+        preview.style.display = "block";
+      } else {
+        preview.style.display = "none";
+      }
+      const gritoInput = card.querySelector(".identidade-grito-input");
+      if (document.activeElement !== gritoInput) gritoInput.value = identidade.gritoDeGuerra || "";
+      card.querySelector(".identidade-cor-input").value = identidade.cor || "#000000";
+      card.querySelectorAll(".cor-swatch").forEach((sw) =>
+        sw.classList.toggle("selecionada", sw.dataset.cor === identidade.cor)
+      );
+    });
+  }
+
   RS_UNIDADES.forEach((u) => {
     watchIdentidadeUnidade(u.id, (identidade) => {
       estado.identidadePorUnidade[u.id] = identidade;
       renderDesbravadores();
+      renderIdentidadeUnidades();
     });
   });
 
@@ -912,32 +992,9 @@ function iniciarPainel() {
     btn.disabled = false;
   });
 
-  /* ---------------- Mídia ---------------- */
-  const fotosPorPasta = {}; // pastaId -> [{id, nome, url}]
-  const fotosUnsubs = {}; // pastaId -> função pra parar de observar
-  const midiaAbertas = new Set();
-
+  /* ---------------- Mídia (pastas com link do Google Drive) ---------------- */
   watchMidia((pastas) => {
     estado.midia = pastas;
-    const idsAtuais = new Set(pastas.map((p) => p.id));
-
-    pastas.forEach((p) => {
-      if (p.link || fotosUnsubs[p.id]) return; // pasta antiga (Drive) não tem fotos no Cloudinary
-      fotosUnsubs[p.id] = watchFotosMidia(p.id, (fotos) => {
-        fotosPorPasta[p.id] = fotos;
-        renderMidia();
-        renderStats();
-      });
-    });
-
-    Object.keys(fotosUnsubs).forEach((pastaId) => {
-      if (!idsAtuais.has(pastaId)) {
-        fotosUnsubs[pastaId]();
-        delete fotosUnsubs[pastaId];
-        delete fotosPorPasta[pastaId];
-      }
-    });
-
     renderMidia();
     renderStats();
   });
@@ -948,100 +1005,24 @@ function iniciarPainel() {
     vazio.style.display = estado.midia.length ? "none" : "block";
 
     wrap.innerHTML = estado.midia
-      .map((p) => {
-        if (p.link) {
-          return `<div class="pasta-bloco">
-            <div class="pasta-cabecalho">
-              <h3>📁 ${p.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(pasta antiga do Drive)</span></h3>
-              <div style="display:flex; gap:8px;">
-                <a class="btn btn-outline btn-sm" href="${p.link}" target="_blank" rel="noopener">Abrir no Drive ↗</a>
-                <button type="button" class="danger" data-del-pasta="${p.id}">Excluir</button>
-              </div>
+      .map(
+        (p) => `<div class="pasta-bloco">
+          <div class="pasta-cabecalho">
+            <h3>📁 ${p.nome}</h3>
+            <div style="display:flex; gap:8px;">
+              <a class="btn btn-outline btn-sm" href="${p.link}" target="_blank" rel="noopener">Abrir no Drive ↗</a>
+              <button type="button" class="danger" data-del-pasta="${p.id}">Excluir</button>
             </div>
-          </div>`;
-        }
-        const fotos = fotosPorPasta[p.id] || [];
-        const grade = fotos
-          .map(
-            (f) => `<div class="foto-thumb-wrap">
-              <img src="${f.url}" alt="${f.nome}" loading="lazy">
-              <button type="button" class="foto-del" data-del-foto="${p.id}:${f.id}" aria-label="Excluir foto">✕</button>
-            </div>`
-          )
-          .join("");
-        return `
-        <details class="month-acc" data-pasta-acc="${p.id}"${midiaAbertas.has(p.id) ? " open" : ""}>
-          <summary>${p.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${fotos.length} foto(s))</span>
-            <button type="button" class="danger" data-del-pasta="${p.id}" style="margin-left:auto;">Excluir pasta</button>
-          </summary>
-          <div style="padding:14px 20px 18px;">
-            <div class="foto-grid">${grade || "<p class='muted'>Nenhuma foto ainda.</p>"}</div>
-            <form class="registro-add-form" data-form-upload="${p.id}">
-              <div class="field"><label>Adicionar fotos (até ${RS_MIDIA_TAMANHO_MAXIMO_MB}MB cada)</label><input type="file" accept="image/*" multiple class="upload-input"></div>
-              <button type="submit" class="btn btn-primary btn-sm">Enviar</button>
-            </form>
           </div>
-        </details>`;
-      })
+        </div>`
+      )
       .join("");
 
-    wrap.querySelectorAll("[data-pasta-acc]").forEach((det) =>
-      det.addEventListener("toggle", () => {
-        if (det.open) midiaAbertas.add(det.dataset.pastaAcc);
-        else midiaAbertas.delete(det.dataset.pastaAcc);
-      })
-    );
-
     wrap.querySelectorAll("[data-del-pasta]").forEach((btn) =>
-      btn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!confirm("Excluir esta pasta e todas as fotos dela?")) return;
-        if (fotosUnsubs[btn.dataset.delPasta]) {
-          fotosUnsubs[btn.dataset.delPasta]();
-          delete fotosUnsubs[btn.dataset.delPasta];
-        }
-        await deletePastaMidia(btn.dataset.delPasta);
-        delete fotosPorPasta[btn.dataset.delPasta];
-        mostrarToast("Pasta removida.");
-      })
-    );
-    wrap.querySelectorAll("[data-del-foto]").forEach((btn) =>
       btn.addEventListener("click", async () => {
-        const [pastaId, fotoId] = btn.dataset.delFoto.split(":");
-        if (!confirm("Excluir esta foto?")) return;
-        await deleteFotoMidia(pastaId, fotoId);
-        mostrarToast("Foto removida.");
-      })
-    );
-    wrap.querySelectorAll("[data-form-upload]").forEach((form) =>
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const pastaId = form.dataset.formUpload;
-        const input = form.querySelector(".upload-input");
-        const arquivos = [...input.files];
-        if (!arquivos.length) return;
-
-        const grandeDemais = arquivos.find((a) => a.size > RS_MIDIA_TAMANHO_MAXIMO_MB * 1024 * 1024);
-        if (grandeDemais) {
-          mostrarToast(`"${grandeDemais.name}" passa de ${RS_MIDIA_TAMANHO_MAXIMO_MB}MB — não foi enviada.`);
-          return;
-        }
-
-        const btn = form.querySelector("button[type=submit]");
-        btn.disabled = true;
-        try {
-          for (let i = 0; i < arquivos.length; i++) {
-            btn.textContent = `Enviando ${i + 1} de ${arquivos.length}...`;
-            await uploadFotoMidia(pastaId, arquivos[i]);
-          }
-          mostrarToast(`${arquivos.length} foto(s) enviada(s).`);
-        } catch (err) {
-          mostrarToast(err.message || "Não foi possível enviar a foto.");
-        }
-        btn.disabled = false;
-        btn.textContent = "Enviar";
-        input.value = "";
+        if (!confirm("Excluir esta pasta?")) return;
+        await deletePastaMidia(btn.dataset.delPasta);
+        mostrarToast("Pasta removida.");
       })
     );
   }
@@ -1051,10 +1032,13 @@ function iniciarPainel() {
   document.getElementById("btn-cancelar-pasta").addEventListener("click", () => modalPasta.classList.remove("show"));
   document.getElementById("form-pasta").addEventListener("submit", async (e) => {
     e.preventDefault();
-    await addPastaMidia(document.getElementById("pa-nome").value.trim());
+    await addPastaMidia(
+      document.getElementById("pa-nome").value.trim(),
+      document.getElementById("pa-link").value.trim()
+    );
     modalPasta.classList.remove("show");
     e.target.reset();
-    mostrarToast("Pasta criada! Agora abra ela pra adicionar as fotos.");
+    mostrarToast("Pasta publicada!");
   });
 
   /* ---------------- Campori ---------------- */

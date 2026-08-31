@@ -13,10 +13,9 @@ import {
   watchPlanejamentos, addPlanejamento, editarPlanejamento,
   watchNotificacoesUnidade, marcarNotificacoesUnidadeLidas, deleteNotificacaoUnidade,
   watchPedidoSenha, solicitarTrocaSenha,
-  watchIdentidadeUnidade, salvarIdentidadeUnidade,
+  watchIdentidadeUnidade,
 } from "./store.js";
 import { criarCalendarioClube } from "./calendario-clube.js";
-import { enviarImagemCloudinary } from "./cloudinary.js";
 import { mostrarToast } from "./main.js";
 
 exigirSessao("unidade", (sessao) => {
@@ -573,38 +572,20 @@ function iniciarPainel(unidadeId) {
     document.getElementById("s-especialidades").textContent = emAndamento;
   }
 
-  /* ---------------- Minha Unidade (identidade: logo + grito de guerra) ---------------- */
-  let identidadeAtual = { logoUrl: "", gritoDeGuerra: "" };
-  const logoPreview = document.getElementById("identidade-logo-preview");
+  /* ---------------- Identidade da unidade (logo/grito/cor) — só leitura;
+     quem define é a liderança, em "Identidade das Unidades". ---------------- */
+  const gritoEl = document.getElementById("grito-de-guerra");
   watchIdentidadeUnidade(unidadeId, (identidade) => {
-    identidadeAtual = identidade;
-    document.getElementById("identidade-grito").value = identidade.gritoDeGuerra || "";
-    if (identidade.logoUrl) {
-      logoPreview.src = identidade.logoUrl;
-      logoPreview.style.display = "block";
+    if (identidade.logoUrl) document.getElementById("brand-logo").src = identidade.logoUrl;
+    if (identidade.gritoDeGuerra) {
+      gritoEl.textContent = `"${identidade.gritoDeGuerra}"`;
+      gritoEl.style.display = "block";
     } else {
-      logoPreview.style.display = "none";
+      gritoEl.style.display = "none";
     }
-  });
-
-  document.getElementById("btn-salvar-identidade").addEventListener("click", async (e) => {
-    const btn = e.target;
-    btn.disabled = true;
-    try {
-      const arquivo = document.getElementById("identidade-logo-input").files[0];
-      let logoUrl = identidadeAtual.logoUrl || "";
-      if (arquivo) {
-        const enviado = await enviarImagemCloudinary(arquivo);
-        logoUrl = enviado.url;
-      }
-      const gritoDeGuerra = document.getElementById("identidade-grito").value.trim();
-      await salvarIdentidadeUnidade(unidadeId, { logoUrl, gritoDeGuerra });
-      document.getElementById("identidade-logo-input").value = "";
-      mostrarToast("Identidade da unidade atualizada.");
-    } catch (err) {
-      mostrarToast(err.message || "Não foi possível salvar.");
+    if (identidade.cor) {
+      document.documentElement.style.setProperty("--cor-unidade", identidade.cor);
     }
-    btn.disabled = false;
   });
 
   /* ---------------- Trocar senha (por aprovação da liderança) ---------------- */

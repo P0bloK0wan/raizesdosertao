@@ -32,6 +32,7 @@
       <li><a href="#especialidades-lideranca">🎖️ Especialidades</a></li>
       <li><a href="#compras">🛒 Lista de compras</a></li>
       <li><a href="#responsaveis">📞 Responsáveis</a></li>
+      <li><a href="#identidade-unidades">🚩 Identidade das Unidades</a></li>
       <li><a href="#pedidos-senha">🔑 Pedidos de troca de senha</a></li>
       <li><a href="#planejamento-clube">📅 Planejamento do Clube</a></li>
       <li><a href="#midia">📸 Mídia</a></li>
@@ -155,6 +156,12 @@
       </div>
     </section>
 
+    <section class="panel-block" id="identidade-unidades">
+      <div class="block-head"><h2>Identidade das Unidades</h2></div>
+      <p class="muted">Logo, grito de guerra e cor de cada unidade — a cor aparece nos botões e numa faixa no topo do painel daquela unidade.</p>
+      <div id="lista-identidade-unidades"></div>
+    </section>
+
     <section class="panel-block" id="pedidos-senha">
       <div class="block-head"><h2>Pedidos de troca de senha</h2></div>
       <p class="muted">A senha só fica visível aqui até você aprovar ou recusar — depois disso, ela some (a troca se aplica sozinha no próximo login da unidade, sem ninguém guardar a senha pra sempre).</p>
@@ -229,6 +236,7 @@
     <h2>Nova pasta de mídia</h2>
     <form id="form-pasta">
       <div class="field"><label>Nome da pasta</label><input type="text" id="pa-nome" placeholder="ex.: Acampamento 2026" required></div>
+      <div class="field"><label>Link do Google Drive</label><input type="url" id="pa-link" placeholder="https://drive.google.com/..." required></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-pasta">Cancelar</button>
         <button type="submit" class="btn btn-primary btn-block">Publicar</button>

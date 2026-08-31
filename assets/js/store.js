@@ -10,7 +10,6 @@ import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDoc, getDocs,
   onSnapshot, serverTimestamp, orderBy, query, runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-import { enviarImagemCloudinary } from "./cloudinary.js";
 
 /* ---------- tema (só de exibição, pode ficar local) ---------- */
 export function getTheme() {
@@ -54,12 +53,14 @@ export function deleteConselheiro(unidadeId, conselheiroId) {
 /* ---------- identidade da unidade (logo + grito de guerra) ---------- */
 export function watchIdentidadeUnidade(unidadeId, cb) {
   return onSnapshot(doc(db, "unidades", unidadeId), (d) => {
-    cb(d.exists() ? d.data() : { logoUrl: "", gritoDeGuerra: "" });
+    cb(d.exists() ? d.data() : { logoUrl: "", gritoDeGuerra: "", cor: "" });
   });
 }
-export function salvarIdentidadeUnidade(unidadeId, { logoUrl, gritoDeGuerra }) {
+/* Só a liderança tem UI pra chamar isso (ver painel-lideranca.js) —
+   a própria unidade só lê a identidade, não edita mais. */
+export function salvarIdentidadeUnidade(unidadeId, { logoUrl, gritoDeGuerra, cor }) {
   return setDoc(doc(db, "unidades", unidadeId), {
-    logoUrl, gritoDeGuerra, atualizadoEm: serverTimestamp(),
+    logoUrl, gritoDeGuerra, cor, atualizadoEm: serverTimestamp(),
   }, { merge: true });
 }
 
@@ -414,46 +415,20 @@ export function watchLavaJato(cb) {
   });
 }
 
-/* ---------- Mídia: pastas com fotos enviadas direto pelo painel ----------
-   A pasta é um doc no Firestore; cada foto dela sobe pro Cloudinary
-   (upload "unsigned", sem precisar de servidor nem de chave secreta
-   — veja assets/js/cloudinary.js) e vira um doc na subcoleção
-   "fotos" com a URL do arquivo original (sem redimensionar nada).
-   Pastas antigas (criadas quando a Mídia usava link do Google
-   Drive) ainda têm o campo "link" — tratado como caso legado nas
-   páginas que exibem a Mídia.
-
-   Excluir uma foto tira ela do site (apaga só o doc), mas o
-   arquivo pode continuar existindo na conta do Cloudinary — sem
-   servidor próprio não dá pra assinar um pedido de exclusão de
-   verdade lá. */
+/* ---------- Mídia: pastas com link do Google Drive ----------
+   Cada pasta é só um nome + um link de uma pasta do Google Drive,
+   publicado pela liderança — as fotos em si continuam morando no
+   Drive, o site só mostra o botão "Abrir no Drive". */
 export function watchMidia(cb) {
   return onSnapshot(query(collection(db, "midia"), orderBy("criadoEm", "asc")), (snap) => {
     cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   });
 }
-export function addPastaMidia(nome) {
-  return addDoc(collection(db, "midia"), { nome, criadoEm: serverTimestamp() });
+export function addPastaMidia(nome, link) {
+  return addDoc(collection(db, "midia"), { nome, link, criadoEm: serverTimestamp() });
 }
-export async function deletePastaMidia(pastaId) {
-  const snap = await getDocs(collection(db, "midia", pastaId, "fotos"));
-  await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
-  await deleteDoc(doc(db, "midia", pastaId));
-}
-export function watchFotosMidia(pastaId, cb) {
-  return onSnapshot(
-    query(collection(db, "midia", pastaId, "fotos"), orderBy("criadoEm", "asc")),
-    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-  );
-}
-export async function uploadFotoMidia(pastaId, arquivo) {
-  const { url, publicId } = await enviarImagemCloudinary(arquivo);
-  return addDoc(collection(db, "midia", pastaId, "fotos"), {
-    nome: arquivo.name, url, publicId, criadoEm: serverTimestamp(),
-  });
-}
-export function deleteFotoMidia(pastaId, fotoId) {
-  return deleteDoc(doc(db, "midia", pastaId, "fotos", fotoId));
+export function deletePastaMidia(pastaId) {
+  return deleteDoc(doc(db, "midia", pastaId));
 }
 
 /* ---------- Campori: data do evento (configurável pela liderança) ---------- */

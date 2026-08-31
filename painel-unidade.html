@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body>
+<body class="painel-unidade">
 
 <div class="mobile-topbar">
   <button class="icon-btn" data-sidebar-toggle aria-label="Abrir menu">☰</button>
@@ -21,12 +21,12 @@
 <div class="app-shell">
   <aside class="app-sidebar" data-sidebar>
     <a href="index.html" class="brand">
-      <img src="assets/img/logo.png" alt="Raízes do Sertão" style="height:40px;">
+      <img src="assets/img/logo.png" id="brand-logo" alt="Raízes do Sertão" style="height:40px;">
       <span>Raízes do Sertão<small id="unidade-nome">Painel da Unidade</small></span>
     </a>
+    <p class="muted" id="grito-de-guerra" style="padding:0 20px; margin:-8px 0 8px; font-style:italic; font-size:.78rem; display:none;"></p>
     <ul class="app-nav">
       <li><a href="#visao-geral">📊 Visão geral</a></li>
-      <li><a href="#minha-unidade">🚩 Minha Unidade</a></li>
       <li><a href="#membros">🧑‍🤝‍🧑 Meus desbravadores</a></li>
       <li><a href="#conselheiros">🎓 Conselheiros</a></li>
       <li><a href="#topicos">📝 Atividades / requisitos</a></li>
@@ -64,19 +64,6 @@
       <div class="stat"><b id="s-topicos">0</b><span>Registros de requisitos lançados</span></div>
       <div class="stat"><b id="s-planejamentos">0</b><span>Propostas de planejamento</span></div>
       <div class="stat"><b id="s-especialidades">0</b><span>Especialidades em andamento</span></div>
-    </section>
-
-    <section class="panel-block" id="minha-unidade">
-      <div class="block-head"><h2>Minha Unidade</h2></div>
-      <p class="muted">Personalize a logo e o grito de guerra da sua unidade — aparecem aqui no painel e também pra liderança.</p>
-      <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap; margin-bottom:16px;">
-        <img id="identidade-logo-preview" src="" alt="Logo da unidade" style="width:96px; height:96px; border-radius:50%; object-fit:cover; background:var(--bg); display:none;">
-        <div style="flex:1; min-width:220px;">
-          <div class="field"><label>Logo da unidade</label><input type="file" id="identidade-logo-input" accept="image/*"></div>
-        </div>
-      </div>
-      <div class="field"><label>Grito de guerra</label><textarea id="identidade-grito" rows="2" placeholder="Ex.: Unidade Preá, sempre alerta!"></textarea></div>
-      <button type="button" class="btn btn-primary btn-sm" id="btn-salvar-identidade">Salvar</button>
     </section>
 
     <section class="panel-block" id="membros">

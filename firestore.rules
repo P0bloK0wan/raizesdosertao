@@ -29,15 +29,9 @@ service cloud.firestore {
       allow write: if eLideranca();
     }
 
-    // Pastas de mídia — públicas pra leitura, só a liderança
-    // publica/edita/remove. Pastas antigas ainda têm um campo
-    // "link" (formato Google Drive); pastas novas não têm link,
-    // as fotos ficam na subcoleção "fotos" abaixo (Cloudinary).
+    // Pastas de mídia (nome + link de uma pasta do Google Drive) —
+    // públicas pra leitura, só a liderança publica/edita/remove.
     match /midia/{pastaId} {
-      allow read: if true;
-      allow write: if eLideranca();
-    }
-    match /midia/{pastaId}/fotos/{fotoId} {
       allow read: if true;
       allow write: if eLideranca();
     }
