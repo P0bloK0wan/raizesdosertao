@@ -20,6 +20,7 @@ export const RS_LINKS = {
   instagramClube: "https://www.instagram.com/cluberaizesdosertao",
   instagramIgreja: "https://www.instagram.com/iasdvilaeduardo",
   youtubeIgreja: "https://youtube.com/@iasdvilaeduardo",
+  siteIgreja: "https://iasdvilaeduardo.github.io/iasd/",
 };
 
 /* =========================================================

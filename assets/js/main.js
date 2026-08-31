@@ -69,6 +69,7 @@ function montarRodape() {
             <li><a href="${RS_LINKS.instagramClube}" target="_blank" rel="noopener">📸 Instagram do Clube</a></li>
             <li><a href="${RS_LINKS.instagramIgreja}" target="_blank" rel="noopener">⛪ Instagram da Igreja</a></li>
             <li><a href="${RS_LINKS.youtubeIgreja}" target="_blank" rel="noopener">▶️ YouTube da Igreja</a></li>
+            <li><a href="${RS_LINKS.siteIgreja}" target="_blank" rel="noopener">🌐 Site da Igreja</a></li>
           </ul>
         </div>
       </div>

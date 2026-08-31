@@ -11,6 +11,7 @@ HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pag
 - **Novo na página Início**: uma seção de **Perguntas frequentes** (idade mínima, se precisa ser adventista, como se inscrever, dias/horário, o que acontece depois dos 16 anos etc.) — perguntas sobre localização e horário direcionam pro WhatsApp, já que isso muda com frequência.
 - **Chamada de presença por reunião**, no painel da unidade: escolhe a data, marca quem veio, salva — a liderança acompanha as últimas chamadas de cada unidade (só leitura) dentro de "Unidades e desbravadores".
 - **Placar do Acampamento**: nova seção no painel da liderança pra publicar pontos ganhos ou perdidos por unidade durante um acampamento (perda sempre pede o motivo) — as unidades acompanham o mesmo placar em tempo real pelo próprio painel, com um botão pra zerar tudo quando começar um acampamento novo.
+- **Botão "Conheça nossa Igreja"** no hero da Início, abrindo o site da igreja numa aba nova — também adicionado no rodapé e na página "Nossas Redes".
 
 ### Rodada anterior
 
