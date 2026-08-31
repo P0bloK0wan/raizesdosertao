@@ -55,9 +55,9 @@
       <a href="historia.html" class="btn btn-gold">Conheça nossa história</a>
     </div>
     <div class="hero-stats" style="justify-content:center;">
-      <div class="hero-stat"><b>22+</b><span>anos de história</span></div>
-      <div class="hero-stat"><b>6</b><span>unidades ativas</span></div>
-      <div class="hero-stat"><b>2004</b><span>ano de fundação</span></div>
+      <div class="hero-stat"><b data-reveal data-count-to="22" data-count-suffix="+">0+</b><span>anos de história</span></div>
+      <div class="hero-stat"><b data-reveal data-count-to="6">0</b><span>unidades ativas</span></div>
+      <div class="hero-stat"><b data-reveal data-count-to="2004">0</b><span>ano de fundação</span></div>
     </div>
   </div>
 </section>
@@ -69,6 +69,17 @@
     <span aria-hidden="true">🌵 AVENTURA ✦ FÉ ✦ AMIZADE ✦ SERVIÇO ✦ CARÁTER ✦ AVENTURA ✦ FÉ ✦ AMIZADE ✦ SERVIÇO ✦ CARÁTER ✦</span>
   </div>
 </div>
+
+<!-- NOSSAS UNIDADES -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Nossas unidades</span>
+      <h2>6 unidades, uma só família</h2>
+    </div>
+    <div class="grid grid-3" id="unidades-showcase"></div>
+  </div>
+</section>
 
 <!-- QUER FAZER PARTE -->
 <section class="section">
@@ -98,6 +109,16 @@
 
 <div data-site-footer></div>
 
+<script type="module">
+  import { RS_UNIDADES } from "./assets/js/data.js";
+  document.getElementById("unidades-showcase").innerHTML = RS_UNIDADES.map(
+    (u, i) => `<div class="card unit-card floating-card ${i % 2 ? "tilt-right" : ""}" style="animation-delay:${(i * -0.8).toFixed(1)}s;">
+        <div class="badge-wrap"><img src="${u.img}" alt="Emblema da unidade ${u.nome}" loading="lazy"></div>
+        <h3>${u.nome}</h3>
+        <span class="tag">Unidade ativa</span>
+      </div>`
+  ).join("");
+</script>
 <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

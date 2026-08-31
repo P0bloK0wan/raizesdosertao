@@ -710,6 +710,19 @@ button.agenda-dia { cursor: pointer; font: inherit; font-family: var(--font-titl
   text-decoration: none;
 }
 .float-whatsapp svg { width: 28px; height: 28px; }
+.float-whatsapp::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #25D366;
+  z-index: -1;
+  animation: rs-pulso 3.6s ease-out infinite;
+}
+@keyframes rs-pulso {
+  0% { transform: scale(1); opacity: .55; }
+  70%, 100% { transform: scale(1.9); opacity: 0; }
+}
 
 /* ===================== Auth / Painel pages ===================== */
 .auth-shell {
@@ -733,6 +746,7 @@ button.agenda-dia { cursor: pointer; font: inherit; font-family: var(--font-titl
   html { scroll-behavior: auto; }
   .nav-toggle span, .nav-toggle span::before, .nav-toggle span::after,
   .icon-btn { transition: none; }
+  .float-whatsapp::before { animation: none; opacity: 0; }
 }
 
 .auth-card {
