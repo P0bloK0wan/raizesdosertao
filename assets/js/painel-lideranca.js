@@ -22,6 +22,7 @@ import {
   watchNotificacoesLideranca, marcarNotificacoesLiderancaLidas, deleteNotificacaoLideranca,
   watchPedidoSenha, aprovarTrocaSenha, recusarTrocaSenha,
   watchIdentidadeUnidade, salvarIdentidadeUnidade, watchConselheiros,
+  gerarDesbloqueioUnidade,
   addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
   watchMidia, addPastaMidia, deletePastaMidia,
   watchCampori, setCamporiData,
@@ -399,6 +400,20 @@ function iniciarPainel() {
         mostrarToast("Cadastro atualizado.");
       },
     });
+  });
+
+  document.getElementById("db-unidade").innerHTML =
+    `<option value="">Selecione a unidade</option>` + RS_UNIDADES.map((u) => `<option value="${u.id}">${u.nome}</option>`).join("");
+
+  document.getElementById("btn-gerar-desbloqueio").addEventListener("click", async () => {
+    const unidadeId = document.getElementById("db-unidade").value;
+    if (!unidadeId) {
+      mostrarToast("Escolha uma unidade primeiro.");
+      return;
+    }
+    const nomeUnidade = RS_UNIDADES.find((u) => u.id === unidadeId)?.nome || unidadeId;
+    const codigo = await gerarDesbloqueioUnidade(unidadeId);
+    alert(`Senha temporária pra ${nomeUnidade}: ${codigo}\n\nRepasse por telefone ou WhatsApp — vale por 24 horas pra excluir desbravador ou conselheiro.`);
   });
 
   RS_UNIDADES.forEach((u) => {

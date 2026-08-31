@@ -21,6 +21,15 @@ service cloud.firestore {
     function eDaUnidade(unidadeId) {
       return estaLogado() && request.auth.token.email == unidadeId + '@raizesdosertao.app';
     }
+    // Confere se a unidade tem uma senha temporária ativa (gerada pela
+    // liderança, válida por 24h) — usado só pra liberar a EXCLUSÃO de
+    // desbravador/conselheiro pela própria unidade. Consulta outro
+    // documento dentro da regra (get/exists), suportado nativamente pelo
+    // Firestore Rules.
+    function desbloqueioValido(unidadeId) {
+      return exists(/databases/$(database)/documents/unidades/$(unidadeId)/desbloqueio/atual) &&
+        get(/databases/$(database)/documents/unidades/$(unidadeId)/desbloqueio/atual).data.expiraEm > request.time;
+    }
 
     // Configurações públicas (ex.: data do Campori) — qualquer
     // visitante pode ler, só a liderança pode alterar.
@@ -93,13 +102,29 @@ service cloud.firestore {
     // Desbravadores de cada unidade — só a própria unidade e a
     // liderança podem ler e escrever; outras unidades não têm
     // acesso nenhum aos dados de uma unidade que não é a sua.
+    // Excluir um desbravador é a única ação que exige a senha
+    // temporária (desbloqueioValido) quando é a própria unidade
+    // fazendo — cadastrar/editar continuam liberados como sempre;
+    // a liderança nunca precisa de senha.
     match /unidades/{unidadeId}/membros/{membroId} {
-      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+      allow read, create, update: if eLideranca() || eDaUnidade(unidadeId);
+      allow delete: if eLideranca() || (eDaUnidade(unidadeId) && desbloqueioValido(unidadeId));
     }
 
-    // Conselheiros de cada unidade — mesma regra dos membros.
+    // Conselheiros de cada unidade — mesma regra dos membros
+    // (inclusive a senha temporária pra excluir).
     match /unidades/{unidadeId}/conselheiros/{conselheiroId} {
-      allow read, write: if eLideranca() || eDaUnidade(unidadeId);
+      allow read, create, update: if eLideranca() || eDaUnidade(unidadeId);
+      allow delete: if eLideranca() || (eDaUnidade(unidadeId) && desbloqueioValido(unidadeId));
+    }
+
+    // Senha temporária (24h) que a liderança gera pra uma unidade
+    // poder excluir desbravador/conselheiro — só a liderança cria/
+    // atualiza; a própria unidade só lê (pra conferir o código que
+    // digitou).
+    match /unidades/{unidadeId}/desbloqueio/{docId} {
+      allow read: if eLideranca() || eDaUnidade(unidadeId);
+      allow write: if eLideranca();
     }
 
     // Pedido de troca de senha da unidade: a unidade propõe (só

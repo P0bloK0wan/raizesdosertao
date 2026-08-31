@@ -8,15 +8,13 @@ HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pag
 
 ## 📝 O que mudou na última atualização
 
-- **Novo na página Início**: uma seção de **Perguntas frequentes** (idade mínima, se precisa ser adventista, como se inscrever, dias/horário, o que acontece depois dos 16 anos etc.) — perguntas sobre localização e horário direcionam pro WhatsApp, já que isso muda com frequência.
-- **Chamada de presença por reunião**, no painel da unidade: escolhe a data, marca quem veio, salva — a liderança acompanha as últimas chamadas de cada unidade (só leitura) dentro de "Unidades e desbravadores".
-- **Placar do Acampamento**: nova seção no painel da liderança pra publicar pontos ganhos ou perdidos por unidade durante um acampamento (perda sempre pede o motivo) — as unidades acompanham o mesmo placar em tempo real pelo próprio painel, com um botão pra zerar tudo quando começar um acampamento novo.
-- **Botão "Conheça nossa Igreja"** no hero da Início, abrindo o site da igreja numa aba nova — também adicionado no rodapé e na página "Nossas Redes".
+- **O sino de notificações da liderança agora avisa de praticamente tudo que uma unidade faz** — cadastrar/excluir desbravador ou conselheiro, lançar/excluir um registro de requisito, cadastrar/atualizar/excluir uma especialidade, adicionar/marcar/excluir um item de compra, fazer/excluir uma chamada de presença, reenviar um planejamento editado. Antes só chegava aviso de proposta de planejamento nova e pedido de troca de senha — agora chega de tudo. Se achar muita coisa, é fácil ajustar depois.
+- **Excluir um desbravador ou conselheiro passa a exigir uma senha temporária da diretoria** (a própria liderança): a unidade clica em "Excluir" e, se não tiver uma senha ativa, aparece um pedido pra digitar o código antes de continuar. No painel da liderança, dentro de "Unidades e desbravadores", tem um botão **"Gerar senha"** por unidade — o código gerado vale por **24 horas** e libera quantas exclusões a unidade precisar nesse período, sem pedir de novo a cada uma. Cadastrar e editar continuam liberados como sempre, sem senha nenhuma — só a exclusão desses dois cadastros é que passa pela trava. A liderança nunca precisa de senha pra excluir.
 
 ### Rodada anterior
 
-- Corrigido um bug importante que fazia o site parecer "travado numa versão antiga" mesmo depois de uma atualização já publicada: o cache do Service Worker (`sw.js`) nunca era atualizado, então o navegador de quem já visitou o site continuava servindo arquivos velhos — corrigido (bump de versão + estratégia "rede primeiro"); corrigido também um texto desatualizado sobre upload de fotos que sobrou no painel da liderança.
-- Publicar o Cloudflare Worker do Mercado Pago agora pode ser feito sem computador (botão "Deploy to Cloudflare" direto do navegador do celular); Mídia voltou a ser só link do Google Drive; logo, grito de guerra e cor de cada unidade agora só a liderança define, em "Identidade das Unidades".
+- Mapa+FAQ na Início, chamada de presença e Placar do Acampamento — entregue; mapa removido depois por endereço errado, e o FAQ ajustado (a pergunta de localização agora direciona pro WhatsApp); botão "Conheça nossa Igreja" adicionado no hero da Início, no rodapé e em "Nossas Redes".
+- Corrigido um bug importante que fazia o site parecer "travado numa versão antiga" mesmo depois de uma atualização já publicada: o cache do Service Worker (`sw.js`) nunca era atualizado — corrigido (bump de versão + estratégia "rede primeiro"); Cloudflare Worker do Mercado Pago publicável sem computador; Mídia voltou a ser só link do Google Drive; logo, grito de guerra e cor de cada unidade agora só a liderança define.
 
 ### Rodadas anteriores (mais recente primeiro)
 
@@ -261,6 +259,8 @@ O site não guarda arquivos — as fotos continuam morando no **Google Drive**, 
 - Configurar a logo, o grito de guerra e a cor de cada unidade em "Identidade das Unidades" (a cor aparece nos botões e numa faixa no topo do painel daquela unidade) — só a liderança define isso agora.
 - Ver a lista de conselheiros de cada unidade e as últimas chamadas de presença de cada uma (só leitura).
 - Publicar pontos ganhos/perdidos por unidade em "Placar do Acampamento" (perda sempre exige motivo) — as unidades acompanham o mesmo placar em tempo real; dá pra zerar tudo com um clique quando começar um acampamento novo.
+- Gerar uma senha temporária (24h) por unidade, pra ela conseguir excluir um desbravador ou conselheiro — sem essa senha, a unidade não consegue excluir (cadastrar/editar continuam liberados sem senha).
+- Receber um aviso no sino de notificações pra praticamente tudo que uma unidade faz (cadastrar/excluir desbravador ou conselheiro, lançar/excluir registro, especialidades, compras, chamada de presença, reenvio de planejamento).
 - Aprovar ou recusar pedidos de troca de senha das unidades (a senha em si nunca fica salva depois de aplicada).
 - Publicar/remover pastas de Mídia (nome + link do Google Drive).
 - Configurar a data do Campori DSA 2027 (alimenta o cronômetro da página pública).
@@ -269,7 +269,7 @@ O site não guarda arquivos — as fotos continuam morando no **Google Drive**, 
 
 **Painel da unidade** (`painel-unidade.html`)
 - Ver a própria logo e o grito de guerra (definidos pela liderança, em "Identidade das Unidades") — só leitura.
-- Cadastrar os desbravadores da unidade (com idade, responsável obrigatório com telefone, segundo responsável opcional e tipo sanguíneo opcional) e os conselheiros da unidade (nome, idade, telefone).
+- Cadastrar os desbravadores da unidade (com idade, responsável obrigatório com telefone, segundo responsável opcional e tipo sanguíneo opcional) e os conselheiros da unidade (nome, idade, telefone). **Excluir** um desbravador ou conselheiro exige uma senha temporária (24h) que só a liderança consegue gerar — cadastrar/editar não precisam de senha.
 - Fazer a chamada de presença por reunião — escolhe a data, marca quem veio, salva; já existe uma chamada nesse dia? é atualizada, não duplica.
 - Ver o Placar do Acampamento (pontos publicados pela liderança, por unidade, com o motivo de cada perda) — só leitura, atualiza em tempo real.
 - Abrir o nome de cada desbravador e lançar quantos registros de requisito quiser (Bíblia/Lição, Uniforme, Pontualidade, Participação, Comportamento ou outro), cada um com a data em que foi cumprido — e excluir um registro se precisar corrigir.

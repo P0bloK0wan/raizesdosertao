@@ -50,6 +50,26 @@ export function deleteConselheiro(unidadeId, conselheiroId) {
   return deleteDoc(doc(db, "unidades", unidadeId, "conselheiros", conselheiroId));
 }
 
+/* ---------- Desbloqueio temporário (senha da diretoria pra excluir
+   desbravador/conselheiro) — a liderança gera um código de 6 dígitos válido
+   por 24h; a regra do Firestore confere a validade de verdade no servidor,
+   o código em si só confirma do lado da unidade que ela recebeu a senha
+   certa da liderança. */
+export function gerarDesbloqueioUnidade(unidadeId) {
+  const codigo = String(Math.floor(100000 + Math.random() * 900000));
+  const expiraEm = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  return setDoc(doc(db, "unidades", unidadeId, "desbloqueio", "atual"), {
+    codigo, expiraEm, criadoEm: serverTimestamp(),
+  }).then(() => codigo);
+}
+export async function verificarDesbloqueio(unidadeId, codigoDigitado) {
+  const snap = await getDoc(doc(db, "unidades", unidadeId, "desbloqueio", "atual"));
+  if (!snap.exists()) return null;
+  const d = snap.data();
+  if (!d.expiraEm || d.expiraEm.toDate() < new Date() || d.codigo !== codigoDigitado) return null;
+  return d.expiraEm.toDate();
+}
+
 /* ---------- identidade da unidade (logo + grito de guerra) ---------- */
 export function watchIdentidadeUnidade(unidadeId, cb) {
   return onSnapshot(doc(db, "unidades", unidadeId), (d) => {
@@ -237,7 +257,7 @@ export function watchNotificacoesLideranca(cb) {
     (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
   );
 }
-function criarNotificacaoLideranca(dados) {
+export function criarNotificacaoLideranca(dados) {
   return addDoc(collection(db, "notificacoesLideranca"), {
     ...dados, lida: false, criadoEm: serverTimestamp(),
   });

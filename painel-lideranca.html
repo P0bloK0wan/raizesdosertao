@@ -129,6 +129,16 @@
     <section class="panel-block" id="desbravadores">
       <div class="block-head"><h2>Unidades e desbravadores</h2></div>
       <p class="muted">Membros, atividades/requisitos e andamento de cada unidade.</p>
+
+      <div class="inline-form" style="margin-bottom:18px; align-items:flex-end;">
+        <div class="field" style="margin:0; min-width:200px;">
+          <label>Senha temporária pra excluir (24h)</label>
+          <select id="db-unidade"><option value="">Selecione a unidade</option></select>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" id="btn-gerar-desbloqueio">Gerar senha</button>
+      </div>
+      <p class="muted" style="margin-top:-10px;">A unidade só precisa dessa senha pra <strong>excluir</strong> um desbravador ou conselheiro — cadastrar e editar continuam liberados normalmente.</p>
+
       <div id="desbravadores-lista"></div>
     </section>
 

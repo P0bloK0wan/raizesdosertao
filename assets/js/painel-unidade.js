@@ -14,8 +14,10 @@ import {
   watchPontuacaoAcampamento,
   watchPlanejamentos, addPlanejamento, editarPlanejamento,
   watchNotificacoesUnidade, marcarNotificacoesUnidadeLidas, deleteNotificacaoUnidade,
+  criarNotificacaoLideranca,
   watchPedidoSenha, solicitarTrocaSenha,
   watchIdentidadeUnidade,
+  verificarDesbloqueio,
 } from "./store.js";
 import { criarCalendarioClube } from "./calendario-clube.js";
 import { mostrarToast } from "./main.js";
@@ -73,6 +75,36 @@ function iniciarPainel(unidadeId) {
   const abertosEspecialidades = new Set();
   const abertosMateriais = new Set();
 
+  const nomeUnidade = (RS_UNIDADES.find((u) => u.id === unidadeId) || {}).nome || unidadeId;
+
+  /* Avisa a liderança (sino de notificações dela) de qualquer alteração
+     que a unidade fizer no próprio painel. */
+  function avisarLideranca(mensagem) {
+    criarNotificacaoLideranca({ tipo: "unidade_alterou", mensagem: `${nomeUnidade}: ${mensagem}`, unidadeId });
+  }
+
+  /* Excluir desbravador/conselheiro exige uma senha temporária de 24h
+     gerada pela liderança. Uma vez validada, fica guardada no localStorage
+     (só conveniência — quem garante o limite de 24h de verdade é a regra
+     do Firestore) até expirar, sem precisar digitar de novo. */
+  async function pedirDesbloqueioSeNecessario() {
+    const chaveCache = `rs_desbloqueio_${unidadeId}`;
+    const validoAte = localStorage.getItem(chaveCache);
+    if (validoAte && new Date(validoAte) > new Date()) return true;
+
+    const codigo = prompt(
+      "Excluir um desbravador ou conselheiro exige uma senha temporária da diretoria (válida por 24h). Peça a senha à liderança e digite aqui:"
+    );
+    if (!codigo) return false;
+    const expiraEm = await verificarDesbloqueio(unidadeId, codigo.trim());
+    if (!expiraEm) {
+      mostrarToast("Senha inválida ou expirada.");
+      return false;
+    }
+    localStorage.setItem(chaveCache, expiraEm.toISOString());
+    return true;
+  }
+
   const fanOutRegistros = criarFanOutPorMembro(unidadeId, watchRegistrosMembro, () => { renderRequisitos(); renderStats(); });
   const fanOutEspecialidades = criarFanOutPorMembro(unidadeId, watchEspecialidadesMembro, () => { renderEspecialidades(); renderStats(); });
   const fanOutMateriais = criarFanOutPorMembro(unidadeId, watchMateriaisMembro, () => { renderMateriais(); });
@@ -115,8 +147,11 @@ function iniciarPainel(unidadeId) {
 
     tbody.querySelectorAll("[data-del]").forEach((btn) =>
       btn.addEventListener("click", async () => {
+        const m = estado.membros.find((x) => x.id === btn.dataset.del);
+        if (!(await pedirDesbloqueioSeNecessario())) return;
         if (!confirm("Excluir este desbravador? Todo o histórico dele também será perdido.")) return;
         await deleteMembro(unidadeId, btn.dataset.del);
+        avisarLideranca(`excluiu o desbravador "${m ? m.nome : btn.dataset.del}".`);
         mostrarToast("Desbravador removido.");
       })
     );
@@ -141,7 +176,9 @@ function iniciarPainel(unidadeId) {
       observacoesResponsavel: document.getElementById("m-observacoes-responsavel").value.trim(),
     });
     modalMembro.classList.remove("show");
+    const nomeCadastrado = document.getElementById("m-nome").value.trim();
     e.target.reset();
+    avisarLideranca(`cadastrou o desbravador "${nomeCadastrado}".`);
     mostrarToast("Desbravador cadastrado.");
   });
 
@@ -169,8 +206,11 @@ function iniciarPainel(unidadeId) {
 
     tbody.querySelectorAll("[data-del-cs]").forEach((btn) =>
       btn.addEventListener("click", async () => {
+        const c = estado.conselheiros.find((x) => x.id === btn.dataset.delCs);
+        if (!(await pedirDesbloqueioSeNecessario())) return;
         if (!confirm("Excluir este conselheiro?")) return;
         await deleteConselheiro(unidadeId, btn.dataset.delCs);
+        avisarLideranca(`excluiu o conselheiro "${c ? c.nome : btn.dataset.delCs}".`);
         mostrarToast("Conselheiro removido.");
       })
     );
@@ -181,13 +221,15 @@ function iniciarPainel(unidadeId) {
   document.getElementById("btn-cancelar-conselheiro").addEventListener("click", () => modalConselheiro.classList.remove("show"));
   document.getElementById("form-conselheiro").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const nomeCs = document.getElementById("cs-nome").value.trim();
     await addConselheiro(unidadeId, {
-      nome: document.getElementById("cs-nome").value.trim(),
+      nome: nomeCs,
       idade: document.getElementById("cs-idade").value ? Number(document.getElementById("cs-idade").value) : null,
       telefone: document.getElementById("cs-telefone").value.trim(),
     });
     modalConselheiro.classList.remove("show");
     e.target.reset();
+    avisarLideranca(`cadastrou o conselheiro "${nomeCs}".`);
     mostrarToast("Conselheiro cadastrado.");
   });
 
@@ -224,6 +266,7 @@ function iniciarPainel(unidadeId) {
     if (!data) { mostrarToast("Escolha uma data."); return; }
     const presentes = Array.from(document.querySelectorAll("#lista-chamada input:checked")).map((el) => el.dataset.presente);
     await salvarPresenca(unidadeId, data, presentes);
+    avisarLideranca(`fez a chamada de ${fmtDataBr(data)} (${presentes.length} de ${estado.membros.length} presentes).`);
     mostrarToast("Chamada salva.");
   });
 
@@ -243,8 +286,10 @@ function iniciarPainel(unidadeId) {
       .join("");
     tbody.querySelectorAll("[data-del-presenca]").forEach((btn) =>
       btn.addEventListener("click", async () => {
+        const p = estado.presencas.find((x) => x.id === btn.dataset.delPresenca);
         if (!confirm("Excluir esta chamada?")) return;
         await deletePresenca(unidadeId, btn.dataset.delPresenca);
+        avisarLideranca(`excluiu a chamada de ${fmtDataBr(p ? p.data : "")}.`);
         mostrarToast("Chamada removida.");
       })
     );
@@ -345,8 +390,10 @@ function iniciarPainel(unidadeId) {
     wrap.querySelectorAll("[data-del-registro]").forEach((btn) =>
       btn.addEventListener("click", async () => {
         const [mid, rid] = btn.dataset.delRegistro.split(":");
+        const m = estado.membros.find((x) => x.id === mid);
         if (!confirm("Excluir este registro?")) return;
         await deleteRegistro(unidadeId, mid, rid);
+        avisarLideranca(`excluiu um registro de requisito de ${m ? m.nome : mid}.`);
         mostrarToast("Registro removido.");
       })
     );
@@ -365,6 +412,8 @@ function iniciarPainel(unidadeId) {
         const data = form.querySelector(".rg-data-input").value;
         if (!criterio || !data) return;
         await addRegistro(unidadeId, membroId, { criterio, data });
+        const m = estado.membros.find((x) => x.id === membroId);
+        avisarLideranca(`lançou o requisito "${criterio}" pra ${m ? m.nome : membroId}.`);
         mostrarToast("Registro adicionado.");
       });
     });
@@ -434,6 +483,8 @@ function iniciarPainel(unidadeId) {
         const nome = form.querySelector(".esp-nova-nome").value.trim();
         if (!nome) return;
         await addEspecialidade(unidadeId, membroId, { nome, status: "pendente", instrutor: "", dataInicio: "", concluido: "", falta: "", materiais: "", observacoes: "" });
+        const m = estado.membros.find((x) => x.id === membroId);
+        avisarLideranca(`cadastrou a especialidade "${nome}" pra ${m ? m.nome : membroId}.`);
         mostrarToast("Especialidade adicionada.");
       })
     );
@@ -441,8 +492,9 @@ function iniciarPainel(unidadeId) {
     wrap.querySelectorAll("[data-esp]").forEach((li) => {
       const [membroId, espId] = li.dataset.esp.split(":");
       li.querySelector(".esp-salvar").addEventListener("click", async () => {
+        const nomeEsp = li.querySelector(".esp-nome").value.trim();
         await updateEspecialidade(unidadeId, membroId, espId, {
-          nome: li.querySelector(".esp-nome").value.trim(),
+          nome: nomeEsp,
           status: li.querySelector(".esp-status").value,
           instrutor: li.querySelector(".esp-instrutor").value.trim(),
           dataInicio: li.querySelector(".esp-data-inicio").value,
@@ -451,14 +503,18 @@ function iniciarPainel(unidadeId) {
           materiais: li.querySelector(".esp-materiais").value.trim(),
           observacoes: li.querySelector(".esp-observacoes").value.trim(),
         });
+        const m = estado.membros.find((x) => x.id === membroId);
+        avisarLideranca(`atualizou a especialidade "${nomeEsp}" de ${m ? m.nome : membroId}.`);
         mostrarToast("Especialidade atualizada.");
       });
     });
     wrap.querySelectorAll("[data-del-esp]").forEach((btn) =>
       btn.addEventListener("click", async () => {
         const [mid, eid] = btn.dataset.delEsp.split(":");
+        const m = estado.membros.find((x) => x.id === mid);
         if (!confirm("Excluir esta especialidade?")) return;
         await deleteEspecialidade(unidadeId, mid, eid);
+        avisarLideranca(`excluiu uma especialidade de ${m ? m.nome : mid}.`);
         mostrarToast("Especialidade removida.");
       })
     );
@@ -512,20 +568,29 @@ function iniciarPainel(unidadeId) {
         const nome = form.querySelector(".mat-novo-nome").value.trim();
         if (!nome) return;
         await addMaterial(unidadeId, membroId, { nome, especialidade: form.querySelector(".mat-nova-esp").value.trim() });
+        const m = estado.membros.find((x) => x.id === membroId);
+        avisarLideranca(`adicionou "${nome}" na lista de compras de ${m ? m.nome : membroId}.`);
         mostrarToast("Item adicionado.");
       })
     );
     wrap.querySelectorAll("[data-toggle-mat]").forEach((btn) =>
       btn.addEventListener("click", async () => {
         const [mid, iid, statusAtual] = btn.dataset.toggleMat.split(":");
-        await toggleMaterial(unidadeId, mid, iid, statusAtual === "comprado" ? "pendente" : "comprado");
+        const novoStatus = statusAtual === "comprado" ? "pendente" : "comprado";
+        await toggleMaterial(unidadeId, mid, iid, novoStatus);
+        const item = (fanOutMateriais.dados[mid] || []).find((x) => x.id === iid);
+        const m = estado.membros.find((x) => x.id === mid);
+        avisarLideranca(`marcou "${item ? item.nome : iid}" (${m ? m.nome : mid}) como ${novoStatus}.`);
       })
     );
     wrap.querySelectorAll("[data-del-mat]").forEach((btn) =>
       btn.addEventListener("click", async () => {
         const [mid, iid] = btn.dataset.delMat.split(":");
+        const item = (fanOutMateriais.dados[mid] || []).find((x) => x.id === iid);
+        const m = estado.membros.find((x) => x.id === mid);
         if (!confirm("Excluir este item?")) return;
         await deleteMaterial(unidadeId, mid, iid);
+        avisarLideranca(`excluiu "${item ? item.nome : iid}" da lista de compras de ${m ? m.nome : mid}.`);
         mostrarToast("Item removido.");
       })
     );
@@ -602,6 +667,7 @@ function iniciarPainel(unidadeId) {
     };
     if (planejamentoEmEdicao) {
       await editarPlanejamento(unidadeId, planejamentoEmEdicao, dados);
+      avisarLideranca(`editou e reenviou a proposta "${dados.titulo}" pra aprovação.`);
       mostrarToast("Proposta atualizada e reenviada pra aprovação.");
     } else {
       await addPlanejamento(unidadeId, dados);
