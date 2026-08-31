@@ -148,6 +148,24 @@ if (sidebar && sidebarToggle && sidebarOverlay) {
   sidebar.querySelectorAll("a").forEach((a) => a.addEventListener("click", fechar));
 }
 
+/* "Aparecer ao rolar" — elementos com [data-reveal] ganham .in-view quando
+   entram na tela (ex.: dispara o desenho de uma seta em .scribble-arrow). */
+const elementosRevelar = document.querySelectorAll("[data-reveal]");
+if (elementosRevelar.length) {
+  const observador = new IntersectionObserver(
+    (entradas) => {
+      entradas.forEach((entrada) => {
+        if (entrada.isIntersecting) {
+          entrada.target.classList.add("in-view");
+          observador.unobserve(entrada.target);
+        }
+      });
+    },
+    { threshold: 0.3 }
+  );
+  elementosRevelar.forEach((el) => observador.observe(el));
+}
+
 /* Ano no rodapé */
 document.querySelectorAll("[data-ano]").forEach((el) => (el.textContent = new Date().getFullYear()));
 

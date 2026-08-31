@@ -385,6 +385,95 @@ a { color: inherit; }
 .unit-card h3 { margin-bottom: 4px; }
 .unit-card .tag { font-size: .82rem; color: var(--text-muted); }
 
+/* ===================== Kit visual "mais animado" (páginas públicas) =====================
+   Cards flutuando com leve inclinação, setas/rabiscos desenhados à mão, motivos
+   xilogravura (arte de cordel sertaneja) como decoração, e uma faixa de texto em
+   loop (marquee) — tudo só com as cores já existentes do site (laranja/verde/
+   dourado/creme/preto), nunca as cores das referências de estilo. */
+
+@keyframes rs-flutuar {
+  0%, 100% { transform: translateY(0) rotate(var(--rs-tilt, -2deg)); }
+  50% { transform: translateY(-8px) rotate(var(--rs-tilt, -2deg)); }
+}
+.floating-card {
+  --rs-tilt: -2deg;
+  position: relative;
+  transform: rotate(var(--rs-tilt));
+  animation: rs-flutuar 5.5s ease-in-out infinite;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.floating-card.tilt-right { --rs-tilt: 2deg; animation-delay: -2.2s; }
+.floating-card:hover {
+  transform: rotate(0deg) translateY(-4px);
+  animation-play-state: paused;
+  box-shadow: 0 20px 40px rgba(6,4,3,.18);
+}
+
+/* Nota: o traço fica dentro de um <symbol> reaproveitado via <use>, que só
+   herda propriedades inerentes do SVG (fill/stroke/stroke-dasharray...) do
+   elemento que o referencia — por isso essas regras miram o próprio
+   .scribble-arrow, não um seletor descendente tipo ".scribble-arrow path". */
+.scribble-arrow {
+  display: block;
+  overflow: visible;
+  color: var(--green);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  transform: rotate(var(--rs-arrow-rot, 0deg));
+  transition: stroke-dashoffset .9s ease .1s;
+}
+.scribble-arrow.in-view {
+  stroke-dashoffset: 0;
+  animation: rs-balancar 3.2s ease-in-out .9s infinite;
+}
+@keyframes rs-balancar {
+  0%, 100% { transform: rotate(var(--rs-arrow-rot, 0deg)); }
+  50% { transform: rotate(calc(var(--rs-arrow-rot, 0deg) + 3deg)); }
+}
+
+/* Motivos xilogravura — traço grosso/irregular, estilo entalhe de cordel */
+.xilo-motif { display: block; fill: currentColor; }
+.xilo-motif.xilo-marca-dagua { color: var(--black); opacity: .07; }
+:root[data-theme="dark"] .xilo-motif.xilo-marca-dagua { color: var(--cream); opacity: .06; }
+.xilo-motif.xilo-destaque { color: var(--gold); }
+
+.marquee {
+  overflow: hidden;
+  background: var(--black);
+  color: var(--cream);
+  padding: 14px 0;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 40px;
+  animation: rs-marquee 22s linear infinite;
+}
+.marquee-track span {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+@keyframes rs-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-card { animation: none; transform: rotate(var(--rs-tilt)); }
+  .scribble-arrow { transition: none; stroke-dashoffset: 0; }
+  .scribble-arrow.in-view { animation: none; }
+  .marquee-track { animation-play-state: paused; }
+}
+
 /* Linha do tempo visual (página Nossa História) */
 .timeline-visual {
   position: relative;
