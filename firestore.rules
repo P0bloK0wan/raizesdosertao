@@ -221,6 +221,14 @@ service cloud.firestore {
       allow write: if eLideranca();
     }
 
+    // Mural de Avisos: a liderança publica/edita/exclui comunicados;
+    // qualquer conta logada (liderança ou unidade) pode ler. É um
+    // mural único e compartilhado (não é por unidade).
+    match /avisos/{avisoId} {
+      allow read: if estaLogado();
+      allow write: if eLideranca();
+    }
+
     // Qualquer outra coleção não prevista acima fica bloqueada
     // por padrão.
     match /{document=**} {

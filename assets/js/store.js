@@ -498,6 +498,29 @@ export function setCamporiData(data) {
   return setDoc(doc(db, "config", "campori"), { data });
 }
 
+/* ---------- Mural de Avisos (liderança publica, unidades leem) ----------
+   Mural único e compartilhado (não é por unidade). Como não é por
+   unidade, "visto/não visto" não fica gravado no Firestore — cada
+   painel guarda no próprio navegador (localStorage) o último aviso
+   já visto, mesmo espírito do cache de desbloqueio já usado no
+   projeto (é só conveniência de exibição, não controla acesso). */
+export function watchAvisos(cb) {
+  return onSnapshot(query(collection(db, "avisos"), orderBy("criadoEm", "desc")), (snap) => {
+    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+  });
+}
+export function addAviso({ titulo, mensagem }) {
+  return addDoc(collection(db, "avisos"), {
+    titulo, mensagem, criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp(),
+  });
+}
+export function updateAviso(avisoId, { titulo, mensagem }) {
+  return updateDoc(doc(db, "avisos", avisoId), { titulo, mensagem, atualizadoEm: serverTimestamp() });
+}
+export function deleteAviso(avisoId) {
+  return deleteDoc(doc(db, "avisos", avisoId));
+}
+
 /* ---------- backup (exportar tudo em .json, só leitura) ---------- */
 export async function exportarBackup() {
   const membros = {};

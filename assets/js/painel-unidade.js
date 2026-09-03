@@ -18,9 +18,11 @@ import {
   watchPedidoSenha, solicitarTrocaSenha,
   watchIdentidadeUnidade,
   verificarDesbloqueio,
+  watchAvisos,
 } from "./store.js";
 import { criarCalendarioClube } from "./calendario-clube.js";
-import { mostrarToast } from "./main.js";
+import { mostrarToast, tocarSomNotificacao } from "./main.js";
+import { iniciarConvitePwa } from "./pwa-install.js";
 
 exigirSessao("unidade", (sessao) => {
   const unidade = RS_UNIDADES.find((u) => u.id === sessao.unidadeId);
@@ -28,6 +30,7 @@ exigirSessao("unidade", (sessao) => {
   document.getElementById("unidade-nome").textContent = "Unidade " + unidade.nome;
   document.getElementById("mobile-title").textContent = "Unidade " + unidade.nome;
   iniciarPainel(sessao.unidadeId);
+  iniciarConvitePwa();
 });
 
 document.getElementById("btn-sair").addEventListener("click", logout);
@@ -35,6 +38,11 @@ document.getElementById("btn-sair").addEventListener("click", logout);
 function fmtDataBr(dataStr) {
   if (!dataStr) return "—";
   return new Date(dataStr + "T00:00:00").toLocaleDateString("pt-BR");
+}
+function fmtData(ts) {
+  if (!ts) return "—";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 function hojeISO() {
   return new Date().toISOString().slice(0, 10);
@@ -729,6 +737,50 @@ function iniciarPainel(unidadeId) {
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".notif-wrap")) notifDropdown.classList.remove("show");
   });
+
+  /* ---------------- Mural de Avisos (leitura) ----------------
+     Como o mural é compartilhado (não é por unidade), "visto" fica
+     só no localStorage deste navegador — é conveniência de exibição
+     (zera o badge, evita tocar o som de novo), não controla acesso. */
+  let avisosPrimeiraCarga = true;
+  const chaveAvisosVisto = `rs_avisos_visto_${unidadeId}`;
+  function avisoMillis(a) {
+    return a.criadoEm && a.criadoEm.toMillis ? a.criadoEm.toMillis() : 0;
+  }
+  watchAvisos((lista) => {
+    const ultimoVistoMs = Number(localStorage.getItem(chaveAvisosVisto) || 0);
+    const novos = lista.filter((a) => avisoMillis(a) > ultimoVistoMs);
+    const badgeAvisos = document.getElementById("badge-avisos");
+    badgeAvisos.textContent = novos.length;
+    badgeAvisos.style.display = novos.length ? "inline-block" : "none";
+
+    if (avisosPrimeiraCarga) {
+      avisosPrimeiraCarga = false;
+      if (novos.length) {
+        tocarSomNotificacao();
+        const extras = novos.length > 1 ? ` (+${novos.length - 1})` : "";
+        mostrarToast(`📰 Novo aviso da diretoria: ${novos[0].titulo}${extras}`);
+      }
+    }
+
+    const listaEl = document.getElementById("lista-avisos-unidade");
+    const vazio = document.getElementById("avisos-unidade-vazio");
+    vazio.style.display = lista.length ? "none" : "block";
+    listaEl.innerHTML = lista
+      .map((a) => `<div class="card" style="margin-bottom:10px;">
+        <strong>${a.titulo}</strong>
+        <p style="margin:4px 0;">${a.mensagem}</p>
+        <span class="muted" style="font-size:.78rem;">${fmtData(a.criadoEm)}</span>
+      </div>`)
+      .join("");
+  });
+  const linkMuralAvisos = document.querySelector('a[href="#mural-avisos"]');
+  if (linkMuralAvisos) {
+    linkMuralAvisos.addEventListener("click", () => {
+      localStorage.setItem(chaveAvisosVisto, String(Date.now()));
+      document.getElementById("badge-avisos").style.display = "none";
+    });
+  }
 
   /* ---------------- Estatísticas ---------------- */
   function renderStats() {

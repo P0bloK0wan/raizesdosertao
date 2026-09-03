@@ -977,6 +977,24 @@ tr.comprado td { text-decoration: line-through; }
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
 
+/* Faixa de convite pra instalar o site na tela inicial (só nos painéis) */
+.pwa-install-banner {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 190;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--bg-elevated); color: var(--text);
+  padding: 14px 18px; box-shadow: 0 -8px 24px rgba(0,0,0,.18);
+  border-top: 3px solid var(--orange);
+  transform: translateY(120%); transition: transform .3s ease;
+}
+.pwa-install-banner.show { transform: translateY(0); }
+.pwa-install-banner span { font-size: .88rem; font-weight: 600; max-width: 60ch; }
+.pwa-install-acoes { display: flex; gap: 8px; flex-shrink: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .pwa-install-banner { transition: none; }
+}
+
+/* Cards do Mural de Avisos: reaproveita .card já existente */
+
 /* Utilities */
 .text-center { text-align: center; }
 .mt-0 { margin-top: 0; }

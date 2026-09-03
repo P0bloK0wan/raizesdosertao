@@ -218,6 +218,28 @@ export function iniciarContagem(el, dataAlvo) {
   return setInterval(atualizar, 1000);
 }
 
+/* Beep curto de notificação (ex.: aviso novo no Mural) — gerado na hora
+   via Web Audio API, sem precisar de nenhum arquivo de áudio. */
+export function tocarSomNotificacao() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+    osc.onended = () => ctx.close();
+  } catch (e) { /* navegador sem suporte — não é crítico, só não toca */ }
+}
+window.tocarSomNotificacao = tocarSomNotificacao;
+
 export function mostrarToast(msg) {
   let toast = document.querySelector(".toast");
   if (!toast) {

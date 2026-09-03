@@ -26,15 +26,18 @@ import {
   addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
   watchMidia, addPastaMidia, deletePastaMidia,
   watchCampori, setCamporiData,
+  watchAvisos, addAviso, updateAviso, deleteAviso,
   exportarBackup,
 } from "./store.js";
 import { criarCalendarioClube } from "./calendario-clube.js";
 import { enviarImagemCloudinary } from "./cloudinary.js";
 import { mostrarToast } from "./main.js";
+import { iniciarConvitePwa } from "./pwa-install.js";
 
 exigirSessao("lideranca", (sessao) => {
   document.getElementById("quem").textContent = sessao.nome;
   iniciarPainel();
+  iniciarConvitePwa();
 });
 
 document.getElementById("btn-sair").addEventListener("click", logout);
@@ -1013,6 +1016,72 @@ function iniciarPainel() {
   });
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".notif-wrap")) notifDropdown.classList.remove("show");
+  });
+
+  /* ---------------- Mural de Avisos ---------------- */
+  let avisoEmEdicao = null;
+  const formAviso = document.getElementById("form-aviso");
+  const btnCancelarEdicaoAviso = document.getElementById("btn-cancelar-edicao-aviso");
+
+  watchAvisos((lista) => {
+    const listaEl = document.getElementById("lista-avisos");
+    const vazio = document.getElementById("avisos-vazio");
+    vazio.style.display = lista.length ? "none" : "block";
+    listaEl.innerHTML = lista
+      .map((a) => `<div class="card" style="margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+          <div>
+            <strong>${a.titulo}</strong>
+            <p style="margin:4px 0;">${a.mensagem}</p>
+            <span class="muted" style="font-size:.78rem;">${fmtData(a.criadoEm)}</span>
+          </div>
+          <div style="display:flex; gap:6px; flex-shrink:0;">
+            <button type="button" class="btn btn-outline btn-sm" data-editar-aviso="${a.id}">Editar</button>
+            <button type="button" class="btn btn-outline btn-sm" data-excluir-aviso="${a.id}">Excluir</button>
+          </div>
+        </div>
+      </div>`)
+      .join("");
+    listaEl.querySelectorAll("[data-editar-aviso]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        const aviso = lista.find((a) => a.id === btn.dataset.editarAviso);
+        if (!aviso) return;
+        avisoEmEdicao = aviso.id;
+        document.getElementById("av-titulo").value = aviso.titulo;
+        document.getElementById("av-mensagem").value = aviso.mensagem;
+        document.getElementById("btn-publicar-aviso").textContent = "Salvar edição";
+        btnCancelarEdicaoAviso.style.display = "inline-flex";
+        formAviso.scrollIntoView({ behavior: "smooth", block: "center" });
+      })
+    );
+    listaEl.querySelectorAll("[data-excluir-aviso]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        if (confirm("Excluir este aviso do mural?")) deleteAviso(btn.dataset.excluirAviso);
+      })
+    );
+  });
+
+  function resetFormAviso() {
+    avisoEmEdicao = null;
+    formAviso.reset();
+    document.getElementById("btn-publicar-aviso").textContent = "Publicar";
+    btnCancelarEdicaoAviso.style.display = "none";
+  }
+  btnCancelarEdicaoAviso.addEventListener("click", resetFormAviso);
+
+  formAviso.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const titulo = document.getElementById("av-titulo").value.trim();
+    const mensagem = document.getElementById("av-mensagem").value.trim();
+    if (!titulo || !mensagem) return;
+    if (avisoEmEdicao) {
+      await updateAviso(avisoEmEdicao, { titulo, mensagem });
+      mostrarToast("Aviso atualizado.");
+    } else {
+      await addAviso({ titulo, mensagem });
+      mostrarToast("Aviso publicado no mural.");
+    }
+    resetFormAviso();
   });
 
   /* ---------------- Planejamento do Clube (calendário) ---------------- */

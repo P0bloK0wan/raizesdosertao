@@ -8,9 +8,14 @@ HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pag
 
 ## 📝 O que mudou na última atualização
 
-- **A unidade Preá se juntou à Carcará** — o clube agora tem **5 unidades** (Carcará, Tarântula, Andorinha, Raposa e Beija-Flor). A Preá saiu do login, das listas, dos painéis e da contagem de unidades do site.
+- **Mural de Avisos**: nova aba nos dois painéis. A liderança publica comunicados (título + mensagem, com editar/excluir); as unidades só leem. Quando uma unidade entra no próprio painel e existe aviso novo desde a última vez, toca um som curto e aparece uma notificação (toast) com o título do aviso — só enquanto o painel está aberto no navegador (sem app fechado recebendo push de verdade, isso exigiria o plano pago do Firebase).
+- **Convite pra instalar o site na tela inicial**: aparece uma faixa no rodapé dos painéis (liderança e unidade) oferecendo "Adicionar à tela inicial" — se a pessoa dispensar, a faixa volta a aparecer depois de 3 dias. No iPhone/Safari (que não tem instalação automática) aparece a instrução de como fazer manualmente. Não aparece nas páginas públicas.
 
 ### Rodada anterior
+
+- **A unidade Preá se juntou à Carcará** — o clube agora tem **5 unidades** (Carcará, Tarântula, Andorinha, Raposa e Beija-Flor). A Preá saiu do login, das listas, dos painéis e da contagem de unidades do site.
+
+### Mais uma rodada anterior
 
 - O sino de notificações da liderança agora avisa de praticamente tudo que uma unidade faz (cadastrar/excluir desbravador ou conselheiro, registros, especialidades, compras, chamada de presença, reenvio de planejamento) — antes só avisava de proposta nova e pedido de senha.
 - Excluir um desbravador ou conselheiro passa a exigir uma senha temporária da diretoria: a liderança gera um código por unidade (válido por 24h) em "Unidades e desbravadores" — cadastrar/editar continuam sem senha, só a exclusão desses dois cadastros passa pela trava.
@@ -250,6 +255,7 @@ O site não guarda arquivos — as fotos continuam morando no **Google Drive**, 
 ## O que dá pra fazer em cada painel
 
 **Painel da liderança** (`painel-lideranca.html`)
+- Publicar comunicados no **Mural de Avisos** (título + mensagem), editar ou excluir um aviso já publicado — todas as unidades veem no próprio painel.
 - Ver e filtrar (por unidade/status/data) todas as propostas de Planejamento das Unidades, aprovar, recusar ou **excluir** (tudo com motivo obrigatório, avisando a unidade).
 - Ver as especialidades de todos os desbravadores de todas as unidades, com progresso, o que falta e materiais necessários — **editar o progresso ou excluir uma especialidade**, com motivo.
 - Ver a lista geral de compras (materiais pendentes de todos os desbravadores), marcar como comprado ou **excluir um item**, com motivo.
@@ -269,6 +275,7 @@ O site não guarda arquivos — as fotos continuam morando no **Google Drive**, 
 - Baixar um backup completo em `.json`.
 
 **Painel da unidade** (`painel-unidade.html`)
+- Ler os avisos publicados pela liderança no **Mural de Avisos** — só leitura. Se tiver aviso novo desde a última vez, toca um som e mostra uma notificação assim que a unidade entra no painel.
 - Ver a própria logo e o grito de guerra (definidos pela liderança, em "Identidade das Unidades") — só leitura.
 - Cadastrar os desbravadores da unidade (com idade, responsável obrigatório com telefone, segundo responsável opcional e tipo sanguíneo opcional) e os conselheiros da unidade (nome, idade, telefone). **Excluir** um desbravador ou conselheiro exige uma senha temporária (24h) que só a liderança consegue gerar — cadastrar/editar não precisam de senha.
 - Fazer a chamada de presença por reunião — escolhe a data, marca quem veio, salva; já existe uma chamada nesse dia? é atualizada, não duplica.
@@ -282,6 +289,8 @@ O site não guarda arquivos — as fotos continuam morando no **Google Drive**, 
 - Receber avisos (sino de notificações, com botão de excluir um aviso específico) quando a liderança aprova/recusa uma proposta, ou edita/exclui algo que a unidade cadastrou.
 
 Tudo isso sincroniza automaticamente — uma unidade pode cadastrar pelo celular no meio da reunião e a liderança já vê no computador dela, em outro lugar, na hora.
+
+Nos dois painéis também aparece, de vez em quando, uma faixa no rodapé convidando a **adicionar o site à tela inicial do celular** (funciona igual um app, abre mais rápido). Dá pra dispensar — ela volta a aparecer depois de 3 dias, caso a pessoa ainda não tenha instalado.
 
 ## Testando localmente
 

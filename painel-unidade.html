@@ -27,6 +27,7 @@
     <p class="muted" id="grito-de-guerra" style="padding:0 20px; margin:-8px 0 8px; font-style:italic; font-size:.78rem; display:none;"></p>
     <ul class="app-nav">
       <li><a href="#visao-geral">📊 Visão geral</a></li>
+      <li><a href="#mural-avisos">📰 Mural de Avisos <span class="pill pill-pending" id="badge-avisos" style="display:none;">0</span></a></li>
       <li><a href="#membros">🧑‍🤝‍🧑 Meus desbravadores</a></li>
       <li><a href="#conselheiros">🎓 Conselheiros</a></li>
       <li><a href="#presenca">✅ Presença</a></li>
@@ -66,6 +67,13 @@
       <div class="stat"><b id="s-topicos">0</b><span>Registros de requisitos lançados</span></div>
       <div class="stat"><b id="s-planejamentos">0</b><span>Propostas de planejamento</span></div>
       <div class="stat"><b id="s-especialidades">0</b><span>Especialidades em andamento</span></div>
+    </section>
+
+    <section class="panel-block" id="mural-avisos">
+      <div class="block-head"><h2>Mural de Avisos</h2></div>
+      <p class="muted">Comunicados da diretoria — só leitura.</p>
+      <div id="lista-avisos-unidade"></div>
+      <div class="empty-state" id="avisos-unidade-vazio" style="display:none;">Nenhum aviso publicado ainda.</div>
     </section>
 
     <section class="panel-block" id="membros">
