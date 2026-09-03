@@ -36,7 +36,6 @@ export const RS_API_DOACAO_CAMPORI = "https://raizes-doacao-campori.pablokawan58
 
 
 export const RS_UNIDADES = [
-  { id: "prea",      nome: "Preá",       img: "assets/img/unit_prea.png" },
   { id: "carcara",   nome: "Carcará",    img: "assets/img/unit_carcara.png" },
   { id: "tarantula", nome: "Tarântula",  img: "assets/img/unit_tarantula.png" },
   { id: "andorinha", nome: "Andorinha",  img: "assets/img/unit_andorinha2.png" },

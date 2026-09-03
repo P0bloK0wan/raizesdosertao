@@ -8,15 +8,17 @@ HTML/CSS/JS puro (sem build, sem framework), publicado de graça no **GitHub Pag
 
 ## 📝 O que mudou na última atualização
 
-- **O sino de notificações da liderança agora avisa de praticamente tudo que uma unidade faz** — cadastrar/excluir desbravador ou conselheiro, lançar/excluir um registro de requisito, cadastrar/atualizar/excluir uma especialidade, adicionar/marcar/excluir um item de compra, fazer/excluir uma chamada de presença, reenviar um planejamento editado. Antes só chegava aviso de proposta de planejamento nova e pedido de troca de senha — agora chega de tudo. Se achar muita coisa, é fácil ajustar depois.
-- **Excluir um desbravador ou conselheiro passa a exigir uma senha temporária da diretoria** (a própria liderança): a unidade clica em "Excluir" e, se não tiver uma senha ativa, aparece um pedido pra digitar o código antes de continuar. No painel da liderança, dentro de "Unidades e desbravadores", tem um botão **"Gerar senha"** por unidade — o código gerado vale por **24 horas** e libera quantas exclusões a unidade precisar nesse período, sem pedir de novo a cada uma. Cadastrar e editar continuam liberados como sempre, sem senha nenhuma — só a exclusão desses dois cadastros é que passa pela trava. A liderança nunca precisa de senha pra excluir.
+- **A unidade Preá se juntou à Carcará** — o clube agora tem **5 unidades** (Carcará, Tarântula, Andorinha, Raposa e Beija-Flor). A Preá saiu do login, das listas, dos painéis e da contagem de unidades do site.
 
 ### Rodada anterior
 
-- Mapa+FAQ na Início, chamada de presença e Placar do Acampamento — entregue; mapa removido depois por endereço errado, e o FAQ ajustado (a pergunta de localização agora direciona pro WhatsApp); botão "Conheça nossa Igreja" adicionado no hero da Início, no rodapé e em "Nossas Redes".
-- Corrigido um bug importante que fazia o site parecer "travado numa versão antiga" mesmo depois de uma atualização já publicada: o cache do Service Worker (`sw.js`) nunca era atualizado — corrigido (bump de versão + estratégia "rede primeiro"); Cloudflare Worker do Mercado Pago publicável sem computador; Mídia voltou a ser só link do Google Drive; logo, grito de guerra e cor de cada unidade agora só a liderança define.
+- O sino de notificações da liderança agora avisa de praticamente tudo que uma unidade faz (cadastrar/excluir desbravador ou conselheiro, registros, especialidades, compras, chamada de presença, reenvio de planejamento) — antes só avisava de proposta nova e pedido de senha.
+- Excluir um desbravador ou conselheiro passa a exigir uma senha temporária da diretoria: a liderança gera um código por unidade (válido por 24h) em "Unidades e desbravadores" — cadastrar/editar continuam sem senha, só a exclusão desses dois cadastros passa pela trava.
 
 ### Rodadas anteriores (mais recente primeiro)
+
+- Mapa+FAQ na Início, chamada de presença e Placar do Acampamento — entregue; mapa removido depois por endereço errado, e o FAQ ajustado (a pergunta de localização agora direciona pro WhatsApp); botão "Conheça nossa Igreja" adicionado no hero da Início, no rodapé e em "Nossas Redes".
+- Corrigido um bug importante que fazia o site parecer "travado numa versão antiga" mesmo depois de uma atualização já publicada: o cache do Service Worker (`sw.js`) nunca era atualizado — corrigido (bump de versão + estratégia "rede primeiro"); Cloudflare Worker do Mercado Pago publicável sem computador; Mídia voltou a ser só link do Google Drive; logo, grito de guerra e cor de cada unidade agora só a liderança define.
 
 - O botão "Quero ajudar" do Campori passou a usar a API de pagamento de verdade do Mercado Pago (cartão, boleto ou PIX, valor livre digitado na hora), em vez do link fixo de valor pré-definido criado na mão — precisou de um Cloudflare Worker pra guardar a chave secreta do Mercado Pago com segurança.
 - Liderança pode apagar planejamentos e editar/apagar o que uma unidade cadastrou (com motivo e aviso); Planejamento do Clube visível pras unidades; notificações com botão de excluir individual; troca de senha da unidade por aprovação da liderança; Mídia migrada do Firebase Storage pro Cloudinary (*depois revertido — Mídia agora é só link do Google Drive de novo*); cada unidade podia configurar a própria logo e grito de guerra (*depois revertido — agora só a liderança define, junto com a cor da unidade*); cadastro de conselheiros; campo de idade do desbravador; animação nas telas de login.
@@ -73,8 +75,8 @@ Se alguma coisa não estiver funcionando depois de você mexer na configuração
 **"Faço login mas o painel fica em branco, ou volta pro login sozinho."**
 → Confira no Firebase Console → **Authentication → Users** se a conta existe com o e-mail **exato**: `lideranca@raizesdosertao.app` (liderança) ou `<id-da-unidade>@raizesdosertao.app` (ex.: `carcara@raizesdosertao.app`). Confira também se o provedor **E-mail/senha** está ativado em **Authentication → Sign-in method**.
 
-**"Uma unidade nova (Preá ou Beija-Flor) não consegue entrar."**
-→ Essas duas contas ainda não existiam no seu projeto Firebase — você precisa criá-las manualmente uma vez (veja a tabela de contas abaixo e o passo 1.2).
+**"Uma unidade não consegue entrar."**
+→ A conta dela ainda não existe no seu projeto Firebase — você precisa criá-la manualmente uma vez (veja a tabela de contas abaixo e o passo 1.2).
 
 **"Dá erro ao cadastrar/salvar alguma coisa (Lava Jato, membro, mídia...)."**
 → As regras do Firestore não foram publicadas, ou estão desatualizadas. Vá em **Firestore Database → Regras**, apague tudo e cole de novo o conteúdo atual do arquivo [`firestore.rules`](./firestore.rules) → **Publicar**.
@@ -112,12 +114,11 @@ O site precisa de um projeto Firebase gratuito pra funcionar. Leva uns 10-15 min
 
 1. No menu lateral: **Compilação → Authentication → Introdução**.
 2. Na aba **Sign-in method**, ative o provedor **E-mail/senha**.
-3. Na aba **Users**, clique **Add user** e crie estas 7 contas (uma de cada vez):
+3. Na aba **Users**, clique **Add user** e crie estas 6 contas (uma de cada vez):
 
    | Papel | E-mail | Senha (troque depois pelo painel) |
    |---|---|---|
    | Liderança | `lideranca@raizesdosertao.app` | `raizes2026` |
-   | Unidade Preá | `prea@raizesdosertao.app` | `sertao123` |
    | Unidade Carcará | `carcara@raizesdosertao.app` | `sertao123` |
    | Unidade Tarântula | `tarantula@raizesdosertao.app` | `sertao123` |
    | Unidade Andorinha | `andorinha@raizesdosertao.app` | `sertao123` |
@@ -242,7 +243,7 @@ O site não guarda arquivos — as fotos continuam morando no **Google Drive**, 
 | Papel | Usuário no login | Senha padrão |
 |---|---|---|
 | Liderança | `lideranca` | `raizes2026` |
-| Cada unidade | `prea`, `carcara`, `tarantula`, `andorinha`, `raposa`, `beijaflor` | `sertao123` |
+| Cada unidade | `carcara`, `tarantula`, `andorinha`, `raposa`, `beijaflor` | `sertao123` |
 
 **Troque essas senhas** assim que o site estiver no ar — cada painel tem uma opção "Configurações → Trocar senha".
 
@@ -255,7 +256,7 @@ O site não guarda arquivos — as fotos continuam morando no **Google Drive**, 
 - Ver os contatos de todos os responsáveis, de todas as unidades.
 - Gerenciar o Planejamento do Clube: calendário privado por mês, adicionar/editar/excluir eventos, carregar o planejamento padrão do semestre com um clique.
 - Abrir/fechar domingos na agenda do Lava Jato (com motivo opcional) e ver, em tempo real e de qualquer aparelho, todos os cadastros — avisada (notificação + contador no menu) quando alguém cancela.
-- Ver os desbravadores (inclusive idade e tipo sanguíneo) e o histórico de requisitos de cada uma das 6 unidades — **editar o cadastro de um desbravador, excluir um desbravador ou um registro**, tudo com motivo obrigatório e aviso automático pra unidade.
+- Ver os desbravadores (inclusive idade e tipo sanguíneo) e o histórico de requisitos de cada uma das 5 unidades — **editar o cadastro de um desbravador, excluir um desbravador ou um registro**, tudo com motivo obrigatório e aviso automático pra unidade.
 - Configurar a logo, o grito de guerra e a cor de cada unidade em "Identidade das Unidades" (a cor aparece nos botões e numa faixa no topo do painel daquela unidade) — só a liderança define isso agora.
 - Ver a lista de conselheiros de cada unidade e as últimas chamadas de presença de cada uma (só leitura).
 - Publicar pontos ganhos/perdidos por unidade em "Placar do Acampamento" (perda sempre exige motivo) — as unidades acompanham o mesmo placar em tempo real; dá pra zerar tudo com um clique quando começar um acampamento novo.

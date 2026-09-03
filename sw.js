@@ -1,7 +1,7 @@
 /* Service worker simples — cache do "app shell" para o site
    abrir rápido e funcionar offline depois da primeira visita. */
 
-const CACHE_NAME = "raizes-do-sertao-v15";
+const CACHE_NAME = "raizes-do-sertao-v16";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -29,7 +29,6 @@ const APP_SHELL = [
   "./assets/img/logo.png",
   "./assets/img/icon-192.png",
   "./assets/img/icon-512.png",
-  "./assets/img/unit_prea.png",
   "./assets/img/unit_tarantula.png",
   "./assets/img/unit_andorinha1.png",
   "./assets/img/unit_andorinha2.png",

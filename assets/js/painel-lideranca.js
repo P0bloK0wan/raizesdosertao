@@ -1167,6 +1167,8 @@ function iniciarPainel() {
     const totalMembros = RS_UNIDADES.reduce((acc, u) => acc + (estado.membrosPorUnidade[u.id] || []).length, 0);
     const ativos = estado.lavajato.filter((r) => !r.cancelado).length;
 
+    document.getElementById("s-unidades").textContent = RS_UNIDADES.length;
+    document.getElementById("s-lideres").textContent = RS_UNIDADES.length + 1;
     document.getElementById("s-membros").textContent = totalMembros;
     document.getElementById("s-lavajato-ativos").textContent = ativos;
     document.getElementById("s-midia").textContent = estado.midia.length;
