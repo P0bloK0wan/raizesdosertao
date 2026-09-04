@@ -120,6 +120,20 @@ export function rsProximosDomingos(qtd = 8) {
   }
   return domingos;
 }
+export function rsProximosDomingosAte(dataFimISO) {
+  const domingos = [];
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const proximo = new Date(hoje);
+  proximo.setDate(hoje.getDate() + ((7 - hoje.getDay()) % 7));
+  const fim = new Date(dataFimISO + "T00:00:00");
+  const d = new Date(proximo);
+  while (d <= fim) {
+    domingos.push(d.toISOString().slice(0, 10));
+    d.setDate(d.getDate() + 7);
+  }
+  return domingos;
+}
 
 /* =========================================================
    Desbravadores: tipo sanguíneo (informação opcional).
