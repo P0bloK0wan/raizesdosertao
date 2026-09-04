@@ -404,6 +404,26 @@ export async function adicionarVagaExtra(data, qtd = 1) {
   });
 }
 
+export async function removerVagaExtra(data, qtd = 1) {
+  const domingoRef = doc(db, "lavajato_domingos", data);
+  await runTransaction(db, async (tx) => {
+    const domingoSnap = await tx.get(domingoRef);
+    const atual = domingoSnap.exists()
+      ? domingoSnap.data()
+      : { fechado: false, motivo: "", vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO, vagasOcupadas: 0 };
+    const novoTotal = Math.max(RS_LAVAJATO_VAGAS_POR_DOMINGO, atual.vagasTotal - qtd);
+    if (novoTotal < atual.vagasOcupadas) {
+      throw new Error("Não dá pra tirar essa vaga: já tem carro cadastrado nela.");
+    }
+    tx.set(domingoRef, {
+      fechado: atual.fechado,
+      motivo: atual.motivo || "",
+      vagasTotal: novoTotal,
+      vagasOcupadas: atual.vagasOcupadas,
+    });
+  });
+}
+
 /* Cria o cadastro do cliente e ocupa uma vaga naquele domingo, os
    dois numa transação — evita passar de 5 carros no mesmo dia
    mesmo com gente cadastrando ao mesmo tempo. */
