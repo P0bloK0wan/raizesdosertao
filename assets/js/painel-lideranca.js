@@ -188,9 +188,9 @@ function iniciarPainel() {
     return { ...info, rotulo: `${info.vagasOcupadas}/${info.vagasTotal}`, classe: "aberto" };
   }
 
-  function renderAgenda() {
+function renderAgenda() {
     const wrap = document.getElementById("lideranca-agenda");
-    const domingos = rsProximosDomingosAte("2026-12-31");
+    const domingos = [rsDomingoDaSemana()];
     wrap.innerHTML = domingos.map((iso) => {
       const s = statusDoDia(iso);
       return `<button type="button" class="agenda-dia ${s.classe}" data-domingo="${iso}">
@@ -216,7 +216,16 @@ function iniciarPainel() {
         }
       })
     );
-  }
+
+    const btnVagaExtra = document.getElementById("btn-vaga-extra");
+    if (btnVagaExtra) {
+      btnVagaExtra.onclick = async () => {
+        const iso = rsDomingoDaSemana();
+        await adicionarVagaExtra(iso, 1);
+        mostrarToast("Vaga extra liberada pro domingo dessa semana.");
+      };
+    }
+}
 
   /* ---------------- Unidades / desbravadores / requisitos ---------------- */
   const fanOutEspecialidades = criarFanOutGlobal(watchEspecialidadesMembro, () => { renderDesbravadores(); renderEspecialidadesLideranca(); renderStats(); });
