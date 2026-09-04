@@ -67,7 +67,7 @@
 
 <script type="module">
   import { criarRegistroLavaJato, cancelarRegistroLavaJato, watchDomingos } from "./assets/js/store.js";
-  import { rsProximosDomingosAte, RS_LAVAJATO_VAGAS_POR_DOMINGO } from "./assets/js/data.js";
+  import { rsDomingoDaSemana, RS_LAVAJATO_VAGAS_POR_DOMINGO } from "./assets/js/data.js";
   
   const LS_KEY = "rs_meu_lavajato";
   const blocoCadastro = document.getElementById("bloco-cadastro");
@@ -76,7 +76,7 @@
   const selectDomingo = document.getElementById("lj-domingo");
   const agendaGrid = document.getElementById("agenda-grid");
 
-  const domingos = rsProximosDomingosAte("2026-12-31");
+ const domingos = [rsDomingoDaSemana()];
   let porData = {};
 
   function fmtDataLonga(iso) {
