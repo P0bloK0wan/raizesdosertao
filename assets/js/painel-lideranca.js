@@ -10,7 +10,7 @@ import {
 import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
   watchLavaJato, deleteRegistroLavaJato,
-  watchDomingos, fecharDomingo, abrirDomingo, adicionarVagaExtra,
+  watchDomingos, fecharDomingo, abrirDomingo, adicionarVagaExtra, removerVagaExtra,
   watchMembros, updateMembro, deleteMembro,
   watchRegistrosMembro, deleteRegistro,
   watchEspecialidadesMembro, updateEspecialidade, deleteEspecialidade,
@@ -223,6 +223,19 @@ function renderAgenda() {
         const iso = rsDomingoDaSemana();
         await adicionarVagaExtra(iso, 1);
         mostrarToast("Vaga extra liberada pro domingo dessa semana.");
+      };
+    }
+
+    const btnRemoverVagaExtra = document.getElementById("btn-remover-vaga-extra");
+    if (btnRemoverVagaExtra) {
+      btnRemoverVagaExtra.onclick = async () => {
+        const iso = rsDomingoDaSemana();
+        try {
+          await removerVagaExtra(iso, 1);
+          mostrarToast("Vaga extra removida do domingo dessa semana.");
+        } catch (e) {
+          mostrarToast(e.message || "Não foi possível remover a vaga.");
+        }
       };
     }
 }
