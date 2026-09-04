@@ -235,5 +235,13 @@ export const RS_PLANEJAMENTO_CLUBE_SEED = [
   { data: "2026-11-22", categoria: "Reunião", nome: "Reunião" },
   { data: "2026-11-29", categoria: "Folga", nome: "Folga" },
 
-  { data: "2026-12-05", categoria: "Evento especial", nome: "Encerramento das atividades" },
+{ data: "2026-12-05", categoria: "Evento especial", nome: "Encerramento das atividades" },
 ];
+
+export function rsDomingoDaSemana() {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  const proximo = new Date(hoje);
+  proximo.setDate(hoje.getDate() + ((7 - hoje.getDay()) % 7));
+  return proximo.toISOString().slice(0, 10);
+}
