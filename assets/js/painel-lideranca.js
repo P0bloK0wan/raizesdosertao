@@ -3,7 +3,7 @@
    ========================================================= */
 
 import {
-  RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, rsProximosDomingos,
+  RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, rsProximosDomingosAte,
   RS_PLANEJAMENTO_STATUS, RS_PLANEJAMENTO_CLUBE_CATEGORIAS, RS_PLANEJAMENTO_CLUBE_SEED,
   RS_CORES_UNIDADE,
 } from "./data.js";
@@ -190,7 +190,7 @@ function iniciarPainel() {
 
   function renderAgenda() {
     const wrap = document.getElementById("lideranca-agenda");
-    const domingos = rsProximosDomingos(20);
+    const domingos = rsProximosDomingosAte("2026-12-31");
     wrap.innerHTML = domingos.map((iso) => {
       const s = statusDoDia(iso);
       return `<button type="button" class="agenda-dia ${s.classe}" data-domingo="${iso}">
