@@ -190,7 +190,7 @@ function iniciarPainel() {
 
   function renderAgenda() {
     const wrap = document.getElementById("lideranca-agenda");
-    const domingos = rsProximosDomingos(8);
+    const domingos = rsProximosDomingos(20);
     wrap.innerHTML = domingos.map((iso) => {
       const s = statusDoDia(iso);
       return `<button type="button" class="agenda-dia ${s.classe}" data-domingo="${iso}">
