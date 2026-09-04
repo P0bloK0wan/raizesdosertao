@@ -3,14 +3,14 @@
    ========================================================= */
 
 import {
-  RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, rsProximosDomingosAte,
+  RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO, rsDomingoDaSemana,
   RS_PLANEJAMENTO_STATUS, RS_PLANEJAMENTO_CLUBE_CATEGORIAS, RS_PLANEJAMENTO_CLUBE_SEED,
   RS_CORES_UNIDADE,
 } from "./data.js";
 import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
   watchLavaJato, deleteRegistroLavaJato,
-  watchDomingos, fecharDomingo, abrirDomingo,
+  watchDomingos, fecharDomingo, abrirDomingo, adicionarVagaExtra,
   watchMembros, updateMembro, deleteMembro,
   watchRegistrosMembro, deleteRegistro,
   watchEspecialidadesMembro, updateEspecialidade, deleteEspecialidade,
