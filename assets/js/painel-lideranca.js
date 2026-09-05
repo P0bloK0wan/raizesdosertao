@@ -9,7 +9,7 @@ import {
 } from "./data.js";
 import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
-  watchLavaJato, deleteRegistroLavaJato,
+  watchLavaJato, deleteRegistroLavaJato, criarRegistroLavaJato,
   watchDomingos, fecharDomingo, abrirDomingo, adicionarVagaExtra, removerVagaExtra,
   watchMembros, updateMembro, deleteMembro,
   watchRegistrosMembro, deleteRegistro,
@@ -121,11 +121,35 @@ function iniciarPainel() {
     lista.forEach((r) => { if (r.cancelado) idsJaNotificados.add(r.id); });
     primeiraLeitura = false;
 
-    estado.lavajato = lista;
+estado.lavajato = lista;
     renderLavaJato();
     renderStats();
   });
 
+  const formLavajatoManual = document.getElementById("form-lavajato-manual");
+  if (formLavajatoManual) {
+    formLavajatoManual.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector("button[type=submit]");
+      btn.disabled = true;
+      const dados = {
+        data: rsDomingoDaSemana(),
+        nome: document.getElementById("lj-m-nome").value.trim(),
+        telefone: document.getElementById("lj-m-telefone").value.trim(),
+        placa: document.getElementById("lj-m-placa").value.trim().toUpperCase(),
+        modelo: document.getElementById("lj-m-modelo").value.trim(),
+        cor: document.getElementById("lj-m-cor").value.trim(),
+      };
+      try {
+        await criarRegistroLavaJato(dados);
+        mostrarToast("Carro registrado no domingo dessa semana.");
+        e.target.reset();
+      } catch (err) {
+        mostrarToast(err.message || "Não deu pra registrar agora.");
+      }
+      btn.disabled = false;
+    });
+  }
   function notificarToast(msgToast, tituloNotif, corpoNotif) {
     mostrarToast(msgToast);
     if (typeof Notification !== "undefined") {
