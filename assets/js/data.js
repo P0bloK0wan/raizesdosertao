@@ -245,3 +245,25 @@ export function rsDomingoDaSemana() {
   proximo.setDate(hoje.getDate() + ((7 - hoje.getDay()) % 7));
   return proximo.toISOString().slice(0, 10);
 }
+export function rsAgendamentoDomingoAberto(horaLimite = "22:00") {
+  const agora = new Date();
+
+  // Domingo da semana atual
+  const domingo = new Date(agora);
+  domingo.setDate(agora.getDate() + ((7 - agora.getDay()) % 7));
+  domingo.setHours(0, 0, 0, 0);
+
+  // Se hoje for domingo, não permite novos agendamentos
+  if (agora.getDay() === 0) {
+    return false;
+  }
+
+  // O limite é no sábado anterior ao domingo
+  const limite = new Date(domingo);
+  limite.setDate(domingo.getDate() - 1);
+
+  const [hora, minuto] = horaLimite.split(":").map(Number);
+  limite.setHours(hora, minuto, 0, 0);
+
+  return agora < limite;
+}
