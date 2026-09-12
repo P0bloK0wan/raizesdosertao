@@ -123,10 +123,25 @@
         <h2>Lava Jato — agenda</h2>
       </div>
       <p class="muted">Clique num domingo pra fechar ou reabrir. Só aceitamos 5 carros por dia — fechando um domingo, o pessoal já consegue se agendar pro próximo.</p>
-      <div class="agenda-grid" id="lideranca-agenda"></div><div style="display:flex; gap:8px; margin-top:12px;">
-        <button type="button" class="btn btn-outline btn-sm" id="btn-vaga-extra">+ 1 vaga extra essa semana</button>
-        <button type="button" class="btn btn-outline btn-sm" id="btn-remover-vaga-extra">- 1 vaga extra essa semana</button>
-      </div>
+      <div class="agenda-grid" id="lideranca-agenda"></div>
+
+<div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+  <button type="button" class="btn btn-outline btn-sm" id="btn-fechar-vaga">
+    🔒 Fechar 1 vaga normal
+  </button>
+
+  <button type="button" class="btn btn-outline btn-sm" id="btn-reabrir-vaga">
+    🔓 Reabrir 1 vaga normal
+  </button>
+
+  <button type="button" class="btn btn-outline btn-sm" id="btn-vaga-extra">
+    + 1 vaga extra essa semana
+  </button>
+
+  <button type="button" class="btn btn-outline btn-sm" id="btn-remover-vaga-extra">
+    - 1 vaga extra essa semana
+  </button>
+</div>
     </section>
     <section class="panel-block" id="lavajato-atendimentos">
       <<div class="block-head">
