@@ -269,7 +269,35 @@ function renderAgenda() {
         }
       })
     );
+const btnFecharVaga = document.getElementById("btn-fechar-vaga");
 
+if (btnFecharVaga) {
+  btnFecharVaga.onclick = async () => {
+    const iso = rsDomingoDaSemana();
+
+    try {
+      await fecharVagaNormal(iso, 1);
+      mostrarToast("1 vaga normal foi fechada.");
+    } catch (e) {
+      mostrarToast(e.message || "Não foi possível fechar a vaga.");
+    }
+  };
+}
+
+const btnReabrirVaga = document.getElementById("btn-reabrir-vaga");
+
+if (btnReabrirVaga) {
+  btnReabrirVaga.onclick = async () => {
+    const iso = rsDomingoDaSemana();
+
+    try {
+      await reabrirVagaNormal(iso, 1);
+      mostrarToast("1 vaga normal foi reaberta.");
+    } catch (e) {
+      mostrarToast(e.message || "Não foi possível reabrir a vaga.");
+    }
+  };
+}
     const btnVagaExtra = document.getElementById("btn-vaga-extra");
     if (btnVagaExtra) {
       btnVagaExtra.onclick = async () => {
