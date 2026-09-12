@@ -387,7 +387,70 @@ export function abrirDomingo(data) {
     vagasOcupadas: 0,
   }, { merge: true });
 }
+export async function fecharVagaNormal(data, qtd = 1) {
+  const domingoRef = doc(db, "lavajato_domingos", data);
 
+  await runTransaction(db, async (tx) => {
+    const domingoSnap = await tx.get(domingoRef);
+
+    const atual = domingoSnap.exists()
+      ? domingoSnap.data()
+      : {
+          fechado: false,
+          motivo: "",
+          vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO,
+          vagasOcupadas: 0,
+          vagasFechadas: 0
+        };
+
+    const vagasFechadas = atual.vagasFechadas || 0;
+    const disponiveis = atual.vagasTotal - atual.vagasOcupadas - vagasFechadas;
+
+    if (disponiveis < qtd) {
+      throw new Error("Não há vagas normais disponíveis para fechar.");
+    }
+
+    tx.set(domingoRef, {
+      fechado: atual.fechado || false,
+      motivo: atual.motivo || "",
+      vagasTotal: atual.vagasTotal,
+      vagasOcupadas: atual.vagasOcupadas || 0,
+      vagasFechadas: vagasFechadas + qtd
+    });
+  });
+}
+
+export async function reabrirVagaNormal(data, qtd = 1) {
+  const domingoRef = doc(db, "lavajato_domingos", data);
+
+  await runTransaction(db, async (tx) => {
+    const domingoSnap = await tx.get(domingoRef);
+
+    const atual = domingoSnap.exists()
+      ? domingoSnap.data()
+      : {
+          fechado: false,
+          motivo: "",
+          vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO,
+          vagasOcupadas: 0,
+          vagasFechadas: 0
+        };
+
+    const vagasFechadas = atual.vagasFechadas || 0;
+
+    if (vagasFechadas < qtd) {
+      throw new Error("Não há vagas fechadas para reabrir.");
+    }
+
+    tx.set(domingoRef, {
+      fechado: atual.fechado || false,
+      motivo: atual.motivo || "",
+      vagasTotal: atual.vagasTotal,
+      vagasOcupadas: atual.vagasOcupadas || 0,
+      vagasFechadas: vagasFechadas - qtd
+    });
+  });
+}
 export async function adicionarVagaExtra(data, qtd = 1) {
   const domingoRef = doc(db, "lavajato_domingos", data);
   await runTransaction(db, async (tx) => {
