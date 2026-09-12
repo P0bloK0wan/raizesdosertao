@@ -93,10 +93,42 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
   }
 
   function statusDoDia(iso) {
-    const info = porData[iso] || { fechado: false, vagasOcupadas: 0, vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO };
-    if (info.fechado) return { ...info, rotulo: "Fechado", classe: "fechado" };
-    if (info.vagasOcupadas >= info.vagasTotal) return { ...info, rotulo: "Lotado", classe: "lotado" };
-    return { ...info, rotulo: `${info.vagasTotal - info.vagasOcupadas} vaga(s)`, classe: "aberto" };
+  const info = porData[iso] || {
+    fechado: false,
+    vagasOcupadas: 0,
+    vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO,
+    vagasFechadas: 0
+  };
+
+  const vagasFechadas = info.vagasFechadas || 0;
+
+  const vagasDisponiveis =
+    Math.max(
+      0,
+      info.vagasTotal - info.vagasOcupadas - vagasFechadas
+    );
+
+  if (info.fechado) {
+    return {
+      ...info,
+      rotulo: "Fechado",
+      classe: "fechado"
+    };
+  }
+
+  if (vagasDisponiveis <= 0) {
+    return {
+      ...info,
+      rotulo: "Lotado",
+      classe: "lotado"
+    };
+  }
+
+  return {
+    ...info,
+    rotulo: `${vagasDisponiveis} vaga(s)`,
+    classe: "aberto"
+  };
   }
 
   function renderAgenda() {
