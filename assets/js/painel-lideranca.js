@@ -11,6 +11,7 @@ import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
   watchLavaJato, deleteRegistroLavaJato, criarRegistroLavaJato,
   watchDomingos, fecharDomingo, abrirDomingo, adicionarVagaExtra, removerVagaExtra,
+fecharVagaNormal, reabrirVagaNormal,
   watchMembros, updateMembro, deleteMembro,
   watchRegistrosMembro, deleteRegistro,
   watchEspecialidadesMembro, updateEspecialidade, deleteEspecialidade,
@@ -206,10 +207,38 @@ estado.lavajato = lista;
     return new Date(iso + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
   }
   function statusDoDia(iso) {
-    const info = estado.domingos[iso] || { fechado: false, vagasOcupadas: 0, vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO };
-    if (info.fechado) return { ...info, rotulo: "Fechado", classe: "fechado" };
-    if (info.vagasOcupadas >= info.vagasTotal) return { ...info, rotulo: "Lotado", classe: "lotado" };
-    return { ...info, rotulo: `${info.vagasOcupadas}/${info.vagasTotal}`, classe: "aberto" };
+    const info = estado.domingos[iso] || {
+      fechado: false,
+      vagasOcupadas: 0,
+      vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO,
+      vagasFechadas: 0
+    };
+
+    const vagasFechadas = info.vagasFechadas || 0;
+    const vagasDisponiveis =
+      Math.max(0, info.vagasTotal - info.vagasOcupadas - vagasFechadas);
+
+    if (info.fechado) {
+      return { ...info, vagasFechadas, vagasDisponiveis, rotulo: "Fechado", classe: "fechado" };
+    }
+
+    if (vagasDisponiveis <= 0) {
+      return {
+        ...info,
+        vagasFechadas,
+        vagasDisponiveis,
+        rotulo: "Sem vagas",
+        classe: "lotado"
+      };
+    }
+
+    return {
+      ...info,
+      vagasFechadas,
+      vagasDisponiveis,
+      rotulo: `${vagasDisponiveis} vaga(s)`,
+      classe: "aberto"
+    };
   }
 
 function renderAgenda() {
