@@ -80,22 +80,35 @@ service cloud.firestore {
       allow read: if true;
       allow write: if eLideranca();
 
+      // O primeiro agendamento cria o resumo do domingo. Aceita os
+      // campos usados pelo app e mantém vagasFechadas separado de
+      // vagasOcupadas.
       allow create: if
-        request.resource.data.keys().hasOnly(['fechado', 'vagasTotal', 'vagasOcupadas']) &&
+        request.resource.data.keys().hasOnly(['fechado', 'motivo', 'vagasTotal', 'vagasOcupadas', 'vagasFechadas']) &&
         request.resource.data.fechado == false &&
         request.resource.data.vagasTotal == 5 &&
-        request.resource.data.vagasOcupadas == 1;
+        request.resource.data.vagasOcupadas == 1 &&
+        request.resource.data.vagasFechadas == 0;
 
+      // Visitantes só podem ocupar ou liberar UMA vaga por vez.
+      // Nenhuma operação pública pode alterar fechamento, motivo,
+      // total de vagas ou quantidade de vagas fechadas pela liderança.
       allow update: if
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vagasOcupadas']) &&
         request.resource.data.fechado == resource.data.fechado &&
+        request.resource.data.get('motivo', '') == resource.data.get('motivo', '') &&
         request.resource.data.vagasTotal == resource.data.vagasTotal &&
+        request.resource.data.get('vagasFechadas', 0) == resource.data.get('vagasFechadas', 0) &&
         (
           (
             request.resource.data.vagasOcupadas == resource.data.vagasOcupadas + 1 &&
             resource.data.fechado == false &&
-            resource.data.vagasOcupadas < resource.data.vagasTotal
+            resource.data.vagasOcupadas + resource.data.get('vagasFechadas', 0) < resource.data.vagasTotal
           ) ||
-          request.resource.data.vagasOcupadas == resource.data.vagasOcupadas - 1 && resource.data.vagasOcupadas > 0
+          (
+            request.resource.data.vagasOcupadas == resource.data.vagasOcupadas - 1 &&
+            resource.data.vagasOcupadas > 0
+          )
         );
     }
 
