@@ -510,6 +510,7 @@ export async function removerVagaExtra(data, qtd = 1) {
    dois numa transação — evita passar de 5 carros no mesmo dia
    mesmo com gente cadastrando ao mesmo tempo. */
 export async function criarRegistroLavaJato(dados) {
+  const tokenCancelamento = crypto.randomUUID();
   const domingoRef = doc(db, "lavajato_domingos", dados.data);
   const novoRegistroRef = doc(collection(db, "lavajato"));
 
@@ -534,17 +535,27 @@ export async function criarRegistroLavaJato(dados) {
     }, { merge: true });
     tx.set(novoRegistroRef, {
       ...dados,
+      tokenCancelamento,
       criadoEm: serverTimestamp(),
       cancelado: false,
       canceladoEm: null,
     });
   });
 
-  return novoRegistroRef;
+  return { id: novoRegistroRef.id, tokenCancelamento };
 }
-export async function cancelarRegistroLavaJato(registroId, data) {
+export async function cancelarRegistroLavaJato(registroId, data, tokenCancelamento) {
+  if (!tokenCancelamento) throw new Error("Código de cancelamento ausente.");
+  const registroRef = doc(db, "lavajato", registroId);
   const domingoRef = doc(db, "lavajato_domingos", data);
   await runTransaction(db, async (tx) => {
+    const registroSnap = await tx.get(registroRef);
+    if (!registroSnap.exists()) throw new Error("Atendimento não encontrado.");
+    const registro = registroSnap.data();
+    if (registro.cancelado) throw new Error("Esse atendimento já foi cancelado.");
+    if (registro.tokenCancelamento !== tokenCancelamento) throw new Error("Código de cancelamento inválido.");
+    if (registro.data !== data) throw new Error("Data do atendimento inválida.");
+
     const domingoSnap = await tx.get(domingoRef);
     if (domingoSnap.exists()) {
       const atual = domingoSnap.data();
@@ -556,7 +567,7 @@ export async function cancelarRegistroLavaJato(registroId, data) {
         vagasFechadas: atual.vagasFechadas || 0,
       }, { merge: true });
     }
-    tx.update(doc(db, "lavajato", registroId), {
+    tx.update(registroRef, {
       cancelado: true,
       canceladoEm: serverTimestamp(),
     });
