@@ -419,3 +419,10 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 .redes-botoes-links .rede-botao:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--black)}
 :root[data-theme="dark"] .redes-botoes-links .rede-botao:first-child{background:#b83d1c;color:#fff4d1!important}
 @media(max-width:700px){.redes-botoes-links .rede-botao{min-height:80px}.redes-botoes-links .rede-botao b{width:34px;height:34px}}
+
+/* Redes v4 — botões retangulares arredondados */
+.redes-acoes{display:flex;flex-direction:column;gap:14px;width:min(100%,560px);margin:0 auto}
+.btn-rede{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;min-height:58px;padding:14px 22px;border:2px solid var(--black);border-radius:16px;background:var(--bg-elevated);color:var(--text)!important;font-weight:900;font-size:1rem;text-align:center;text-decoration:none!important;box-shadow:0 5px 0 var(--black);transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+.btn-rede span{font-size:1.25rem}.btn-rede-principal{background:var(--orange);color:#fff9dc!important}.btn-rede:hover,.btn-rede:focus-visible{background:var(--gold);color:#24120c!important;transform:translateY(-2px);box-shadow:0 7px 0 var(--black);outline:none}.btn-rede:active{transform:translateY(4px);box-shadow:0 1px 0 var(--black)}
+:root[data-theme="dark"] .btn-rede{background:#342119;border-color:#9b654d;color:#fff4d1!important;box-shadow:0 5px 0 #080504}:root[data-theme="dark"] .btn-rede-principal{background:#b83d1c}:root[data-theme="dark"] .btn-rede:hover,:root[data-theme="dark"] .btn-rede:focus-visible{background:var(--gold);color:#160c08!important}
+@media(max-width:700px){.redes-acoes{gap:12px}.btn-rede{min-height:60px;border-radius:15px;padding:14px 16px;font-size:.96rem}}
