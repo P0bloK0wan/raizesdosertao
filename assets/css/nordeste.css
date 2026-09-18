@@ -366,3 +366,27 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
  .aviso-admin-acoes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
  .aviso-admin-acoes .btn{width:100%;min-width:0;padding:9px 8px;font-size:.78rem;white-space:normal}
 }
+
+/* Painel liderança v2 — hierarquia e organização */
+.leadership-overview{margin:0 0 24px;padding:22px;border:2px solid var(--border);background:var(--bg-elevated);box-shadow:var(--shadow)}
+.leadership-overview-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+.leadership-overview-head h2{margin:0;font-size:1.45rem}.leadership-overview-head .eyebrow{margin-bottom:5px}
+.leadership-stats-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.leadership-stats-grid .stat{min-width:0;margin:0;min-height:104px;padding:14px 10px;box-shadow:none;border:1px solid var(--border)}
+.leadership-stats-grid .stat b{font-size:1.65rem}.leadership-stats-grid .stat span{font-size:.76rem;line-height:1.25}
+.app-main>.panel-block{margin-bottom:22px}.app-main>.panel-block>.block-head h2{margin:0}
+.lavajato-actions,.block-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+#lavajato+.panel-block{margin-top:-10px}
+@media(min-width:1181px){.app-main{max-width:1440px;margin-left:auto;margin-right:auto}.app-main>.panel-block{padding:28px 30px}.leadership-stats-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(min-width:701px) and (max-width:1180px){.leadership-stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){
+ .leadership-overview{margin:0 0 14px;padding:14px 10px;box-shadow:none}
+ .leadership-overview-head{display:block;margin-bottom:12px}.leadership-overview-head h2{font-size:1.2rem}.leadership-overview-head .btn{width:100%;margin-top:10px}
+ .leadership-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .leadership-stats-grid .stat{min-height:84px;padding:10px 6px}.leadership-stats-grid .stat b{font-size:1.4rem}.leadership-stats-grid .stat span{font-size:.68rem}
+ .app-main>.panel-block{margin-bottom:12px;border-left-width:3px}
+ .app-main>.panel-block>.block-head{margin-bottom:10px;padding-bottom:9px}.app-main>.panel-block>.block-head h2{font-size:1.22rem}
+ .lavajato-actions,.block-actions{display:grid;grid-template-columns:1fr;gap:8px}.lavajato-actions .btn,.block-actions .btn{width:100%;margin:0}
+ #lavajato+.panel-block{margin-top:0}
+}
+@media(max-width:360px){.leadership-stats-grid{grid-template-columns:1fr}}
