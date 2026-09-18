@@ -70,27 +70,32 @@
       </div>
     </div>
 
-    <section class="stat-row leadership-stats">
+    <section class="leadership-overview" aria-label="Resumo do clube">
+      <div class="leadership-overview-head"><div><span class="eyebrow">Resumo rápido</span><h2>O que precisa da sua atenção</h2></div><a class="btn btn-outline btn-sm" href="#planejamento-unidades">Ver pendências</a></div>
+      <div class="leadership-stats-grid">
       <div class="stat"><b id="s-unidades">0</b><span>Unidades</span></div>
       <div class="stat"><b id="s-membros">0</b><span>Desbravadores</span></div>
       <div class="stat"><b id="s-lideres">0</b><span>Contas de liderança/unidade</span></div>
       <div class="stat"><b id="s-lavajato-ativos">0</b><span>Atendimentos ativos no Lava Jato</span></div>
-    </section>
-    <section class="stat-row leadership-stats">
+    
+    
       <div class="stat"><b id="s-plan-pendentes">0</b><span>Planejamentos pendentes</span></div>
       <div class="stat"><b id="s-plan-aprovados">0</b><span>Planejamentos aprovados</span></div>
       <div class="stat"><b id="s-plan-recusados">0</b><span>Planejamentos recusados</span></div>
       <div class="stat"><b id="s-midia">0</b><span>Pastas de mídia publicadas</span></div>
-    </section>
-    <section class="stat-row leadership-stats">
+    
+    
       <div class="stat"><b id="s-esp-andamento">0</b><span>Especialidades em andamento</span></div>
       <div class="stat"><b id="s-esp-concluidas">0</b><span>Especialidades concluídas</span></div>
       <div class="stat"><b id="s-materiais-pendentes">0</b><span>Materiais a comprar</span></div>
       <div class="stat"><b id="s-sem-especialidade">0</b><span>Desbravadores sem especialidade</span></div>
-    </section>
-    <section class="stat-row leadership-stats">
+    
+    
       <div class="stat"><b id="s-cadastro-incompleto">0</b><span>Desbravadores c/ cadastro incompleto</span></div>
       <div class="stat"><b id="s-resp-sem-telefone">0</b><span>Responsáveis sem telefone</span></div>
+    
+
+    </div>
     </section>
 
     <section class="panel-block" id="mural-avisos">
@@ -130,7 +135,7 @@
       <p class="muted">Clique num domingo pra fechar ou reabrir. Só aceitamos 5 carros por dia — fechando um domingo, o pessoal já consegue se agendar pro próximo.</p>
       <div class="agenda-grid" id="lideranca-agenda"></div>
 
-<div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+<div class="lavajato-actions">
   <button type="button" class="btn btn-outline btn-sm" id="btn-fechar-vaga">
     🔒 Fechar 1 vaga normal
   </button>
@@ -227,7 +232,7 @@
     <section class="panel-block" id="planejamento-clube">
       <div class="block-head">
         <h2>Planejamento do Clube</h2>
-        <div style="display:flex; gap:8px;">
+        <div class="block-actions">
           <button class="btn btn-outline btn-sm" id="btn-seed-planejamento">Carregar planejamento padrão</button>
           <button class="btn btn-primary btn-sm" id="btn-novo-evento">+ Novo evento</button>
         </div>
