@@ -172,7 +172,7 @@ document.querySelectorAll("[data-ano]").forEach((el) => (el.textContent = new Da
 
 /* Link do WhatsApp genérico (contato do clube) */
 document.querySelectorAll("[data-whatsapp-link]").forEach((el) => {
-  el.href = `https://wa.me/${RS_CLUBE.whatsapp}`;
+  el.href = "https://wa.me/5587988666159";
 });
 document.querySelectorAll("[data-whatsapp-numero]").forEach((el) => {
   el.textContent = RS_CLUBE.whatsappExibicao;
