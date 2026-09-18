@@ -501,16 +501,21 @@ export async function criarRegistroLavaJato(dados) {
     const domingoSnap = await tx.get(domingoRef);
     const atual = domingoSnap.exists()
       ? domingoSnap.data()
-      : { fechado: false, vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO, vagasOcupadas: 0 };
+      : { fechado: false, motivo: "", vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO, vagasOcupadas: 0, vagasFechadas: 0 };
 
+    const vagasTotal = atual.vagasTotal || RS_LAVAJATO_VAGAS_POR_DOMINGO;
+    const vagasOcupadas = atual.vagasOcupadas || 0;
+    const vagasFechadas = atual.vagasFechadas || 0;
     if (atual.fechado) throw new Error("Esse domingo está fechado pro Lava Jato.");
-    if (atual.vagasOcupadas >= atual.vagasTotal) throw new Error("Esse domingo já está lotado.");
+    if (vagasOcupadas + vagasFechadas >= vagasTotal) throw new Error("Esse domingo já está sem vagas.");
 
     tx.set(domingoRef, {
-      fechado: atual.fechado,
-      vagasTotal: atual.vagasTotal,
-      vagasOcupadas: atual.vagasOcupadas + 1,
-    });
+      fechado: false,
+      motivo: atual.motivo || "",
+      vagasTotal,
+      vagasOcupadas: vagasOcupadas + 1,
+      vagasFechadas,
+    }, { merge: true });
     tx.set(novoRegistroRef, {
       ...dados,
       criadoEm: serverTimestamp(),
@@ -521,9 +526,6 @@ export async function criarRegistroLavaJato(dados) {
 
   return novoRegistroRef;
 }
-
-/* Cancelamento feito pelo próprio cliente (sem login) — o
-   navegador guarda o id do cadastro e a data do domingo. */
 export async function cancelarRegistroLavaJato(registroId, data) {
   const domingoRef = doc(db, "lavajato_domingos", data);
   await runTransaction(db, async (tx) => {
@@ -531,10 +533,12 @@ export async function cancelarRegistroLavaJato(registroId, data) {
     if (domingoSnap.exists()) {
       const atual = domingoSnap.data();
       tx.set(domingoRef, {
-        fechado: atual.fechado,
-        vagasTotal: atual.vagasTotal,
+        fechado: atual.fechado || false,
+        motivo: atual.motivo || "",
+        vagasTotal: atual.vagasTotal || RS_LAVAJATO_VAGAS_POR_DOMINGO,
         vagasOcupadas: Math.max(0, (atual.vagasOcupadas || 0) - 1),
-      });
+        vagasFechadas: atual.vagasFechadas || 0,
+      }, { merge: true });
     }
     tx.update(doc(db, "lavajato", registroId), {
       cancelado: true,
@@ -542,10 +546,6 @@ export async function cancelarRegistroLavaJato(registroId, data) {
     });
   });
 }
-
-/* Exclusão feita pela liderança — libera a vaga de volta só se o
-   cadastro ainda não estava cancelado (senão a vaga já tinha sido
-   liberada no cancelamento). */
 export async function deleteRegistroLavaJato(registroId, data) {
   const registroRef = doc(db, "lavajato", registroId);
   const domingoRef = doc(db, "lavajato_domingos", data);
@@ -557,10 +557,12 @@ export async function deleteRegistroLavaJato(registroId, data) {
       if (domingoSnap.exists()) {
         const atual = domingoSnap.data();
         tx.set(domingoRef, {
-          fechado: atual.fechado,
-          vagasTotal: atual.vagasTotal,
+          fechado: atual.fechado || false,
+          motivo: atual.motivo || "",
+          vagasTotal: atual.vagasTotal || RS_LAVAJATO_VAGAS_POR_DOMINGO,
           vagasOcupadas: Math.max(0, (atual.vagasOcupadas || 0) - 1),
-        });
+          vagasFechadas: atual.vagasFechadas || 0,
+        }, { merge: true });
       }
     }
     tx.delete(registroRef);
