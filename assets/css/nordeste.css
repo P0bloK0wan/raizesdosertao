@@ -151,3 +151,43 @@ h1,h2,h3,h4,.brand,.btn,.eyebrow,.marquee-track span {
   --cream: #fff4d1;
 }
 :root[data-theme="dark"] .site-header { background: rgba(33,20,15,.96); }
+
+
+/* Cabeçalhos internos — linguagem de cartaz de cordel */
+.page-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(8deg, rgba(74,33,24,.09) 0 1px, transparent 1px 9px),
+    var(--orange);
+  color: var(--cream);
+  border-bottom: 5px solid var(--black);
+}
+.page-hero h1, .page-hero h2 { color: var(--cream); text-shadow: 3px 3px 0 var(--black); }
+.page-hero p { color: rgba(255,249,220,.92); }
+
+/* Elementos de conteúdo público com acabamento de impressão artesanal */
+.timeline-visual::before { background: var(--black); width: 4px; }
+.tl-dot { border-radius: 2px; border-color: var(--cream); box-shadow: 0 0 0 2px var(--black); }
+.tl-card,.pasta-bloco,.month-acc,.agenda-dia {
+  border: 2px solid var(--black);
+  border-radius: 5px;
+  box-shadow: 4px 5px 0 rgba(74,33,24,.12);
+}
+.tl-periodo { border-radius: 3px; background: var(--black); color: var(--cream); }
+.month-acc summary { background: var(--gold); border-bottom: 2px solid var(--black); }
+.agenda-dia.aberto,.agenda-dia.lotado,.agenda-dia.fechado { border-width: 2px; }
+
+.goal-bar,.goal-fill { border-radius: 2px; }
+.adote-card { transform: rotate(var(--card-tilt,-.5deg)); }
+.adote-card:nth-child(even) { --card-tilt: .7deg; }
+
+.social-card,.media-card {
+  border: 2px solid var(--black);
+  box-shadow: 5px 6px 0 rgba(74,33,24,.12);
+}
+
+/* A textura some na impressão e mantém legibilidade */
+@media print {
+  body,.page-hero,.section-alt { background-image:none !important; }
+}
