@@ -425,36 +425,35 @@ export async function reabrirVagaNormal(data, qtd = 1) {
 
   await runTransaction(db, async (tx) => {
     const domingoSnap = await tx.get(domingoRef);
-
     const atual = domingoSnap.exists()
-  ? domingoSnap.data()
-  : {
-      fechado: false,
-      vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO,
-      vagasOcupadas: 0,
-      vagasFechadas: 0
-    };
+      ? domingoSnap.data()
+      : {
+          fechado: false,
+          motivo: "",
+          vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO,
+          vagasOcupadas: 0,
+          vagasFechadas: 0
+        };
 
-const vagasFechadas = atual.vagasFechadas || 0;
+    const vagasFechadas = atual.vagasFechadas || 0;
 
-const vagasDisponiveis =
-  atual.vagasTotal - atual.vagasOcupadas - vagasFechadas;
+    if (atual.fechado) {
+      throw new Error("Esse domingo está fechado pro Lava Jato.");
+    }
+    if (vagasFechadas < qtd) {
+      throw new Error("Não há vaga normal fechada para reabrir.");
+    }
 
-if (atual.fechado) {
-  throw new Error("Esse domingo está fechado pro Lava Jato.");
-}
-
-if (vagasDisponiveis <= 0) {
-  throw new Error("Esse domingo não tem mais vagas disponíveis.");
-}
     tx.set(domingoRef, {
-  fechado: atual.fechado,
-  vagasTotal: atual.vagasTotal,
-  vagasOcupadas: atual.vagasOcupadas + 1,
-  vagasFechadas: vagasFechadas
-});
+      fechado: atual.fechado || false,
+      motivo: atual.motivo || "",
+      vagasTotal: atual.vagasTotal || RS_LAVAJATO_VAGAS_POR_DOMINGO,
+      vagasOcupadas: atual.vagasOcupadas || 0,
+      vagasFechadas: vagasFechadas - qtd
+    }, { merge: true });
   });
 }
+
 export async function adicionarVagaExtra(data, qtd = 1) {
   const domingoRef = doc(db, "lavajato_domingos", data);
   await runTransaction(db, async (tx) => {
