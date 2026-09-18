@@ -8,6 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/nordeste.css">
 </head>
 <body>
 
@@ -25,20 +26,24 @@
       <span>Raízes do Sertão<small>Painel da Liderança</small></span>
     </a>
     <ul class="app-nav">
+      <li class="nav-section-label">Acompanhar</li>
       <li><a href="#visao-geral">📊 Visão geral</a></li>
       <li><a href="#mural-avisos">📰 Mural de Avisos</a></li>
       <li><a href="#planejamento-unidades">📋 Planejamento das Unidades <span class="pill pill-pending" id="badge-pendentes" style="display:none;">0</span></a></li>
       <li><a href="#lavajato">🚗 Lava Jato <span class="pill pill-closed" id="badge-cancelados" style="display:none;">0</span></a></li>
+      <li class="nav-section-label">Pessoas e unidades</li>
       <li><a href="#desbravadores">🧑‍🤝‍🧑 Unidades e desbravadores</a></li>
       <li><a href="#especialidades-lideranca">🎖️ Especialidades</a></li>
       <li><a href="#compras">🛒 Lista de compras</a></li>
       <li><a href="#responsaveis">📞 Responsáveis</a></li>
       <li><a href="#identidade-unidades">🚩 Identidade das Unidades</a></li>
       <li><a href="#pedidos-senha">🔑 Pedidos de troca de senha</a></li>
+      <li class="nav-section-label">Clube e conteúdo</li>
       <li><a href="#planejamento-clube">📅 Planejamento do Clube</a></li>
       <li><a href="#placar-acampamento">🏆 Placar do Acampamento</a></li>
       <li><a href="#midia">📸 Mídia</a></li>
       <li><a href="#campori">🏕️ Campori DSA 2027</a></li>
+      <li class="nav-section-label">Sistema</li>
       <li><a href="#dados">📁 Backup</a></li>
       <li><a href="#config">⚙️ Configurações</a></li>
       <li><a href="index.html">🌐 Ver site público</a></li>
@@ -65,25 +70,25 @@
       </div>
     </div>
 
-    <section class="stat-row">
+    <section class="stat-row leadership-stats">
       <div class="stat"><b id="s-unidades">0</b><span>Unidades</span></div>
       <div class="stat"><b id="s-membros">0</b><span>Desbravadores</span></div>
       <div class="stat"><b id="s-lideres">0</b><span>Contas de liderança/unidade</span></div>
       <div class="stat"><b id="s-lavajato-ativos">0</b><span>Atendimentos ativos no Lava Jato</span></div>
     </section>
-    <section class="stat-row">
+    <section class="stat-row leadership-stats">
       <div class="stat"><b id="s-plan-pendentes">0</b><span>Planejamentos pendentes</span></div>
       <div class="stat"><b id="s-plan-aprovados">0</b><span>Planejamentos aprovados</span></div>
       <div class="stat"><b id="s-plan-recusados">0</b><span>Planejamentos recusados</span></div>
       <div class="stat"><b id="s-midia">0</b><span>Pastas de mídia publicadas</span></div>
     </section>
-    <section class="stat-row">
+    <section class="stat-row leadership-stats">
       <div class="stat"><b id="s-esp-andamento">0</b><span>Especialidades em andamento</span></div>
       <div class="stat"><b id="s-esp-concluidas">0</b><span>Especialidades concluídas</span></div>
       <div class="stat"><b id="s-materiais-pendentes">0</b><span>Materiais a comprar</span></div>
       <div class="stat"><b id="s-sem-especialidade">0</b><span>Desbravadores sem especialidade</span></div>
     </section>
-    <section class="stat-row">
+    <section class="stat-row leadership-stats">
       <div class="stat"><b id="s-cadastro-incompleto">0</b><span>Desbravadores c/ cadastro incompleto</span></div>
       <div class="stat"><b id="s-resp-sem-telefone">0</b><span>Responsáveis sem telefone</span></div>
     </section>
@@ -144,7 +149,7 @@
 </div>
     </section>
     <section class="panel-block" id="lavajato-atendimentos">
-      <<div class="block-head">
+      <div class="block-head">
         <h2>Lava Jato — atendimentos</h2>
         <span class="muted" id="lavajato-atualizado" style="font-size:.78rem;"></span>
       </div>
