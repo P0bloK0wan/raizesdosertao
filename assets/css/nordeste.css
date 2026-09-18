@@ -409,3 +409,13 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 .rede-botao span{display:grid;place-items:center;width:48px;height:48px;background:var(--gold);border:2px solid var(--black);font-size:1.45rem}.rede-botao strong{font-size:1rem}.rede-botao b{font-size:1.5rem}.rede-botao:hover,.rede-botao:focus-visible{transform:translate(-2px,-2px);background:var(--gold);outline:3px solid var(--orange);outline-offset:3px}
 :root[data-theme="dark"] .rede-botao{border-color:#9b654d;box-shadow:5px 5px 0 #080504}:root[data-theme="dark"] .rede-botao span{color:#160c08;border-color:#160c08}
 @media(max-width:700px){.redes-simples{align-items:flex-start;padding:44px 0 64px}.redes-simples .section-head{margin-bottom:24px}.redes-simples .section-head h1{font-size:clamp(2.7rem,15vw,4rem)}.redes-botoes{grid-template-columns:1fr;gap:12px}.rede-botao{min-height:74px;padding:12px 14px;grid-template-columns:46px 1fr auto}.rede-botao span{width:44px;height:44px}}
+
+/* Redes v3 — links com aparência inequívoca de botão */
+.redes-botoes-links .rede-botao{border-radius:8px;cursor:pointer;user-select:none}
+.redes-botoes-links .rede-botao:first-child{background:var(--orange);color:#fff9dc!important}
+.redes-botoes-links .rede-botao strong{display:flex;flex-direction:column;gap:3px;line-height:1.15}
+.redes-botoes-links .rede-botao small{font-size:.72rem;font-weight:700;opacity:.76;text-transform:none;letter-spacing:0}
+.redes-botoes-links .rede-botao b{display:grid;place-items:center;width:38px;height:38px;border:2px solid currentColor;border-radius:50%;font-size:1.15rem}
+.redes-botoes-links .rede-botao:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--black)}
+:root[data-theme="dark"] .redes-botoes-links .rede-botao:first-child{background:#b83d1c;color:#fff4d1!important}
+@media(max-width:700px){.redes-botoes-links .rede-botao{min-height:80px}.redes-botoes-links .rede-botao b{width:34px;height:34px}}
