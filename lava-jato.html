@@ -196,7 +196,7 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
     };
     try {
       const ref = await criarRegistroLavaJato(dados);
-      localStorage.setItem(LS_KEY, JSON.stringify({ ...dados, id: ref.id }));
+      localStorage.setItem(LS_KEY, JSON.stringify({ ...dados, id: ref.id, tokenCancelamento: ref.tokenCancelamento }));
       mostrarConfirmado(dados);
     } catch (err) {
       erro.textContent = err.message && err.message.includes("domingo")
@@ -212,7 +212,7 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
     const dados = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
     if (!dados.id) return;
     try {
-      await cancelarRegistroLavaJato(dados.id, dados.data);
+      await cancelarRegistroLavaJato(dados.id, dados.data, dados.tokenCancelamento);
       localStorage.removeItem(LS_KEY);
       blocoConfirmado.style.display = "none";
       blocoCadastro.style.display = "block";
