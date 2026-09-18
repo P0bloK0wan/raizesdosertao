@@ -1,7 +1,7 @@
 /* Service worker simples — cache do "app shell" para o site
    abrir rápido e funcionar offline depois da primeira visita. */
 
-const CACHE_NAME = "raizes-do-sertao-v17";
+const CACHE_NAME = "raizes-do-sertao-v18";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -18,6 +18,7 @@ const APP_SHELL = [
   "./404.html",
   "./manifest.json",
   "./assets/css/style.css",
+  "./assets/css/nordeste.css",
   "./assets/js/data.js",
   "./assets/js/store.js",
   "./assets/js/firebase.js",
