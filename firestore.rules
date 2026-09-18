@@ -53,7 +53,15 @@ service cloud.firestore {
     // pela liderança — mas só pode alterar os campos de
     // cancelamento, nada mais.
     match /lavajato/{registroId} {
-      allow create: if true;
+      allow create: if
+        request.resource.data.keys().hasOnly(['data', 'nome', 'telefone', 'placa', 'modelo', 'cor', 'criadoEm', 'cancelado', 'canceladoEm']) &&
+        request.resource.data.data is string && request.resource.data.data.size() == 10 &&
+        request.resource.data.nome is string && request.resource.data.nome.size() >= 2 && request.resource.data.nome.size() <= 80 &&
+        request.resource.data.telefone is string && request.resource.data.telefone.size() >= 8 && request.resource.data.telefone.size() <= 24 &&
+        request.resource.data.placa is string && request.resource.data.placa.size() >= 7 && request.resource.data.placa.size() <= 8 &&
+        request.resource.data.modelo is string && request.resource.data.modelo.size() >= 1 && request.resource.data.modelo.size() <= 60 &&
+        request.resource.data.cor is string && request.resource.data.cor.size() >= 1 && request.resource.data.cor.size() <= 40 &&
+        request.resource.data.cancelado == false;
       allow read: if eLideranca();
       allow update: if eLideranca() || (
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelado', 'canceladoEm']) &&
@@ -87,7 +95,7 @@ service cloud.firestore {
             resource.data.fechado == false &&
             resource.data.vagasOcupadas < resource.data.vagasTotal
           ) ||
-          request.resource.data.vagasOcupadas == resource.data.vagasOcupadas - 1
+          request.resource.data.vagasOcupadas == resource.data.vagasOcupadas - 1 && resource.data.vagasOcupadas > 0
         );
     }
 
