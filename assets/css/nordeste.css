@@ -294,3 +294,22 @@ h1,h2,h3,h4,.brand,.btn,.eyebrow,.marquee-track span {
   background: var(--gold) !important;
   color: #160c08 !important;
 }
+
+
+/* Campori: botões precisam estar visíveis antes de hover/click */
+:root[data-theme="dark"] #form-doacao button.btn-outline[data-valor-sugerido] {
+  background-color: #f4e6bd !important;
+  border: 2px solid #e0a62d !important;
+  color: #1c120e !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #1c120e;
+  box-shadow: 3px 3px 0 #080504 !important;
+}
+:root[data-theme="dark"] #form-doacao button.btn-outline[data-valor-sugerido]:hover,
+:root[data-theme="dark"] #form-doacao button.btn-outline[data-valor-sugerido]:focus,
+:root[data-theme="dark"] #form-doacao button.btn-outline[data-valor-sugerido]:active {
+  background-color: #e0a62d !important;
+  border-color: #f4e6bd !important;
+  color: #160c08 !important;
+  -webkit-text-fill-color: #160c08;
+}
