@@ -1131,19 +1131,19 @@ if (btnReabrirVaga) {
     const vazio = document.getElementById("avisos-vazio");
     vazio.style.display = lista.length ? "none" : "block";
     listaEl.innerHTML = lista
-      .map((a) => `<div class="card" style="margin-bottom:10px;">
-        <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
-          <div>
+      .map((a) => `<article class="card aviso-admin-card">
+        <div class="aviso-admin-layout">
+          <div class="aviso-admin-conteudo">
             <strong>${a.titulo}</strong>
             <p style="margin:4px 0;">${a.mensagem}</p>
             <span class="muted" style="font-size:.78rem;">${fmtData(a.criadoEm)}</span>
           </div>
-          <div style="display:flex; gap:6px; flex-shrink:0;">
-            <button type="button" class="btn btn-outline btn-sm" data-editar-aviso="${a.id}">Editar</button>
-            <button type="button" class="btn btn-outline btn-sm" data-excluir-aviso="${a.id}">Excluir</button>
+          <div class="aviso-admin-acoes">
+            <button type="button" class="btn btn-outline btn-sm" data-editar-aviso="${a.id}">✏️ Editar</button>
+            <button type="button" class="btn btn-outline btn-sm" data-excluir-aviso="${a.id}">🗑️ Excluir</button>
           </div>
         </div>
-      </div>`)
+      </article>`)
       .join("");
     listaEl.querySelectorAll("[data-editar-aviso]").forEach((btn) =>
       btn.addEventListener("click", () => {
