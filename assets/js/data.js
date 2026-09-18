@@ -7,16 +7,16 @@ export const RS_CLUBE = {
   sede: "Vila Eduardo",
   regiao: "Região 13 — 4º Distrito — APeC",
   fundacao: "04/04/2004",
-  whatsapp: "5587981474224",
-  whatsappExibicao: "(87) 98147-4224",
+  whatsapp: "5587988666159",
+  whatsappExibicao: "(87) 98866-6159",
   contato: "Pablo Kawan Farias Cavalcante",
   logo: "assets/img/logo.png",
 };
 
 export const RS_LINKS = {
-  juntarSe: "https://wa.link/b84jhp",
-  juntarSeLideranca: "https://wa.link/t5av1s",
-  ajudarCampori: "https://wa.link/b84jh",
+  juntarSe: "https://wa.me/5587988666159",
+  juntarSeLideranca: "https://wa.me/5587988666159",
+  ajudarCampori: "https://wa.me/5587988666159",
   instagramClube: "https://www.instagram.com/cluberaizesdosertao",
   instagramIgreja: "https://www.instagram.com/iasdvilaeduardo",
   youtubeIgreja: "https://youtube.com/@iasdvilaeduardo",
