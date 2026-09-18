@@ -371,21 +371,33 @@ export function watchDomingos(cb) {
     cb(porData);
   });
 }
-export function fecharDomingo(data, motivo) {
-  return setDoc(doc(db, "lavajato_domingos", data), {
-    fechado: true,
-    motivo: motivo || "",
-    vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO,
-    vagasOcupadas: 0,
-  }, { merge: true });
+export async function fecharDomingo(data, motivo) {
+  const domingoRef = doc(db, "lavajato_domingos", data);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(domingoRef);
+    const atual = snap.exists() ? snap.data() : {};
+    tx.set(domingoRef, {
+      fechado: true,
+      motivo: motivo || "",
+      vagasTotal: atual.vagasTotal || RS_LAVAJATO_VAGAS_POR_DOMINGO,
+      vagasOcupadas: atual.vagasOcupadas || 0,
+      vagasFechadas: atual.vagasFechadas || 0,
+    }, { merge: true });
+  });
 }
-export function abrirDomingo(data) {
-  return setDoc(doc(db, "lavajato_domingos", data), {
-    fechado: false,
-    motivo: "",
-    vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO,
-    vagasOcupadas: 0,
-  }, { merge: true });
+export async function abrirDomingo(data) {
+  const domingoRef = doc(db, "lavajato_domingos", data);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(domingoRef);
+    const atual = snap.exists() ? snap.data() : {};
+    tx.set(domingoRef, {
+      fechado: false,
+      motivo: "",
+      vagasTotal: atual.vagasTotal || RS_LAVAJATO_VAGAS_POR_DOMINGO,
+      vagasOcupadas: atual.vagasOcupadas || 0,
+      vagasFechadas: atual.vagasFechadas || 0,
+    }, { merge: true });
+  });
 }
 export async function fecharVagaNormal(data, qtd = 1) {
   const domingoRef = doc(db, "lavajato_domingos", data);
@@ -460,13 +472,14 @@ export async function adicionarVagaExtra(data, qtd = 1) {
     const domingoSnap = await tx.get(domingoRef);
     const atual = domingoSnap.exists()
       ? domingoSnap.data()
-      : { fechado: false, motivo: "", vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO, vagasOcupadas: 0 };
+      : { fechado: false, motivo: "", vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO, vagasOcupadas: 0, vagasFechadas: 0 };
     tx.set(domingoRef, {
-      fechado: atual.fechado,
+      fechado: atual.fechado || false,
       motivo: atual.motivo || "",
-      vagasTotal: atual.vagasTotal + qtd,
-      vagasOcupadas: atual.vagasOcupadas,
-    });
+      vagasTotal: (atual.vagasTotal || RS_LAVAJATO_VAGAS_POR_DOMINGO) + qtd,
+      vagasOcupadas: atual.vagasOcupadas || 0,
+      vagasFechadas: atual.vagasFechadas || 0,
+    }, { merge: true });
   });
 }
 
@@ -476,17 +489,20 @@ export async function removerVagaExtra(data, qtd = 1) {
     const domingoSnap = await tx.get(domingoRef);
     const atual = domingoSnap.exists()
       ? domingoSnap.data()
-      : { fechado: false, motivo: "", vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO, vagasOcupadas: 0 };
-    const novoTotal = Math.max(RS_LAVAJATO_VAGAS_POR_DOMINGO, atual.vagasTotal - qtd);
-    if (novoTotal < atual.vagasOcupadas) {
-      throw new Error("Não dá pra tirar essa vaga: já tem carro cadastrado nela.");
+      : { fechado: false, motivo: "", vagasTotal: RS_LAVAJATO_VAGAS_POR_DOMINGO, vagasOcupadas: 0, vagasFechadas: 0 };
+    const totalAtual = atual.vagasTotal || RS_LAVAJATO_VAGAS_POR_DOMINGO;
+    const novoTotal = Math.max(RS_LAVAJATO_VAGAS_POR_DOMINGO, totalAtual - qtd);
+    const usadas = (atual.vagasOcupadas || 0) + (atual.vagasFechadas || 0);
+    if (novoTotal < usadas) {
+      throw new Error("Não dá pra tirar essa vaga: ela já está ocupada ou fechada.");
     }
     tx.set(domingoRef, {
-      fechado: atual.fechado,
+      fechado: atual.fechado || false,
       motivo: atual.motivo || "",
       vagasTotal: novoTotal,
-      vagasOcupadas: atual.vagasOcupadas,
-    });
+      vagasOcupadas: atual.vagasOcupadas || 0,
+      vagasFechadas: atual.vagasFechadas || 0,
+    }, { merge: true });
   });
 }
 
