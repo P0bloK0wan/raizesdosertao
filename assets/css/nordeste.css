@@ -264,3 +264,33 @@ h1,h2,h3,h4,.brand,.btn,.eyebrow,.marquee-track span {
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) { color-scheme: dark; }
 }
+
+
+/* Campori — contraste dos controles no modo noturno */
+:root[data-theme="dark"] #form-doacao .btn-outline {
+  background: #f4e6bd;
+  border-color: #f4e6bd;
+  color: #1c120e;
+}
+:root[data-theme="dark"] #form-doacao .btn-outline:hover,
+:root[data-theme="dark"] #form-doacao .btn-outline:focus-visible {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #160c08;
+}
+:root[data-theme="dark"] #form-doacao .btn-primary,
+:root[data-theme="dark"] #btn-ajudar-whatsapp {
+  background: #d94a20;
+  border-color: #f4e6bd;
+  color: #fff8df;
+}
+:root[data-theme="dark"] #form-doacao input {
+  background: #160e0a;
+  border-color: #9a6a54;
+  color: #f7ebca;
+}
+:root[data-theme="dark"] #form-doacao input::placeholder { color: #bda98d; }
+:root[data-theme="dark"] .countdown .box {
+  background: var(--gold) !important;
+  color: #160c08 !important;
+}
