@@ -8,8 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css"><link rel="stylesheet" href="assets/css/publico.css">
-<link rel="stylesheet" href="assets/css/cadastro-lavajato.css?v=2">
+<link rel="stylesheet" href="assets/css/nordeste.css">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:site_name" content="Raízes do Sertão">
@@ -33,7 +32,7 @@
   <div class="container" style="text-align:center; max-width:680px; margin:0 auto;">
     <div class="hero-tag" style="margin-inline:auto;">🚗 Todo domingo · 7h às 11h</div>
     <h1>Lava Jato R.S</h1>
-    <p class="lead" style="margin-inline:auto;">Traga seu carro, apoie o clube e ajude nossos desbravadores a chegar no Campori DSA 2027. Valor único: <strong>R$ 50,00</strong>. Reserve sua vaga e pague no dia da lavagem. Só aceitamos <strong>5 carros por domingo</strong> — confira a agenda e garanta sua vaga.</p>
+    <p class="lead" style="margin-inline:auto;">Traga seu carro, apoie o clube e ajude nossos desbravadores a chegar no Campori DSA 2027. Valor único: <strong>R$ 50,00</strong>, pago na hora. Só aceitamos <strong>5 carros por domingo</strong> — confira a agenda e garanta sua vaga.</p>
   </div>
 </section>
 
@@ -48,13 +47,11 @@
   </div>
 </section>
 
-<section class="section"><div class="container"><div class="section-head"><span class="eyebrow">Sua ajuda faz a diferença</span><h2>Como funciona o nosso lava-jato?</h2></div><div class="rs-feature-grid"><article class="card"><h3>1 · Escolha seu domingo</h3><p>Confira as vagas disponíveis e informe os dados do veículo.</p></article><article class="card"><h3>2 · Reserve sem pagar online</h3><p>O cadastro garante sua vaga. Não há Pix nem pagamento antecipado pelo site.</p></article><article class="card"><h3>3 · Pague na lavagem</h3><p>Compareça no horário informado e pague R$ 50,00 no dia. Sua participação ajuda o clube rumo ao Campori.</p></article></div><p style="margin-top:1.5rem"><a class="btn btn-outline" href="campori.html">🏕️ Conheça a campanha do Campori</a></p></div></section><section class="section" style="padding-top:0;">
+<section class="section" style="padding-top:0;">
   <div class="container">
     <div class="card" style="max-width:520px; margin:0 auto;" id="bloco-cadastro">
-      <span class="eyebrow">Cadastro rápido · 3 minutos</span>
-      <h2>Garanta sua lavagem 🚗</h2>
-      <p class="lj-intro">Reserve sua vaga por <strong>R$ 50,00</strong>. Faça sua reserva agora e pague no dia da lavagem.</p>
-      <div class="lj-progress" aria-label="Etapas do agendamento"><span class="lj-progress-on">1 · Seus dados</span><span>2 · Reserva</span><span>3 · Confirmado</span></div>
+      <span class="eyebrow">Cadastro</span>
+      <h2>Cadastrar meu carro</h2>
       <div class="alert alert-error" id="erro" role="alert" aria-live="polite"></div>
 
       <form id="form-cadastro">
@@ -67,15 +64,14 @@
         <div class="field"><label for="lj-placa">Placa do carro</label><input type="text" id="lj-placa" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text" maxlength="8" placeholder="ABC1234 ou ABC1D23" aria-describedby="lj-placa-ajuda" required style="text-transform:uppercase;"><small id="lj-placa-ajuda" style="display:block;margin-top:6px;">Aceita placas antigas e Mercosul, com ou sem hífen. Ex.: ABC-1234 ou ABC1D23.</small></div>
         <div class="field"><label>Modelo do carro</label><input type="text" id="lj-modelo" maxlength="60" required></div>
         <div class="field"><label>Cor do carro</label><input type="text" id="lj-cor" maxlength="40" required></div>
-        <div class="lj-summary"><span>Valor da lavagem</span><strong>R$ 50,00</strong></div><button class="btn btn-primary btn-block" type="submit">Confirmar minha reserva →</button>
+        <button class="btn btn-primary btn-block" type="submit">Cadastrar atendimento</button>
       </form>
       <p class="form-note">Sem pagamento online: R$ 50,00 no dia da lavagem.</p>
     </div>
 
     <div class="card text-center" style="max-width:520px; margin:20px auto 0; display:none;" id="bloco-confirmado">
       <div style="font-size:2.4rem;">✅</div>
-      <h2>Sua vaga está reservada!</h2>
-      <span class="lj-reservation-pill">✓ Reserva confirmada</span>
+      <h2>Cadastro feito!</h2>
       <p>Anotamos o carro <strong id="conf-modelo"></strong> (<span id="conf-placa"></span>) em nome de <strong id="conf-nome"></strong> pro domingo <strong id="conf-data"></strong>. Te esperamos lá!</p>
       <p class="form-note">Pagamento de R$ 50,00 no dia da lavagem.</p>
       <button class="btn btn-outline btn-block" id="btn-cancelar-meu">Cancelar meu atendimento</button>
@@ -230,7 +226,7 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
     const btn = e.target.querySelector("button[type=submit]");
     if (btn.disabled) return;
     btn.disabled = true;
-    btn.textContent = "Registrando sua reserva…";
+    btn.textContent = "Cadastrando…";
     const dados = {
       data: selectDomingo.value,
       nome: document.getElementById("lj-nome").value.trim(),
@@ -253,25 +249,35 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
       erro.classList.add("show");
       erro.scrollIntoView({ behavior: "smooth", block: "center" });
       btn.disabled = false;
-    } finally { btn.textContent = "Confirmar minha reserva →"; }
+    } finally { btn.textContent = "Cadastrar atendimento"; }
   });
 
   document.getElementById("btn-cancelar-meu").addEventListener("click", async () => {
     if (!confirm("Cancelar seu atendimento no Lava Jato?")) return;
-    let dados;
-    try { dados = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch (_) { return; }
-    if (!dados.id) return;
     const btn = document.getElementById("btn-cancelar-meu");
+    let dados;
+    try { dados = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); }
+    catch (_) { dados = null; }
+    if (!dados?.id || !dados?.data || !dados?.tokenCancelamento) {
+      alert("Não encontramos o código desta reserva neste aparelho. Entre em contato com a liderança para cancelar.");
+      return;
+    }
     btn.disabled = true;
+    btn.textContent = "Cancelando…";
     try {
       await cancelarRegistroLavaJato(dados.id, dados.data, dados.tokenCancelamento);
-      localStorage.removeItem(LS_KEY);
+      try { localStorage.removeItem(LS_KEY); } catch (_) {}
       blocoConfirmado.style.display = "none";
       blocoCadastro.style.display = "block";
       document.getElementById("form-cadastro").reset();
+      renderSelect();
+      alert("Atendimento cancelado! Sua vaga foi liberada.");
     } catch (err) {
-      alert("Não deu pra cancelar agora. Tente de novo em instantes.");
-    } finally { btn.disabled = false; }
+      console.error("Falha ao cancelar reserva:", err);
+      alert(err?.code === "permission-denied"
+        ? "O Firebase recusou o cancelamento. Atualize as regras do Firestore para a versão do GitHub e tente novamente."
+        : (err?.message && /cancelamento|agenda|reserva/i.test(err.message) ? err.message : "Não foi possível cancelar agora. Confira sua conexão e tente novamente."));
+    } finally { btn.disabled = false; btn.textContent = "Cancelar meu atendimento"; }
   });
 </script>
 <script type="module" src="assets/js/main.js"></script>
