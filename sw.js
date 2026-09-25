@@ -1,7 +1,7 @@
 /* Service worker simples — cache do "app shell" para o site
    abrir rápido e funcionar offline depois da primeira visita. */
 
-const CACHE_NAME = "raizes-do-sertao-v69";
+const CACHE_NAME = "raizes-do-sertao-v70";
 const APP_SHELL = [
   "./index.html",
   "./historia.html",
@@ -44,6 +44,8 @@ const APP_SHELL = [
   "./assets/img/unit_carcara.png",
   "./assets/img/unit_raposa.png",
   "./calendario.html",
+  "./agenda-admin.html",
+  "./assets/js/agenda-admin.js",
 ];
 
 self.addEventListener("install", (event) => {
