@@ -3,7 +3,9 @@
    ========================================================= */
 
 import { RS_CLUBE, RS_LINKS } from "./data.js";
-import { getTheme, setTheme } from "./store.js";
+// A navegação pública não deve depender da conexão com Firebase.
+function getTheme(){try{return localStorage.getItem("rs_tema") || "light";}catch{return "light";}}
+function setTheme(theme){try{localStorage.setItem("rs_tema",theme);}catch{/* Navegação continua funcional sem armazenamento. */}}
 
 /* ---------------- Cabeçalho e rodapé (injetados em toda página) ---------------- */
 const NAV_GROUPS = [
@@ -126,7 +128,7 @@ if (navToggle && navLinks) {
     navToggle.setAttribute("aria-expanded", "true");
     navToggle.setAttribute("aria-label", "Fechar menu");
     navLinks.setAttribute("aria-hidden", "false");
-    document.body.classList.add("scroll-lock");
+    // Não travar o body: o overflow:hidden pode congelar o Safari e alguns WebViews Android.
   };
   const fecharNav = () => {
     navLinks.classList.remove("open");
@@ -134,7 +136,6 @@ if (navToggle && navLinks) {
     navToggle.setAttribute("aria-expanded", "false");
     navToggle.setAttribute("aria-label", "Abrir menu");
     navLinks.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("scroll-lock");
   };
   navToggle.addEventListener("click", () => (navLinks.classList.contains("open") ? fecharNav() : abrirNav()));
   document.addEventListener("keydown", (event) => {
@@ -149,6 +150,8 @@ if (navToggle && navLinks) {
   navLinks.querySelectorAll("a").forEach((a) => a.addEventListener("click", fecharNav));
   // O estado do menu não deve sobreviver ao retorno do Safari pelo histórico.
   window.addEventListener("pageshow", fecharNav);
+  window.addEventListener("hashchange", fecharNav);
+  window.addEventListener("popstate", fecharNav);
   window.addEventListener("pagehide", fecharNav);
   window.addEventListener("resize", () => {
     if (window.innerWidth > 1520 && navLinks.classList.contains("open")) fecharNav();
