@@ -87,6 +87,11 @@ service cloud.firestore {
       allow delete: if eLideranca();
     }
 
+    // CRM privado: somente a liderança acessa contatos e negociações.
+    match /prospects/{prospectId} {
+      allow read, write: if eLideranca();
+    }
+
     // Pagamentos Pix: dados bancários e QR Code não são públicos.
     // Somente Cloud Functions com Admin SDK podem criar/atualizar.
     match /lavajato_pix/{reservaId} {
