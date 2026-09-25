@@ -79,6 +79,55 @@ function criarFanOutPorMembro(unidadeId, watchFn, onChange) {
 
 function iniciarPainel(unidadeId) {
   const estado = { membros: [], conselheiros: [], planejamentos: [], notificacoes: [], presencas: [], pontuacao: [] };
+
+  /* Frequência é uma visualização das chamadas existentes, sem duplicar dados. */
+  const freqSelect = document.getElementById("freq-membro");
+  const freqGrid = document.getElementById("freq-calendario");
+  const freqResumo = document.getElementById("freq-resumo");
+  const freqDetalhe = document.getElementById("freq-detalhe");
+  const freqMesTitulo = document.getElementById("freq-mes");
+  let freqMes = new Date(new Date().getFullYear(),new Date().getMonth(),1);
+  let freqDiaSelecionado = "";
+  function freqISO(ano,mes,dia){return ano+"-"+String(mes+1).padStart(2,"0")+"-"+String(dia).padStart(2,"0")}
+  function renderFrequencia(){
+    const id = freqSelect.value;
+    const ano=freqMes.getFullYear(),mes=freqMes.getMonth();
+    freqMesTitulo.textContent=new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(freqMes);
+    const chamadas=new Map(estado.presencas.map(p=>[p.data||p.id,p]));
+    const diasNoMes=new Date(ano,mes+1,0).getDate();
+    let presentes=0,ausentes=0;
+    freqGrid.replaceChildren();
+    ["D","S","T","Q","Q","S","S"].forEach(d=>{const el=document.createElement("span");el.className="unidade-freq-dia-semana";el.textContent=d;freqGrid.append(el)});
+    for(let n=0;n<new Date(ano,mes,1).getDay();n++){const el=document.createElement("span");el.setAttribute("aria-hidden","true");freqGrid.append(el)}
+    for(let dia=1;dia<=diasNoMes;dia++){
+      const data=freqISO(ano,mes,dia),chamada=chamadas.get(data);
+      const veio=!!chamada&&(chamada.presentes||[]).includes(id);
+      const estadoDia=!id?"":chamada?(veio?"freq-presente":"freq-ausente"):(new Date(ano,mes,dia).getDay()===0?"freq-sem":"");
+      if(id&&chamada){if(veio)presentes++;else ausentes++}
+      const btn=document.createElement("button");btn.type="button";btn.className="unidade-freq-dia "+estadoDia;btn.textContent=String(dia);
+      btn.disabled=!id;btn.setAttribute("aria-label",data+": "+(!id?"selecione um desbravador":chamada?(veio?"presente":"ausente"):"sem chamada"));
+      btn.setAttribute("aria-pressed",String(freqDiaSelecionado===data));
+      btn.addEventListener("click",()=>{freqDiaSelecionado=data;freqDetalhe.textContent=new Intl.DateTimeFormat("pt-BR",{dateStyle:"full"}).format(new Date(ano,mes,dia))+": "+(chamada?(veio?"Presença registrada.":"Ausência registrada."):"Não há chamada salva neste dia.");renderFrequencia()});
+      freqGrid.append(btn);
+    }
+    const total=presentes+ausentes,porcentagem=total?Math.round(100*presentes/total):0;
+    freqResumo.replaceChildren();
+    [[presentes,"Presenças"],[ausentes,"Faltas"],[total?porcentagem+"%":"—","Frequência"]].forEach(([numero,rotulo])=>{const card=document.createElement("div"),valor=document.createElement("strong"),label=document.createElement("span");valor.textContent=String(numero);label.textContent=rotulo;card.append(valor,label);freqResumo.append(card)});
+    if(!id)freqDetalhe.textContent="Escolha um desbravador para consultar sua frequência.";
+    else if(!freqDiaSelecionado)freqDetalhe.textContent="Toque em um dia para consultar a situação. Apenas chamadas salvas entram no cálculo.";
+  }
+  function atualizarOpcoesFrequencia(){
+    const anterior=freqSelect.value;
+    freqSelect.replaceChildren();
+    const vazio=document.createElement("option");vazio.value="";vazio.textContent="Selecione um desbravador";freqSelect.append(vazio);
+    estado.membros.forEach(m=>{const op=document.createElement("option");op.value=m.id;op.textContent=m.nome||"Sem nome";freqSelect.append(op)});
+    if(estado.membros.some(m=>m.id===anterior))freqSelect.value=anterior;
+    renderFrequencia();
+  }
+  freqSelect.addEventListener("change",()=>{freqDiaSelecionado="";renderFrequencia()});
+  document.getElementById("freq-anterior").addEventListener("click",()=>{freqMes=new Date(freqMes.getFullYear(),freqMes.getMonth()-1,1);freqDiaSelecionado="";renderFrequencia()});
+  document.getElementById("freq-proximo").addEventListener("click",()=>{freqMes=new Date(freqMes.getFullYear(),freqMes.getMonth()+1,1);freqDiaSelecionado="";renderFrequencia()});
+  renderFrequencia();
   const abertosRequisitos = new Set();
   const abertosEspecialidades = new Set();
   const abertosMateriais = new Set();
@@ -124,8 +173,10 @@ function iniciarPainel(unidadeId) {
     fanOutMateriais.sincronizar(membros);
 
     renderMembros();
+    atualizarOpcoesFrequencia();
     renderChamadaAtual();
     renderHistoricoPresencas();
+    renderFrequencia();
     renderRequisitos();
     renderEspecialidades();
     renderMateriais();
