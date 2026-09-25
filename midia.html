@@ -217,7 +217,7 @@ function previewVideo(src){const u=new URL(src);u.pathname=u.pathname.replace("/
 function baixarVideo(src){const u=new URL(src);u.pathname=u.pathname.replace("/video/upload/","/video/upload/fl_attachment/");return u.href;}
 let videoObserver=null;
 function pararVideos(){if(videoObserver){videoObserver.disconnect();videoObserver=null;}document.querySelectorAll(".midia-video-card video").forEach(v=>{v.pause();v.removeAttribute("src");v.load();});}
-function observarVideos(){if(!("IntersectionObserver" in window)||matchMedia("(prefers-reduced-motion: reduce)").matches||navigator.connection?.saveData)return;videoObserver=new IntersectionObserver(entries=>{for(const entry of entries){const v=entry.target;if(entry.isIntersecting&&!v.dataset.ativado&&!document.hidden){if(!v.src)v.src=v.dataset.preview;v.play().catch(()=>{});}else if(!v.dataset.ativado)v.pause();}},{threshold:.55});eventoFotos.querySelectorAll(".midia-video-card video").forEach(v=>videoObserver.observe(v));}
+function observarVideos(){if(!("IntersectionObserver" in window)||window.matchMedia("(prefers-reduced-motion: reduce)").matches||navigator.connection?.saveData)return;videoObserver=new IntersectionObserver(entries=>{for(const entry of entries){const v=entry.target;if(entry.isIntersecting&&!v.dataset.ativado&&!document.hidden){if(!v.src)v.src=v.dataset.preview;v.play().catch(()=>{});}else if(!v.dataset.ativado)v.pause();}},{threshold:.55});eventoFotos.querySelectorAll(".midia-video-card video").forEach(v=>videoObserver.observe(v));}
 document.addEventListener("visibilitychange",()=>{if(document.hidden)document.querySelectorAll(".midia-video-card video").forEach(v=>v.pause());});
 function abrirAlbum(pasta) {
   pararVideos();
@@ -242,9 +242,10 @@ function abrirAlbum(pasta) {
   videos.forEach((src,i)=>{
     const card=document.createElement("div");card.className="midia-foto midia-video-card";
     const video=document.createElement("video");video.controls=true;video.muted=true;video.defaultMuted=true;video.loop=true;video.preload="none";video.playsInline=true;video.setAttribute("playsinline","");video.setAttribute("aria-label","Vídeo "+(i+1)+" do álbum");video.dataset.preview=previewVideo(src);video.poster=miniaturaVideo(src);
-    video.addEventListener("pointerdown",()=>{video.dataset.ativado="1";video.loop=false;video.pause();video.muted=false;video.src=src;video.load();},{once:true});
+    const ativarOriginal=()=>{if(video.dataset.ativado)return;video.dataset.ativado="1";video.loop=false;video.pause();video.muted=false;video.src=src;video.load();video.play().catch(()=>{});};
+    const assistir=document.createElement("button");assistir.type="button";assistir.className="midia-video-assistir";assistir.textContent="▶ Assistir com som";assistir.setAttribute("aria-label","Reproduzir vídeo "+(i+1)+" com som");assistir.addEventListener("click",()=>{ativarOriginal();assistir.remove();});
     const baixar=document.createElement("a");baixar.className="midia-video-baixar";baixar.href=baixarVideo(src);baixar.target="_blank";baixar.rel="noopener noreferrer";baixar.textContent="↓ Baixar original";baixar.setAttribute("aria-label","Baixar vídeo "+(i+1)+" na qualidade original");
-    card.append(video,baixar);eventoFotos.append(card);
+    card.append(video,assistir,baixar);eventoFotos.append(card);
   });
   observarVideos();
   if (!fotos.length && !videos.length) {
@@ -291,8 +292,7 @@ function render(pastas) {
         imagem.alt = "Capa do evento " + nome; imagem.loading = "lazy";
         visual.append(imagem);
       } else {
-        const icone = document.createElement("span"); icone.className = "midia-capa-icone"; icone.textContent = "📷";
-        visual.append(icone);
+        if(videos.length){const img=document.createElement("img");img.src=miniaturaVideo(videos[0]);img.alt="Prévia de vídeo do álbum "+nome;img.loading="lazy";visual.append(img);}else{const icone=document.createElement("span");icone.className="midia-capa-icone";icone.textContent="📷";visual.append(icone);}
       }
       const info = document.createElement("div"); info.className = "midia-capa-info";
       const titulo = document.createElement("h2"); titulo.textContent = nome;
