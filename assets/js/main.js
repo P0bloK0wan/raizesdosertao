@@ -147,6 +147,12 @@ if (navToggle && navLinks) {
     if (navLinks.classList.contains("open") && !event.target.closest(".site-header")) fecharNav();
   });
   navLinks.querySelectorAll("a").forEach((a) => a.addEventListener("click", fecharNav));
+  // O estado do menu não deve sobreviver ao retorno do Safari pelo histórico.
+  window.addEventListener("pageshow", fecharNav);
+  window.addEventListener("pagehide", fecharNav);
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 1520 && navLinks.classList.contains("open")) fecharNav();
+  });
 }
 
 /* Sidebar dos painéis (mobile) */
