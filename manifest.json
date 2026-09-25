@@ -1,7 +1,7 @@
 {
   "name": "Raízes do Sertão — Clube de Desbravadores",
   "short_name": "Raízes do Sertão",
-  "description": "Site do Clube de Desbravadores Raízes do Sertão — Lava Jato, unidades e agenda.",
+  "description": "Site do Clube de Desbravadores Raízes do Sertão — fotos, Campori, lava-jato e participação.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
