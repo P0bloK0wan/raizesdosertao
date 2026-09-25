@@ -441,7 +441,7 @@ function iniciarPainel(unidadeId) {
         return `
         <details class="month-acc" data-membro-acc="${m.id}"${abertosRequisitos.has(m.id) ? " open" : ""}>
           <summary>${m.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${regs.length} registro(s))</span></summary>
-          <div style="padding:14px 20px 18px;">
+          <div class="unidade-acc-conteudo">
             <ul class="registro-list">${linhas || "<li class='muted' style='border:none;'>Nenhum registro lançado ainda.</li>"}</ul>
             <form class="registro-add-form" data-form-registro="${m.id}">
               <div class="field">
@@ -544,7 +544,7 @@ function iniciarPainel(unidadeId) {
         return `
         <details class="month-acc" data-esp-acc="${m.id}"${abertosEspecialidades.has(m.id) ? " open" : ""}>
           <summary>${m.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${lista.length} especialidade(s))</span></summary>
-          <div style="padding:14px 20px 18px;">
+          <div class="unidade-acc-conteudo">
             <ul class="esp-list">${itens || "<li class='muted' style='border:none;'>Nenhuma especialidade cadastrada ainda.</li>"}</ul>
             <form class="registro-add-form" data-form-esp="${m.id}">
               <div class="field"><label>Nova especialidade</label><input type="text" class="esp-nova-nome" placeholder="ex.: Acampamento" required></div>
@@ -669,7 +669,7 @@ function iniciarPainel(unidadeId) {
         return `
         <details class="month-acc" data-mat-acc="${m.id}"${abertosMateriais.has(m.id) ? " open" : ""}>
           <summary>${m.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${pendentes} pendente(s) de ${lista.length})</span></summary>
-          <div style="padding:14px 20px 18px;">
+          <div class="unidade-acc-conteudo">
             <ul class="mat-list">${itens || "<li class='muted' style='border:none;'>Nenhum item cadastrado ainda.</li>"}</ul>
             <form class="registro-add-form" data-form-mat="${m.id}">
               <div class="field"><label>Item</label><input type="text" class="mat-novo-nome" placeholder="ex.: Cantil" required></div>
