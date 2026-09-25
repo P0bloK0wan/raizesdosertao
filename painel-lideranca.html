@@ -276,7 +276,7 @@
           <button class="btn btn-primary btn-sm" id="btn-novo-evento">+ Novo evento</button>
         </div>
       </div>
-      <p class="muted">Só liderança e unidades logadas veem esse calendário — não é público.</p>
+      <p class="muted">Só liderança e unidades logadas veem esse calendário — não é público.</p><div class="card" style="margin:1.5rem 0"><h3>📢 Agenda pública</h3><p class="muted">Publique somente atividades abertas à comunidade. O calendário interno continua privado.</p><form id="form-evento-publico" class="registro-add-form"><div class="field"><label for="evento-publico-titulo">Título</label><input id="evento-publico-titulo" maxlength="120" required></div><div class="field"><label for="evento-publico-data">Data</label><input type="date" id="evento-publico-data" required></div><div class="field"><label for="evento-publico-local">Local público (opcional)</label><input id="evento-publico-local" maxlength="150"></div><div class="field"><label for="evento-publico-descricao">Descrição pública</label><textarea id="evento-publico-descricao" maxlength="800" rows="3"></textarea></div><button type="submit" class="btn btn-primary">Publicar na agenda</button><p id="evento-publico-status" role="status" aria-live="polite"></p></form><div id="eventos-publicos-gestao" aria-live="polite"></div></div>
       <div class="calendario-nav">
         <button type="button" class="btn btn-sm btn-outline" id="cal-anterior">← Mês anterior</button>
         <strong id="cal-mes-atual"></strong>
@@ -522,6 +522,6 @@
 })();
 </script>
 <script type="module" src="assets/js/main.js"></script>
-<script type="module" src="assets/js/painel-lideranca.js"></script>
+<script type="module" src="assets/js/painel-lideranca.js"></script><script type="module" src="assets/js/publicar-agenda.js"></script>
 </body>
 </html>
