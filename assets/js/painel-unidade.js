@@ -133,36 +133,65 @@ function iniciarPainel(unidadeId) {
   });
 
   /* ---------------- Membros ---------------- */
+  /* A lista mostra só nome e classe. Os dados pessoais aparecem apenas no perfil aberto. */
+  let membroSelecionado = null;
+  const buscaMembros = document.getElementById("busca-membros");
+  buscaMembros.addEventListener("input", renderMembros);
+  function textoSeguro(v) { return String(v ?? "—"); }
   function renderMembros() {
-    const tbody = document.getElementById("tbody-membros");
+    const cards = document.getElementById("cards-membros");
+    const perfil = document.getElementById("perfil-membro");
     const vazio = document.getElementById("membros-vazio");
-    tbody.innerHTML = "";
+    const termo = buscaMembros.value.trim().toLocaleLowerCase("pt-BR");
+    const filtrados = estado.membros.filter(m => (m.nome || "").toLocaleLowerCase("pt-BR").includes(termo));
+    document.getElementById("contagem-membros").textContent = filtrados.length + (filtrados.length === 1 ? " desbravador" : " desbravadores");
     vazio.style.display = estado.membros.length ? "none" : "block";
-
-    estado.membros.forEach((m) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${m.nome}</td>
-        <td>${m.nascimento ? new Date(m.nascimento + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</td>
-        <td>${m.idade ?? "—"}</td>
-        <td>${m.classe || "—"}</td>
-        <td>${m.responsavel || "—"}</td>
-        <td>${m.telefone || "—"}</td>
-        <td>${m.tipoSanguineo || "—"}</td>
-        <td class="row-actions"><button class="danger" data-del="${m.id}">Excluir</button></td>`;
-      tbody.appendChild(tr);
+    cards.replaceChildren();
+    filtrados.forEach(m => {
+      const botao = document.createElement("button");
+      botao.type = "button"; botao.className = "unidade-membro-card";
+      const avatar = document.createElement("span"); avatar.className = "unidade-membro-avatar";
+      avatar.textContent = (m.nome || "?").trim().charAt(0).toUpperCase();
+      const info = document.createElement("span"); info.className = "unidade-membro-info";
+      const nome = document.createElement("strong"); nome.textContent = m.nome || "Sem nome";
+      const classe = document.createElement("small"); classe.textContent = m.classe || "Classe não informada";
+      info.append(nome, classe);
+      const seta = document.createElement("span"); seta.className = "unidade-membro-seta"; seta.textContent = "›"; seta.setAttribute("aria-hidden","true");
+      botao.append(avatar,info,seta);
+      botao.addEventListener("click", () => { membroSelecionado = m.id; renderMembros(); perfil.scrollIntoView({block:"start",behavior:"smooth"}); });
+      cards.append(botao);
     });
-
-    tbody.querySelectorAll("[data-del]").forEach((btn) =>
-      btn.addEventListener("click", async () => {
-        const m = estado.membros.find((x) => x.id === btn.dataset.del);
-        if (!(await pedirDesbloqueioSeNecessario())) return;
-        if (!confirm("Excluir este desbravador? Todo o histórico dele também será perdido.")) return;
-        await deleteMembro(unidadeId, btn.dataset.del);
-        avisarLideranca(`excluiu o desbravador "${m ? m.nome : btn.dataset.del}".`);
-        mostrarToast("Desbravador removido.");
-      })
-    );
+    const m = estado.membros.find(item => item.id === membroSelecionado);
+    if (!m || (termo && !filtrados.some(item => item.id === m.id))) {
+      membroSelecionado = null; perfil.hidden = true; cards.hidden = false; perfil.replaceChildren(); return;
+    }
+    cards.hidden = true; perfil.hidden = false; perfil.replaceChildren();
+    const voltar = document.createElement("button"); voltar.type = "button"; voltar.className = "btn btn-outline btn-sm";
+    voltar.textContent = "← Voltar aos desbravadores";
+    voltar.addEventListener("click", () => { membroSelecionado = null; renderMembros(); buscaMembros.focus(); });
+    const cab = document.createElement("div"); cab.className = "unidade-perfil-cabecalho";
+    const avatar = document.createElement("span"); avatar.className = "unidade-membro-avatar"; avatar.textContent = (m.nome || "?").charAt(0).toUpperCase();
+    const nome = document.createElement("h3"); nome.textContent = m.nome || "Sem nome"; cab.append(avatar,nome);
+    const dados = document.createElement("div"); dados.className = "unidade-perfil-dados";
+    [["Classe",m.classe],["Nascimento",m.nascimento ? fmtDataBr(m.nascimento) : "—"],["Idade",m.idade],["Responsável",m.responsavel],["Parentesco",m.parentesco],["Telefone",m.telefone],["Segundo responsável",m.responsavel2Nome],["Telefone adicional",m.responsavel2Telefone],["Tipo sanguíneo",m.tipoSanguineo],["Observações",m.observacoesResponsavel]].forEach(([rotulo,valor]) => {
+      const campo = document.createElement("div"); campo.className = "unidade-perfil-dado";
+      const label = document.createElement("small"); label.textContent = rotulo;
+      const conteudo = document.createElement("strong"); conteudo.textContent = textoSeguro(valor);
+      campo.append(label,conteudo); dados.append(campo);
+    });
+    const acoes = document.createElement("div"); acoes.className = "unidade-perfil-acoes";
+    const compras = document.createElement("button"); compras.type = "button"; compras.className = "btn btn-outline btn-sm"; compras.textContent = "🛒 Ver materiais";
+    compras.addEventListener("click", () => { location.hash = "materiais"; });
+    const excluir = document.createElement("button"); excluir.type = "button"; excluir.className = "danger"; excluir.textContent = "Excluir cadastro";
+    excluir.addEventListener("click", async () => {
+      if (!(await pedirDesbloqueioSeNecessario())) return;
+      if (!confirm("Excluir este desbravador? Todo o histórico dele também será perdido.")) return;
+      await deleteMembro(unidadeId,m.id);
+      membroSelecionado = null;
+      avisarLideranca('excluiu o desbravador "' + (m.nome || m.id) + '".');
+      mostrarToast("Desbravador removido.");
+    });
+    acoes.append(compras,excluir); perfil.append(voltar,cab,dados,acoes);
   }
 
   const modalMembro = document.getElementById("modal-membro");
@@ -528,6 +557,45 @@ function iniciarPainel(unidadeId) {
     );
   }
 
+  let filtroCompras = "pendente";
+  document.querySelectorAll("[data-filtro-compras]").forEach(botao => botao.addEventListener("click", () => {
+    filtroCompras = botao.dataset.filtroCompras;
+    document.querySelectorAll("[data-filtro-compras]").forEach(b => {
+      const ativo = b.dataset.filtroCompras === filtroCompras;
+      b.setAttribute("aria-pressed",String(ativo));
+      b.classList.toggle("btn-primary",ativo); b.classList.toggle("btn-outline",!ativo);
+    });
+    renderResumoCompras();
+  }));
+  function renderResumoCompras() {
+    const wrap = document.getElementById("compras-resumo");
+    const todos = estado.membros.flatMap(m => (fanOutMateriais.dados[m.id] || []).map(item => ({m,item})));
+    const filtrados = todos.filter(({item}) => filtroCompras === "todos" || (filtroCompras === "comprado" ? item.status === "comprado" : item.status !== "comprado"));
+    document.getElementById("compras-contagem").textContent = filtrados.length + (filtrados.length === 1 ? " item" : " itens") + " · " + todos.filter(({item}) => item.status !== "comprado").length + " pendentes";
+    wrap.replaceChildren();
+    if (!filtrados.length) {
+      const vazio = document.createElement("p"); vazio.className = "muted"; vazio.textContent = "Nenhum material nesta categoria."; wrap.append(vazio); return;
+    }
+    filtrados.forEach(({m,item}) => {
+      const linha = document.createElement("div"); linha.className = "unidade-compra-item";
+      const info = document.createElement("div");
+      const nome = document.createElement("strong"); nome.textContent = item.nome || "Material";
+      const detalhe = document.createElement("small"); detalhe.textContent = m.nome + (item.especialidade ? " · " + item.especialidade : "");
+      info.append(nome,detalhe);
+      const botao = document.createElement("button"); botao.type = "button";
+      botao.className = "btn btn-sm " + (item.status === "comprado" ? "btn-outline" : "btn-primary");
+      botao.textContent = item.status === "comprado" ? "✓ Comprado" : "Marcar comprado";
+      botao.addEventListener("click",async () => {
+        botao.disabled = true;
+        const novoStatus = item.status === "comprado" ? "pendente" : "comprado";
+        try {
+          await toggleMaterial(unidadeId,m.id,item.id,novoStatus);
+          avisarLideranca('marcou "' + item.nome + '" (' + m.nome + ') como ' + novoStatus + '.');
+        } catch (erro) { mostrarToast("Não foi possível atualizar o material."); botao.disabled = false; }
+      });
+      linha.append(info,botao);wrap.append(linha);
+    });
+  }
   /* ---------------- Materiais: o que falta comprar ---------------- */
   function renderMateriais() {
     const wrap = document.getElementById("lista-materiais");
@@ -563,6 +631,7 @@ function iniciarPainel(unidadeId) {
       })
       .join("");
 
+    renderResumoCompras();
     wrap.querySelectorAll("[data-mat-acc]").forEach((det) =>
       det.addEventListener("toggle", () => {
         if (det.open) abertosMateriais.add(det.dataset.matAcc);
