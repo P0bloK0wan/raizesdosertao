@@ -1,0 +1,16 @@
+/* Refinamento mobile-first: cadastro do lava-jato e CRM da liderança */
+#bloco-cadastro,#bloco-confirmado{border-radius:24px;box-shadow:0 16px 48px rgba(60,30,9,.12);overflow:hidden}
+#bloco-cadastro{position:relative;padding:clamp(20px,5vw,34px)}
+#bloco-cadastro:before{content:"";display:block;height:6px;background:linear-gradient(90deg,#b65b24,#e9ac47,#55764d);border-radius:8px;margin:-4px 0 22px}
+#bloco-cadastro h2{font-size:clamp(1.55rem,5vw,2rem);line-height:1.2;margin:8px 0 22px}
+#form-cadastro{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+#form-cadastro .field{margin:0;min-width:0}
+#form-cadastro .field:nth-child(-n+3),#form-cadastro .field:nth-child(7),#form-cadastro button{grid-column:1/-1}
+#form-cadastro label{display:block;font-weight:750;margin-bottom:7px}
+#form-cadastro input,#form-cadastro select{width:100%;min-height:49px;box-sizing:border-box;border-radius:12px;padding:11px 13px;background:var(--bg-elevated,var(--surface,#fff));color:var(--text,#292018);border:1.5px solid var(--border,#c5b5a2);font-size:16px}
+#form-cadastro input:focus-visible,#form-cadastro select:focus-visible{outline:3px solid #e9ac47;outline-offset:2px}
+#form-cadastro button{min-height:54px;border-radius:13px;font-weight:800;margin-top:8px}
+#lj-pagamento{background:var(--bg-elevated,rgba(239,221,187,.16));border-radius:18px!important}
+#lj-local-aviso{line-height:1.6;border-left:4px solid #55764d;padding:10px 13px;background:rgba(85,118,77,.1);border-radius:8px}
+@media(max-width:480px){#form-cadastro{grid-template-columns:minmax(0,1fr)}#form-cadastro .field{grid-column:1/-1}#bloco-cadastro{padding:20px}#form-cadastro input,#form-cadastro select{font-size:16px}}
+@media(prefers-reduced-motion:no-preference){#bloco-cadastro{animation:ljEntrada .35s ease-out}@keyframes ljEntrada{from{opacity:.5;transform:translateY(8px)}to{opacity:1;transform:none}}}
