@@ -87,6 +87,12 @@ service cloud.firestore {
       allow delete: if eLideranca();
     }
 
+    // Pagamentos Pix: dados bancários e QR Code não são públicos.
+    // Somente Cloud Functions com Admin SDK podem criar/atualizar.
+    match /lavajato_pix/{reservaId} {
+      allow read, write: if false;
+    }
+
     // Agenda pública do Lava Jato: um documento por domingo (ID =
     // "AAAA-MM-DD") com só o resumo — vagas ocupadas de um total
     // fixo de 5, e se a liderança fechou o dia. Qualquer visitante
