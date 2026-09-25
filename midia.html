@@ -14,7 +14,7 @@
 </div></main>
 <div class="midia-lightbox" id="midia-lightbox" hidden role="dialog" aria-modal="true" aria-label="Visualizar foto">
   <button type="button" class="midia-fechar" id="midia-fechar" aria-label="Fechar foto">×</button>
-  <img id="midia-foto-ampliada" alt=""><p id="midia-legenda"></p>
+  <img id="midia-foto-ampliada" alt=""><p id="midia-legenda"></p><a id="midia-baixar" class="midia-link midia-download" href="#" target="_blank" rel="noopener noreferrer">⬇ Baixar foto original</a>
 </div>
 <div data-site-footer></div>
 <script type="module">
@@ -23,10 +23,11 @@ const wrap = document.getElementById("midia-pastas");
 const lightbox = document.getElementById("midia-lightbox");
 const fotoAmpliada = document.getElementById("midia-foto-ampliada");
 const legenda = document.getElementById("midia-legenda");
+const baixar = document.getElementById("midia-baixar");
 document.getElementById("midia-fechar").addEventListener("click", fecharFoto);
 lightbox.addEventListener("click", e => { if (e.target === lightbox) fecharFoto(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") fecharFoto(); });
-function fecharFoto(){lightbox.hidden = true;fotoAmpliada.removeAttribute("src");document.body.style.overflow = "";}
+function fecharFoto(){lightbox.hidden = true;fotoAmpliada.removeAttribute("src");baixar.removeAttribute("href");document.body.style.overflow = "";}
 function urlFoto(link) {
   try {
     const url = new URL(link);
@@ -38,6 +39,29 @@ function urlFoto(link) {
     if (url.hostname === "res.cloudinary.com" || url.hostname.endsWith(".res.cloudinary.com")) return url.href;
     return null;
   } catch { return null; }
+}
+// Miniaturas leves para a galeria; o link de download usa o arquivo original.
+function miniatura(src) {
+  try {
+    const url = new URL(src);
+    if (url.hostname === "res.cloudinary.com" && url.pathname.includes("/image/upload/")) {
+      url.pathname = url.pathname.replace("/image/upload/", "/image/upload/c_fill,w_640,h_640,q_auto/");
+      return url.href;
+    }
+  } catch {}
+  return src;
+}
+function downloadOriginal(src) {
+  try {
+    const url = new URL(src);
+    if (url.hostname === "res.cloudinary.com" && url.pathname.includes("/image/upload/")) {
+      // fl_attachment força o download sem reduzir dimensões nem qualidade.
+      url.pathname = url.pathname.replace("/image/upload/", "/image/upload/fl_attachment/");
+      return url.href;
+    }
+  } catch {}
+  // Fotos antigas do Drive não garantem download original via miniatura.
+  return src;
 }
 function idPastaDrive(link) {
   try {
@@ -70,8 +94,8 @@ function render(pastas) {
       const grid = document.createElement("div");grid.className="midia-fotos";
       fotos.forEach((src,i) => {
         const btn=document.createElement("button");btn.type="button";btn.className="midia-foto";btn.setAttribute("aria-label","Ampliar foto "+(i+1)+" de "+title.textContent);
-        const img=document.createElement("img");img.src=src;img.alt=title.textContent+" — foto "+(i+1);img.loading="lazy";img.decoding="async";
-        btn.append(img);btn.addEventListener("click",()=>{fotoAmpliada.src=src;fotoAmpliada.alt=img.alt;legenda.textContent=title.textContent;lightbox.hidden=false;document.body.style.overflow="hidden";});grid.append(btn);
+        const img=document.createElement("img");img.src=miniatura(src);img.alt=title.textContent+" — foto "+(i+1);img.loading="lazy";img.decoding="async";
+        btn.append(img);btn.addEventListener("click",()=>{fotoAmpliada.src=src;fotoAmpliada.alt=img.alt;legenda.textContent=title.textContent;baixar.href=downloadOriginal(src);baixar.textContent=src.includes("drive.google.com") ? "↗ Abrir foto no Drive" : "⬇ Baixar em resolução original";lightbox.hidden=false;document.body.style.overflow="hidden";});grid.append(btn);
       });card.append(grid);
     } else {
       const capa=document.createElement("div");capa.className="midia-capa-vazia";
