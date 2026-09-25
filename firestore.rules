@@ -81,11 +81,12 @@ service cloud.firestore {
       allow read: if eLideranca();
       allow update: if eLideranca() || (
         resource.data.cancelado == false &&
+        resource.data.data is string &&
+        getAfter(/databases/$(database)/documents/lavajato_domingos/$(resource.data.data)).data.vagasOcupadas ==
+          get(/databases/$(database)/documents/lavajato_domingos/$(resource.data.data)).data.vagasOcupadas - 1 &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelado', 'canceladoEm', 'cancelamentoProva']) &&
         request.resource.data.cancelamentoProva is string &&
         request.resource.data.cancelamentoProva == resource.data.tokenCancelamento &&
-        resource.data.get('pagamentoStatus', 'pendente') != 'approved' &&
-        resource.data.get('pagamentoStatus', 'pendente') != 'pago' &&
         request.resource.data.cancelado == true &&
         request.resource.data.tokenCancelamento == resource.data.tokenCancelamento
       );
@@ -97,11 +98,6 @@ service cloud.firestore {
       allow read, write: if eLideranca();
     }
 
-    // Pagamentos Pix: dados bancários e QR Code não são públicos.
-    // Somente Cloud Functions com Admin SDK podem criar/atualizar.
-    match /lavajato_pix/{reservaId} {
-      allow read, write: if false;
-    }
 
     // Agenda pública do Lava Jato: um documento por domingo (ID =
     // "AAAA-MM-DD") com só o resumo — vagas ocupadas de um total
