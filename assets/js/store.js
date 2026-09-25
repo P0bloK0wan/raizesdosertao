@@ -617,10 +617,18 @@ export function watchLavaJato(cb) {
    Cada pasta é só um nome + um link de uma pasta do Google Drive,
    publicado pela liderança — as fotos em si continuam morando no
    Drive, o site só mostra o botão "Abrir no Drive". */
-export function watchMidia(cb) {
-  return onSnapshot(query(collection(db, "midia"), orderBy("criadoEm", "asc")), (snap) => {
-    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-  });
+export function watchMidia(cb, onError = console.error) {
+  // Não usar orderBy aqui: o Firestore omite documentos antigos sem criadoEm.
+  // A ordenação no cliente preserva todos os álbuns já cadastrados.
+  return onSnapshot(collection(db, "midia"), (snap) => {
+    const pastas = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    pastas.sort((a, b) => {
+      const ta = a.criadoEm?.toMillis?.() ?? 0;
+      const tb = b.criadoEm?.toMillis?.() ?? 0;
+      return ta - tb || (a.nome || "").localeCompare(b.nome || "", "pt-BR");
+    });
+    cb(pastas);
+  }, onError);
 }
 export function addPastaMidia(nome, fotos = [], link = "", videos = []) {
   return addDoc(collection(db, "midia"), { nome, fotos, videos, link, tipo: link ? "drive" : "fotos", criadoEm: serverTimestamp() });
