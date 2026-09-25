@@ -10,7 +10,7 @@
 <div data-site-header></div>
 <main class="section midia-page"><div class="container">
   <div class="section-head midia-heading"><span class="eyebrow">Nossos momentos</span><h1>Galeria de fotos</h1><p>Um pedacinho da nossa história em cada registro. 🌵</p></div>
-  <div id="midia-pastas" class="midia-albuns" aria-live="polite"></div>
+  <div id="midia-pastas" class="midia-albuns" aria-live="polite"></div><section id="midia-album-aberto" class="midia-album-aberto" hidden aria-label="Fotos do evento"><button type="button" id="midia-voltar" class="midia-voltar">← Voltar aos álbuns</button><div class="midia-evento-head"><h2 id="midia-evento-titulo"></h2><p id="midia-evento-contagem"></p></div><div id="midia-evento-fotos" class="midia-fotos"></div></section>
 </div></main>
 <div class="midia-lightbox" id="midia-lightbox" hidden role="dialog" aria-modal="true" aria-label="Visualizar foto">
   <button type="button" class="midia-fechar" id="midia-fechar" aria-label="Fechar foto">×</button>
@@ -96,39 +96,97 @@ function idPastaDrive(link) {
     return id && /^[\w-]+$/.test(id) ? id : null;
   } catch { return null; }
 }
+const albumAberto = document.getElementById("midia-album-aberto");
+const eventoFotos = document.getElementById("midia-evento-fotos");
+const eventoTitulo = document.getElementById("midia-evento-titulo");
+const eventoContagem = document.getElementById("midia-evento-contagem");
+const voltar = document.getElementById("midia-voltar");
+let albumAtual = null;
+let albunsAtuais = [];
+voltar.addEventListener("click", () => fecharAlbum());
+function fecharAlbum() {
+  albumAtual = null;
+  albumAberto.hidden = true;
+  wrap.hidden = false;
+  document.querySelector(".midia-heading").hidden = false;
+  window.scrollTo({ top: 0, behavior: "instant" });
+}
+function abrirAlbum(pasta) {
+  albumAtual = pasta.id;
+  const fotos = (Array.isArray(pasta.fotos) ? pasta.fotos : []).map(urlFoto).filter(Boolean);
+  eventoTitulo.textContent = pasta.nome || "Nosso álbum";
+  eventoContagem.textContent = fotos.length === 1 ? "1 foto" : fotos.length + " fotos";
+  eventoFotos.replaceChildren();
+  fotos.forEach((src, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "midia-foto";
+    btn.style.setProperty("--foto-ordem", Math.min(i, 11));
+    btn.setAttribute("aria-label", "Ampliar foto " + (i + 1));
+    const img = document.createElement("img");
+    img.src = miniatura(src); img.alt = eventoTitulo.textContent + " — foto " + (i + 1);
+    img.loading = "lazy"; img.decoding = "async";
+    btn.append(img);
+    btn.addEventListener("click", () => abrirFoto(fotos, i, eventoTitulo.textContent, btn));
+    eventoFotos.append(btn);
+  });
+  if (!fotos.length) {
+    const vazio = document.createElement("p"); vazio.className = "empty-state";
+    vazio.textContent = "Este álbum ainda não tem fotos.";
+    eventoFotos.append(vazio);
+  }
+  wrap.hidden = true;
+  document.querySelector(".midia-heading").hidden = true;
+  albumAberto.hidden = false;
+  window.scrollTo({ top: 0, behavior: "instant" });
+  voltar.focus({ preventScroll: true });
+}
 function render(pastas) {
+  albunsAtuais = pastas;
   wrap.replaceChildren();
   if (!pastas.length) {
-    const empty = document.createElement("div");empty.className="empty-state";empty.textContent="Os álbuns ainda estão sendo preparados. Volte em breve!";wrap.append(empty);return;
+    const vazio = document.createElement("div"); vazio.className = "empty-state";
+    vazio.textContent = "Os álbuns ainda estão sendo preparados. Volte em breve!";
+    wrap.append(vazio);
   }
   for (const pasta of pastas) {
     const idDrive = idPastaDrive(pasta.link);
     const fotos = (Array.isArray(pasta.fotos) ? pasta.fotos : []).map(urlFoto).filter(Boolean);
-    const card = document.createElement("article");card.className="midia-album";
-    const head = document.createElement("div");head.className="midia-album-head";
-    const title = document.createElement("h2");title.textContent=(idDrive ? "📁 " : "") + (pasta.nome || "Nosso álbum");
-    const tag = document.createElement("span");tag.className="midia-album-tag";tag.textContent=idDrive ? "Google Drive" : (fotos.length ? fotos.length+" fotos" : "Álbum");
-    head.append(title,tag);card.append(head);
+    const card = document.createElement("article"); card.className = "midia-album midia-album-capa";
+    const nome = pasta.nome || "Nosso álbum";
     if (idDrive) {
-      const pastaVisual = document.createElement("div"); pastaVisual.className = "midia-pasta-drive";
-      const icone = document.createElement("span"); icone.textContent = "📁"; icone.setAttribute("aria-hidden","true");
-      const texto = document.createElement("p"); texto.textContent = "Fotos disponíveis no Google Drive";
-      pastaVisual.append(icone,texto); card.append(pastaVisual);
-      const abrir = document.createElement("a"); abrir.className = "midia-link"; abrir.href = "https://drive.google.com/drive/folders/" + encodeURIComponent(idDrive); abrir.target = "_blank"; abrir.rel = "noopener noreferrer"; abrir.textContent = "Abrir pasta no Drive ↗"; card.append(abrir);
-    } else if (fotos.length) {
-      const grid = document.createElement("div");grid.className="midia-fotos";
-      fotos.forEach((src,i) => {
-        const btn=document.createElement("button");btn.type="button";btn.className="midia-foto";btn.style.setProperty("--foto-ordem",Math.min(i,11));btn.setAttribute("aria-label","Ampliar foto "+(i+1)+" de "+title.textContent);
-        const img=document.createElement("img");img.src=miniatura(src);img.alt=title.textContent+" — foto "+(i+1);img.loading="lazy";img.decoding="async";
-        btn.append(img);btn.addEventListener("click",()=>abrirFoto(fotos,i,title.textContent,btn));grid.append(btn);
-      });card.append(grid);
+      const link = document.createElement("a");
+      link.className = "midia-capa-botao";
+      link.href = "https://drive.google.com/drive/folders/" + encodeURIComponent(idDrive);
+      link.target = "_blank"; link.rel = "noopener noreferrer";
+      const icone = document.createElement("span"); icone.className = "midia-capa-icone"; icone.textContent = "📁";
+      const info = document.createElement("div"); info.className = "midia-capa-info";
+      const titulo = document.createElement("h2"); titulo.textContent = nome;
+      const detalhe = document.createElement("span"); detalhe.textContent = "Google Drive · Abrir pasta ↗";
+      info.append(titulo, detalhe); link.append(icone, info); card.append(link);
     } else {
-      const capa=document.createElement("div");capa.className="midia-capa-vazia";
-      const simbolo=document.createElement("span");simbolo.textContent="📷";simbolo.setAttribute("aria-hidden","true");
-      const txt=document.createElement("p");txt.textContent="As fotos deste álbum ainda não foram enviadas.";
-      capa.append(simbolo,txt);card.append(capa);
+      const botao = document.createElement("button"); botao.type = "button"; botao.className = "midia-capa-botao";
+      botao.setAttribute("aria-label", "Abrir álbum " + nome);
+      const visual = document.createElement("div"); visual.className = "midia-capa-visual";
+      if (fotos.length) {
+        const imagem = document.createElement("img"); imagem.src = miniatura(fotos[0]);
+        imagem.alt = "Capa do evento " + nome; imagem.loading = "lazy";
+        visual.append(imagem);
+      } else {
+        const icone = document.createElement("span"); icone.className = "midia-capa-icone"; icone.textContent = "📷";
+        visual.append(icone);
+      }
+      const info = document.createElement("div"); info.className = "midia-capa-info";
+      const titulo = document.createElement("h2"); titulo.textContent = nome;
+      const detalhe = document.createElement("span"); detalhe.textContent = fotos.length === 1 ? "1 foto · Ver álbum →" : fotos.length + " fotos · Ver álbum →";
+      info.append(titulo, detalhe); botao.append(visual, info);
+      botao.addEventListener("click", () => abrirAlbum(pasta));
+      card.append(botao);
     }
     wrap.append(card);
+  }
+  if (albumAtual !== null) {
+    const atualizado = pastas.find(p => p.id === albumAtual);
+    if (atualizado) abrirAlbum(atualizado); else fecharAlbum();
   }
 }
 watchMidia(render);
