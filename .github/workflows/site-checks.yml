@@ -1,0 +1,21 @@
+name: Verificação do site
+on:
+  push:
+  pull_request:
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar JavaScript
+        run: |
+          node --check assets/js/main.js
+          node --check assets/js/agenda-publica.js
+          node --check assets/js/publicar-agenda.js
+          node --check assets/js/painel-unidade.js
+          node --check assets/js/painel-lideranca.js
+      - name: Executar testes de integridade
+        run: node --test tests/site.test.mjs
