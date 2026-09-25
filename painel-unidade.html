@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css?v=59">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=60">
 <style>
 /* Painel da Unidade v49: identidade visual unificada e responsiva para todas as unidades. */
 .painel-unidade{--unit-accent:#dc6934;--unit-cream:#fff0d4;--unit-outline:#86563b;--unit-panel:#2a1c16;--unit-soft:#35231b}
@@ -247,6 +247,11 @@
 #modal-membro .cadastro-revisao{display:grid;gap:8px;padding:14px;border:1px solid var(--border,#86563b);border-radius:12px;background:var(--bg-elevated,#302019)}#modal-membro .cadastro-revisao div{display:grid;grid-template-columns:1fr 2fr;gap:8px;font-size:.85rem;overflow-wrap:anywhere}#modal-membro .cadastro-outro{display:flex;align-items:center;gap:9px;font-size:.86rem}#modal-membro .cadastro-outro input{width:20px;height:20px}
 #modal-membro #cadastro-erro:not([hidden]){margin:13px 0 0;padding:10px;border:1px solid #b44b44;border-radius:9px;color:#e99d93}#modal-membro .cadastro-botoes{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border,#86563b)}#modal-membro .cadastro-botoes button{min-height:44px!important;margin:0!important;padding:9px 12px!important;border-radius:10px!important}#modal-membro .cadastro-botoes #btn-cancelar-membro{margin-right:auto!important}#modal-membro [hidden]{display:none!important}
 @media(max-width:550px){#modal-membro .cadastro-passo{grid-template-columns:1fr!important}#modal-membro .cadastro-segundo-grid{grid-template-columns:1fr}#modal-membro .cadastro-botoes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#modal-membro .cadastro-botoes button{width:100%}#modal-membro .cadastro-revisao div{grid-template-columns:1fr;gap:2px}}
+/* v60: importação assistida dos nomes confirmados */
+.painel-unidade #membros .block-head{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.painel-unidade #membros #btn-importar-membros{min-height:44px;white-space:normal;text-align:center}
+.painel-unidade #importacao-membros-status:not([hidden]){margin:12px 0;padding:12px;border:1px solid var(--border,#86563b);border-radius:11px}
+@media(max-width:480px){.painel-unidade #membros .block-head>button{width:100%}}
 </style>
 </head>
 <body class="painel-unidade">
@@ -329,9 +334,9 @@
     <section class="panel-block" id="membros" hidden>
       <div class="block-head">
         <h2>Meus desbravadores</h2>
-        <button class="btn btn-primary btn-sm" id="btn-novo-membro">+ Cadastrar desbravador</button>
+        <button class="btn btn-primary btn-sm" id="btn-novo-membro">+ Cadastrar desbravador</button><button type="button" class="btn btn-outline btn-sm" id="btn-importar-membros">Adicionar nomes da unidade</button>
       </div>
-      <label class="field unidade-busca"><span>Buscar desbravador</span><input type="search" id="busca-membros" placeholder="Digite um nome..." autocomplete="off"></label><p class="muted" id="contagem-membros"></p><div id="cards-membros" class="unidade-membros-grid"></div><div id="perfil-membro" class="unidade-perfil" hidden></div>
+      <p class="muted" id="importacao-membros-status" aria-live="polite" hidden></p><label class="field unidade-busca"><span>Buscar desbravador</span><input type="search" id="busca-membros" placeholder="Digite um nome..." autocomplete="off"></label><p class="muted" id="contagem-membros"></p><div id="cards-membros" class="unidade-membros-grid"></div><div id="perfil-membro" class="unidade-perfil" hidden></div>
       <div class="empty-state" id="membros-vazio" style="display:none;">Nenhum desbravador cadastrado ainda. Clique em "Cadastrar desbravador".</div>
     </section>
 
@@ -579,6 +584,6 @@
 })();
 </script>
 <script type="module" src="assets/js/main.js"></script>
-<script type="module" src="assets/js/painel-unidade.js?v=59"></script>
+<script type="module" src="assets/js/painel-unidade.js?v=60"></script>
 </body>
 </html>
