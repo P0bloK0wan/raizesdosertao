@@ -1283,6 +1283,24 @@ if (btnReabrirVaga) {
   const modalPasta = document.getElementById("modal-pasta");
   const progresso = document.getElementById("pa-progresso");
   const arquivosInput = document.getElementById("pa-fotos-arquivos");
+  const listaSelecionados=document.getElementById("pa-arquivos-selecionados");
+  let arquivosSelecionados=[];
+  const tamanhoArquivo=n=>n>=1024*1024?(n/1024/1024).toFixed(1)+" MB":(n/1024).toFixed(0)+" KB";
+  function renderSelecionados(){
+    listaSelecionados.replaceChildren();
+    if(!arquivosSelecionados.length)return;
+    const titulo=document.createElement("p");titulo.className="muted";titulo.textContent=arquivosSelecionados.length+" arquivos selecionados";listaSelecionados.append(titulo);
+    arquivosSelecionados.forEach((arquivo,i)=>{
+      const video=["video/mp4","video/webm","video/quicktime"].includes(arquivo.type);
+      const limite=(video?50:10)*1024*1024;
+      const item=document.createElement("div");item.className="midia-arquivo-item"+(arquivo.size>limite?" midia-arquivo-grande":"");
+      const nome=document.createElement("span");nome.className="midia-arquivo-nome";nome.textContent=(video?"🎬 ":"📷 ")+arquivo.name+" · "+tamanhoArquivo(arquivo.size)+(arquivo.size>limite?" — acima do limite":"");
+      const remover=document.createElement("button");remover.type="button";remover.className="btn btn-outline btn-sm";remover.textContent="Remover";remover.setAttribute("aria-label","Remover "+arquivo.name);
+      remover.addEventListener("click",()=>{arquivosSelecionados.splice(i,1);arquivosInput.value="";renderSelecionados();});
+      item.append(nome,remover);listaSelecionados.append(item);
+    });
+  }
+  arquivosInput.addEventListener("change",()=>{arquivosSelecionados.push(...Array.from(arquivosInput.files||[]));arquivosInput.value="";renderSelecionados();});
   const linkInput = document.getElementById("pa-link");
   const formPasta = document.getElementById("form-pasta");
   const MAX_FOTO = 10 * 1024 * 1024;
@@ -1301,7 +1319,7 @@ if (btnReabrirVaga) {
     document.getElementById("pa-campo-drive").hidden = !drive;
     document.getElementById("pa-campo-fotos").hidden = drive;
     linkInput.required = drive;
-    arquivosInput.required = !drive;
+    arquivosInput.required = false;
     progresso.textContent = "";
   }
   formPasta.querySelectorAll('input[name="pa-tipo"]').forEach(radio => radio.addEventListener("change", alternarTipo));
@@ -1367,9 +1385,9 @@ if (btnReabrirVaga) {
       acoes.append(excluir); cab.append(titulo, acoes); bloco.append(cab, contador); wrap.append(bloco);
     }
   }
-  const abrirModalPasta = () => { formPasta.reset(); alternarTipo(); progresso.textContent = ""; modalPasta.classList.add("show"); };
+  const abrirModalPasta = () => { formPasta.reset(); arquivosSelecionados=[]; renderSelecionados(); alternarTipo(); progresso.textContent = ""; modalPasta.classList.add("show"); };
   document.getElementById("btn-nova-pasta").addEventListener("click", abrirModalPasta);
-  document.getElementById("btn-cancelar-pasta").addEventListener("click", () => modalPasta.classList.remove("show"));
+  document.getElementById("btn-cancelar-pasta").addEventListener("click", () => { arquivosSelecionados=[]; renderSelecionados(); modalPasta.classList.remove("show"); });
   formPasta.addEventListener("submit", async e => {
     e.preventDefault();
     const botao = formPasta.querySelector('button[type="submit"]');
@@ -1383,10 +1401,10 @@ if (btnReabrirVaga) {
         if (!id) throw new Error("Cole um link válido de pasta do Google Drive.");
         await addPastaMidia(nome, [], "https://drive.google.com/drive/folders/" + id);
       } else {
-        const enviados=await enviarArquivos(Array.from(arquivosInput.files||[]));
+        const enviados=await enviarArquivos(arquivosSelecionados);
         await addPastaMidia(nome,enviados.fotos,"",enviados.videos);
       }
-      modalPasta.classList.remove("show"); formPasta.reset(); alternarTipo(); progresso.textContent = "";
+      modalPasta.classList.remove("show"); formPasta.reset(); arquivosSelecionados=[]; renderSelecionados(); alternarTipo(); progresso.textContent = "";
       mostrarToast("Álbum publicado!");
     } catch (err) { progresso.textContent = ""; alert(err.message || "Falha ao publicar o álbum."); }
     finally { botao.disabled = false; }
