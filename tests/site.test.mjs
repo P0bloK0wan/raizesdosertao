@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync,existsSync,readdirSync} from "node:fs";\nimport {spawnSync} from "node:child_process";
+import {readFileSync,existsSync,readdirSync} from "node:fs";
+import {spawnSync} from "node:child_process";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const exists=p=>existsSync(new URL("../"+p,import.meta.url));
 const pages=["index.html","historia.html","participar.html","midia.html","campori.html","lava-jato.html","redes.html","login.html","login-unidade.html","login-lideranca.html","painel-lideranca.html","painel-unidade.html","calendario.html","agenda-admin.html"];
