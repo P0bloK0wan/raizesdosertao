@@ -270,7 +270,17 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
       blocoCadastro.style.display = "block";
       document.getElementById("form-cadastro").reset();
     } catch (err) {
-      alert("Não deu pra cancelar agora. Tente de novo em instantes.");
+      console.error("Falha ao cancelar reserva do lava-jato:", err);
+      const codigo = err?.code || "";
+      const mensagem = err?.message || "";
+      const texto = codigo === "permission-denied"
+        ? "O Firebase bloqueou o cancelamento. A liderança precisa conferir as regras publicadas do Firestore. Sua reserva continua ativa."
+        : codigo === "unavailable" || codigo === "deadline-exceeded"
+          ? "Não foi possível conectar ao Firebase. Confira sua internet e tente novamente; sua reserva continua ativa."
+          : /Agenda não encontrada|já pode ter sido cancelada|Dados de cancelamento incompletos/.test(mensagem)
+            ? mensagem + " Sua reserva foi mantida no navegador para a liderança verificar."
+            : "Não foi possível cancelar (" + (codigo || "erro desconhecido") + "). Sua reserva continua salva. Contate a liderança e informe este erro.";
+      alert(texto);
     } finally { btn.disabled = false; }
   });
 </script>
