@@ -324,7 +324,7 @@ function iniciarPainel(unidadeId) {
     estado.membros.forEach(m => {
       const linha = document.createElement("label"); linha.className = "unidade-chamada-card";
       const avatar = document.createElement("span"); avatar.className = "unidade-membro-avatar";
-      avatar.textContent = (m.nome || "?").trim().charAt(0).toUpperCase();
+      avatar.textContent = "👤"; avatar.setAttribute("aria-hidden", "true");
       const nome = document.createElement("span"); nome.className = "unidade-chamada-nome"; nome.textContent = m.nome || "Sem nome";
       const check = document.createElement("input"); check.type = "checkbox"; check.dataset.presente = m.id;
       check.checked = presentesAtuais.has(m.id); check.addEventListener("change", () => {
