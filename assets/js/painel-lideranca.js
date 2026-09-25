@@ -1281,10 +1281,20 @@ if (btnReabrirVaga) {
   });
 
   /* ---------------- Mídia: álbuns de fotos e pastas do Drive ---------------- */
+  const erroMidia = document.getElementById("midia-erro");
   watchMidia((pastas) => {
+    erroMidia.style.display = "none";
+    erroMidia.textContent = "";
     estado.midia = pastas;
     renderMidia();
     renderStats();
+  }, (err) => {
+    console.error("Falha ao carregar os álbuns:", err);
+    document.getElementById("midia-vazio").style.display = "none";
+    erroMidia.textContent = err.code === "permission-denied"
+      ? "O Firebase não permitiu carregar os álbuns. Confira as regras de leitura da coleção midia."
+      : "Não foi possível carregar os álbuns. Verifique sua conexão e tente atualizar a página.";
+    erroMidia.style.display = "block";
   });
   const modalPasta = document.getElementById("modal-pasta");
   const progresso = document.getElementById("pa-progresso");
