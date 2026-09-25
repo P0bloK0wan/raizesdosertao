@@ -321,7 +321,7 @@
         <h2>Mídia</h2>
         <button type="button" class="btn btn-primary btn-sm" id="btn-nova-pasta" onclick="document.getElementById('modal-pasta').classList.add('show')">+ Novo álbum</button>
       </div>
-      <p class="muted">Escolha: álbum com fotos enviadas do celular ou pasta do Google Drive que abre em outra aba.</p>
+      <p class="muted">Publique fotos e vídeos no mesmo álbum, ou adicione uma pasta externa do Google Drive.</p>
       <div id="lista-midia"></div>
       <div class="empty-state" id="midia-vazio" style="display:none;">Nenhum álbum publicado ainda.</div>
     </section>
@@ -366,10 +366,10 @@
     <form id="form-pasta">
       <div class="field"><label for="pa-nome">Nome do álbum</label><input type="text" id="pa-nome" placeholder="Ex.: Acampamento 2026" required></div>
       <fieldset class="midia-tipo-opcoes"><legend>Como deseja publicar?</legend>
-        <label><input type="radio" name="pa-tipo" value="fotos" checked> 📸 Enviar minhas fotos</label>
+        <label><input type="radio" name="pa-tipo" value="fotos" checked> 📸 Enviar fotos e vídeos</label>
         <label><input type="radio" name="pa-tipo" value="drive"> 📁 Pasta do Google Drive</label>
       </fieldset>
-      <div class="field" id="pa-campo-fotos"><label for="pa-fotos-arquivos">Selecionar fotos</label><input type="file" id="pa-fotos-arquivos" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple required><small class="muted">Selecione até 40 fotos por vez, com até 10 MB cada.</small></div>
+      <div class="field" id="pa-campo-fotos"><label for="pa-fotos-arquivos">Selecionar fotos e vídeos</label><input type="file" id="pa-fotos-arquivos" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/webm,video/quicktime" multiple required><small class="muted">Até 40 arquivos: fotos até 10 MB; vídeos MP4, WebM ou MOV até 50 MB.</small></div>
       <div class="field" id="pa-campo-drive" hidden><label for="pa-link">Link público da pasta no Google Drive</label><input type="url" id="pa-link" placeholder="https://drive.google.com/drive/folders/..." ><small class="muted">Compartilhe a pasta como “Qualquer pessoa com o link — Leitor”.</small></div>
       <p id="pa-progresso" class="muted" role="status"></p>
       <div class="modal-actions"><button type="button" class="btn btn-outline btn-block" id="btn-cancelar-pasta">Cancelar</button><button type="submit" class="btn btn-primary btn-block">Publicar</button></div>
