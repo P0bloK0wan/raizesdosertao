@@ -14,7 +14,7 @@
 </div></main>
 <div class="midia-lightbox" id="midia-lightbox" hidden role="dialog" aria-modal="true" aria-label="Visualizar foto">
   <button type="button" class="midia-fechar" id="midia-fechar" aria-label="Fechar foto">×</button>
-  <img id="midia-foto-ampliada" alt=""><p id="midia-legenda"></p><a id="midia-baixar" class="midia-link midia-download" href="#" target="_blank" rel="noopener noreferrer">⬇ Baixar foto original</a>
+  <div class="midia-lightbox-stage"><button type="button" class="midia-navegar midia-anterior" id="midia-anterior" aria-label="Foto anterior">‹</button><img id="midia-foto-ampliada" alt=""><button type="button" class="midia-navegar midia-proxima" id="midia-proxima" aria-label="Próxima foto">›</button></div><p id="midia-legenda"></p><a id="midia-baixar" class="midia-link midia-download" href="#" target="_blank" rel="noopener noreferrer">⬇ Baixar foto original</a>
 </div>
 <div data-site-footer></div>
 <script type="module">
@@ -24,10 +24,35 @@ const lightbox = document.getElementById("midia-lightbox");
 const fotoAmpliada = document.getElementById("midia-foto-ampliada");
 const legenda = document.getElementById("midia-legenda");
 const baixar = document.getElementById("midia-baixar");
+const anterior = document.getElementById("midia-anterior");
+const proxima = document.getElementById("midia-proxima");
+let fotosAbertas = [];
+let indiceAberto = 0;
+let toqueInicial = null;
+let focoAnterior = null;
 document.getElementById("midia-fechar").addEventListener("click", fecharFoto);
 lightbox.addEventListener("click", e => { if (e.target === lightbox) fecharFoto(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape") fecharFoto(); });
-function fecharFoto(){lightbox.hidden = true;fotoAmpliada.removeAttribute("src");baixar.removeAttribute("href");document.body.style.overflow = "";}
+document.addEventListener("keydown", e => { if (lightbox.hidden) return; if (e.key === "Escape") fecharFoto(); if (e.key === "ArrowRight") navegar(1); if (e.key === "ArrowLeft") navegar(-1); });
+anterior.addEventListener("click", () => navegar(-1));
+proxima.addEventListener("click", () => navegar(1));
+fotoAmpliada.addEventListener("touchstart", e => { toqueInicial = e.changedTouches[0]?.clientX ?? null; }, { passive: true });
+fotoAmpliada.addEventListener("touchend", e => { if (toqueInicial === null) return; const delta = e.changedTouches[0].clientX - toqueInicial; toqueInicial = null; if (Math.abs(delta) > 55) navegar(delta < 0 ? 1 : -1); }, { passive: true });
+function fecharFoto(){if(lightbox.hidden)return;lightbox.hidden = true;fotoAmpliada.removeAttribute("src");baixar.removeAttribute("href");document.body.style.overflow = "";focoAnterior?.focus();focoAnterior=null;}
+function mostrarFoto(){
+  const src=fotosAbertas[indiceAberto];
+  if(!src)return;
+  fotoAmpliada.classList.remove("midia-troca");
+  void fotoAmpliada.offsetWidth;
+  fotoAmpliada.src=src;
+  fotoAmpliada.alt="Foto "+(indiceAberto+1)+" de "+fotosAbertas.length;
+  fotoAmpliada.classList.add("midia-troca");
+  baixar.href=downloadOriginal(src);
+  baixar.textContent=src.includes("drive.google.com") ? "↗ Abrir foto no Drive" : "⬇ Baixar em resolução original";
+  const varias=fotosAbertas.length>1;
+  anterior.hidden=!varias;proxima.hidden=!varias;
+}
+function navegar(passo){if(fotosAbertas.length<2)return;indiceAberto=(indiceAberto+passo+fotosAbertas.length)%fotosAbertas.length;mostrarFoto();}
+function abrirFoto(fotos,i,titulo,botao){fotosAbertas=fotos;indiceAberto=i;focoAnterior=botao;legenda.textContent=titulo;mostrarFoto();lightbox.hidden=false;document.body.style.overflow="hidden";document.getElementById("midia-fechar").focus();}
 function urlFoto(link) {
   try {
     const url = new URL(link);
@@ -93,9 +118,9 @@ function render(pastas) {
     } else if (fotos.length) {
       const grid = document.createElement("div");grid.className="midia-fotos";
       fotos.forEach((src,i) => {
-        const btn=document.createElement("button");btn.type="button";btn.className="midia-foto";btn.setAttribute("aria-label","Ampliar foto "+(i+1)+" de "+title.textContent);
+        const btn=document.createElement("button");btn.type="button";btn.className="midia-foto";btn.style.setProperty("--foto-ordem",Math.min(i,11));btn.setAttribute("aria-label","Ampliar foto "+(i+1)+" de "+title.textContent);
         const img=document.createElement("img");img.src=miniatura(src);img.alt=title.textContent+" — foto "+(i+1);img.loading="lazy";img.decoding="async";
-        btn.append(img);btn.addEventListener("click",()=>{fotoAmpliada.src=src;fotoAmpliada.alt=img.alt;legenda.textContent=title.textContent;baixar.href=downloadOriginal(src);baixar.textContent=src.includes("drive.google.com") ? "↗ Abrir foto no Drive" : "⬇ Baixar em resolução original";lightbox.hidden=false;document.body.style.overflow="hidden";});grid.append(btn);
+        btn.append(img);btn.addEventListener("click",()=>abrirFoto(fotos,i,title.textContent,btn));grid.append(btn);
       });card.append(grid);
     } else {
       const capa=document.createElement("div");capa.className="midia-capa-vazia";
