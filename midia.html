@@ -9,8 +9,8 @@
 <body>
 <div data-site-header></div>
 <main class="section midia-page"><div class="container">
-  <div class="section-head midia-heading"><span class="eyebrow">Nossos momentos</span><h1>Galeria de fotos</h1><p>Um pedacinho da nossa história em cada registro. 🌵</p></div>
-  <div id="midia-pastas" class="midia-albuns" aria-live="polite"></div><section id="midia-album-aberto" class="midia-album-aberto" hidden aria-label="Fotos do evento"><button type="button" id="midia-voltar" class="midia-voltar">← Voltar aos álbuns</button><div class="midia-evento-head"><h2 id="midia-evento-titulo"></h2><p id="midia-evento-contagem"></p></div><div id="midia-evento-fotos" class="midia-fotos"></div></section>
+  <div class="section-head midia-heading"><span class="eyebrow">Nossos momentos</span><h1>Galeria de fotos e vídeos</h1><p>Um pedacinho da nossa história em cada registro. 🌵</p></div>
+  <div id="midia-pastas" class="midia-albuns" aria-live="polite"></div><section id="midia-album-aberto" class="midia-album-aberto" hidden aria-label="Fotos e vídeos do evento"><button type="button" id="midia-voltar" class="midia-voltar">← Voltar aos álbuns</button><div class="midia-evento-head"><h2 id="midia-evento-titulo"></h2><p id="midia-evento-contagem"></p></div><div id="midia-evento-fotos" class="midia-fotos"></div></section>
 </div></main>
 <div class="midia-lightbox" id="midia-lightbox" hidden role="dialog" aria-modal="true" aria-label="Visualizar foto">
   <button type="button" class="midia-fechar" id="midia-fechar" aria-label="Fechar foto">×</button>
@@ -190,11 +190,20 @@ function fecharAlbum() {
   document.querySelector(".midia-heading").hidden = false;
   window.scrollTo({ top: 0, behavior: "instant" });
 }
+function videosValidos(pasta){
+  return (Array.isArray(pasta.videos)?pasta.videos:[]).filter(link=>{
+    try{const u=new URL(link);return u.protocol==="https:" && (u.hostname==="res.cloudinary.com"||u.hostname.endsWith(".res.cloudinary.com")) && u.pathname.includes("/video/upload/");}catch{return false;}
+  });
+}
+function miniaturaVideo(src){
+  try{const u=new URL(src);u.pathname=u.pathname.replace("/video/upload/","/video/upload/so_1,w_640,h_640,c_fill/").replace(/\\.[^.\\/]+$/,".jpg");return u.href;}catch{return "";}
+}
 function abrirAlbum(pasta) {
   albumAtual = pasta.id;
   const fotos = (Array.isArray(pasta.fotos) ? pasta.fotos : []).map(urlFoto).filter(Boolean);
+  const videos=videosValidos(pasta);
   eventoTitulo.textContent = pasta.nome || "Nosso álbum";
-  eventoContagem.textContent = fotos.length === 1 ? "1 foto" : fotos.length + " fotos";
+  eventoContagem.textContent = fotos.length+" fotos · "+videos.length+" vídeos";
   eventoFotos.replaceChildren();
   fotos.forEach((src, i) => {
     const btn = document.createElement("button");
@@ -208,9 +217,14 @@ function abrirAlbum(pasta) {
     btn.addEventListener("click", () => abrirFoto(fotos, i, eventoTitulo.textContent, btn));
     eventoFotos.append(btn);
   });
-  if (!fotos.length) {
+  videos.forEach((src,i)=>{
+    const card=document.createElement("div");card.className="midia-foto midia-video-card";
+    const video=document.createElement("video");video.controls=true;video.preload="none";video.playsInline=true;video.setAttribute("aria-label","Vídeo "+(i+1)+" do álbum");video.src=src;video.poster=miniaturaVideo(src);
+    card.append(video);eventoFotos.append(card);
+  });
+  if (!fotos.length && !videos.length) {
     const vazio = document.createElement("p"); vazio.className = "empty-state";
-    vazio.textContent = "Este álbum ainda não tem fotos.";
+    vazio.textContent = "Este álbum ainda não tem fotos ou vídeos.";
     eventoFotos.append(vazio);
   }
   wrap.hidden = true;
@@ -230,6 +244,7 @@ function render(pastas) {
   for (const pasta of pastas) {
     const idDrive = idPastaDrive(pasta.link);
     const fotos = (Array.isArray(pasta.fotos) ? pasta.fotos : []).map(urlFoto).filter(Boolean);
+    const videos=videosValidos(pasta);
     const card = document.createElement("article"); card.className = "midia-album midia-album-capa";
     const nome = pasta.nome || "Nosso álbum";
     if (idDrive) {
@@ -256,7 +271,7 @@ function render(pastas) {
       }
       const info = document.createElement("div"); info.className = "midia-capa-info";
       const titulo = document.createElement("h2"); titulo.textContent = nome;
-      const detalhe = document.createElement("span"); detalhe.textContent = fotos.length === 1 ? "1 foto · Ver álbum →" : fotos.length + " fotos · Ver álbum →";
+      const detalhe = document.createElement("span"); detalhe.textContent = fotos.length+" fotos · "+videos.length+" vídeos · Ver álbum →";
       info.append(titulo, detalhe); botao.append(visual, info);
       botao.addEventListener("click", () => abrirAlbum(pasta));
       card.append(botao);
