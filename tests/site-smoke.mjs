@@ -22,3 +22,13 @@ assert.match(read('assets/js/painel-unidade.js'),/requisitos-membro-select/,'sel
 assert.match(read('assets/js/painel-unidade.js'),/especialidades-membro-select/,'seletor de especialidades ausente');
 assert.match(read('assets/js/painel-unidade.js'),/materiais-membro-select/,'seletor de materiais ausente');
 console.log('PASS: '+pages.length+' páginas, navegação, cache e verificações dos painéis.');
+
+/* Regressões de navegação, página inicial e PWA. */
+const home=read('index.html');
+assert.equal((home.match(/href="assets\\/css\\/publico\\.css"/g)||[]).length,1,'CSS público duplicado');
+assert.equal((home.match(/class="public-links"/g)||[]).length,1,'vitrines públicas duplicadas');
+const shell=read('sw.js');
+const cached=[...shell.matchAll(/"\\.\\/([^"]+)"/g)].map(m=>m[1]);
+assert.equal(new Set(cached).size,cached.length,'arquivos repetidos no cache');
+for(const p of cached)assert.ok(existsSync(new URL('../'+p,import.meta.url)),'cache aponta para arquivo ausente: '+p);
+console.log('PASS: vitrine única, CSS e cache sem duplicações.');
