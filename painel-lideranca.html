@@ -522,7 +522,21 @@
   navegar();
 })();
 </script>
+<div id="modal-renomear-midia" class="modal" role="dialog" aria-modal="true" aria-labelledby="renomear-midia-titulo" hidden style="z-index:9999">
+  <div class="modal-content" style="width:min(92vw,480px);max-height:85vh;overflow:auto;padding:24px;background:var(--bg-elevated,#30221b);color:var(--text,#fff);border-radius:16px">
+    <h2 id="renomear-midia-titulo">Renomear álbum</h2>
+    <form id="form-renomear-midia">
+      <label for="renomear-midia-nome">Nome do álbum</label>
+      <input id="renomear-midia-nome" name="nome" type="text" maxlength="120" required style="display:block;width:100%;min-height:48px;font-size:16px;margin:12px 0">
+      <p id="renomear-midia-status" role="status" aria-live="polite"></p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">
+        <button id="btn-salvar-renomear-midia" type="submit" class="btn btn-primary">Salvar nome</button>
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-renomear-midia').classList.remove('show');document.getElementById('modal-renomear-midia').hidden=true">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
 <script type="module" src="assets/js/main.js"></script>
-<script type="module" src="assets/js/painel-lideranca.js"></script>
+<script type="module" src="assets/js/painel-lideranca.js?v=94"></script>
 </body>
 </html>
