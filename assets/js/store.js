@@ -550,8 +550,6 @@ export async function criarRegistroLavaJato(dados) {
     }, { merge: true });
     tx.set(novoRegistroRef, {
       ...dados,
-      formaPagamento: dados.formaPagamento === 'pix' ? 'pix' : 'local',
-      pagamentoStatus: 'pendente',
       tokenCancelamento,
       criadoEm: serverTimestamp(),
       cancelado: false,
