@@ -14,3 +14,5 @@ test("localização oficial disponível em Quero Participar",()=>{assert.ok(read
 test("calendário interno preservado",()=>{assert.ok(read("painel-lideranca.html").includes("planejamento-clube"))});
 test("login e painéis mantidos",()=>{for(const p of ["login-lideranca.html","login-unidade.html","painel-lideranca.html","painel-unidade.html"])assert.ok(exists(p))});
 test("menu acessível em todas as larguras",()=>{const css=read("assets/css/nordeste.css");assert.match(css,/v77: um único menu/);assert.match(css,/nav-links\.open/)});
+
+test("álbuns aceitam vídeos sem apagar fotos existentes",()=>{const store=read("assets/js/store.js");const panel=read("assets/js/painel-lideranca.js");const media=read("midia.html");assert.match(store,/adicionarVideosMidia/);assert.match(panel,/enviarVideoCloudinary/);assert.match(media,/videosValidos/);assert.match(media,/playsInline/)});
