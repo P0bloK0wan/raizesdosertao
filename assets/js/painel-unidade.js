@@ -168,7 +168,7 @@ function iniciarPainel(unidadeId) {
     cards.hidden = true; perfil.hidden = false; perfil.replaceChildren();
     const voltar = document.createElement("button"); voltar.type = "button"; voltar.className = "btn btn-outline btn-sm";
     voltar.textContent = "← Voltar aos desbravadores";
-    voltar.addEventListener("click", () => { membroSelecionado = null; renderMembros(); buscaMembros.focus(); });
+    voltar.addEventListener("click", () => { membroSelecionado = null; renderMembros(); });
     const cab = document.createElement("div"); cab.className = "unidade-perfil-cabecalho";
     const avatar = document.createElement("span"); avatar.className = "unidade-membro-avatar"; avatar.textContent = (m.nome || "?").charAt(0).toUpperCase();
     const nome = document.createElement("h3"); nome.textContent = m.nome || "Sem nome"; cab.append(avatar,nome);
@@ -281,22 +281,45 @@ function iniciarPainel(unidadeId) {
   inputDataChamada.value = hojeISO();
   inputDataChamada.addEventListener("change", renderChamadaAtual);
 
+  function atualizarContagemChamada() {
+    const checks = [...document.querySelectorAll("#lista-chamada input[data-presente]")];
+    const total = checks.length, presentes = checks.filter(c => c.checked).length;
+    const contagem = document.getElementById("chamada-contagem");
+    if (contagem) contagem.textContent = presentes + " presentes · " + (total - presentes) + " ausentes";
+  }
   function renderChamadaAtual() {
     const wrap = document.getElementById("lista-chamada");
     const vazio = document.getElementById("chamada-vazio");
     if (!wrap) return;
     vazio.style.display = estado.membros.length ? "none" : "block";
-    const existente = estado.presencas.find((p) => p.id === inputDataChamada.value);
+    const existente = estado.presencas.find(p => p.id === inputDataChamada.value);
     const presentesAtuais = new Set(existente ? existente.presentes : []);
-    wrap.innerHTML = estado.membros
-      .map(
-        (m) => `<label class="presenca-row">
-          <input type="checkbox" data-presente="${m.id}" ${presentesAtuais.has(m.id) ? "checked" : ""}>
-          ${m.nome}
-        </label>`
-      )
-      .join("");
+    wrap.replaceChildren();
+    estado.membros.forEach(m => {
+      const linha = document.createElement("label"); linha.className = "unidade-chamada-card";
+      const avatar = document.createElement("span"); avatar.className = "unidade-membro-avatar";
+      avatar.textContent = (m.nome || "?").trim().charAt(0).toUpperCase();
+      const nome = document.createElement("span"); nome.className = "unidade-chamada-nome"; nome.textContent = m.nome || "Sem nome";
+      const check = document.createElement("input"); check.type = "checkbox"; check.dataset.presente = m.id;
+      check.checked = presentesAtuais.has(m.id); check.addEventListener("change", () => {
+        linha.classList.toggle("is-present",check.checked); atualizarContagemChamada();
+      });
+      const status = document.createElement("span"); status.className = "unidade-chamada-status"; status.textContent = "Presente";
+      linha.classList.toggle("is-present",check.checked);
+      linha.append(avatar,nome,check,status);wrap.append(linha);
+    });
+    atualizarContagemChamada();
   }
+  document.getElementById("btn-marcar-todos").addEventListener("click", () => {
+    document.querySelectorAll("#lista-chamada input[data-presente]").forEach(c => {
+      c.checked = true; c.closest(".unidade-chamada-card")?.classList.add("is-present");
+    }); atualizarContagemChamada();
+  });
+  document.getElementById("btn-limpar-chamada").addEventListener("click", () => {
+    document.querySelectorAll("#lista-chamada input[data-presente]").forEach(c => {
+      c.checked = false; c.closest(".unidade-chamada-card")?.classList.remove("is-present");
+    }); atualizarContagemChamada();
+  });
 
   document.getElementById("btn-salvar-presenca").addEventListener("click", async () => {
     const data = inputDataChamada.value;
