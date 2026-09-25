@@ -10,13 +10,9 @@ const NAV_GROUPS = [
   { titulo: "Conheça o clube", itens: [
     { href: "index.html", label: "Início", emoji: "🏠" },
     { href: "historia.html", label: "Nossa história", emoji: "🌵" },
-    { href: "unidades.html", label: "Nossas unidades", emoji: "🦅" },
     { href: "participar.html", label: "Quero participar", emoji: "💚" }
   ] },
   { titulo: "Acompanhe", itens: [
-    { href: "agenda.html", label: "Agenda", emoji: "📅" },
-    { href: "aventuras.html", label: "Aventuras", emoji: "🏕️" },
-    { href: "projetos.html", label: "Projetos sociais", emoji: "🤝" },
     { href: "midia.html", label: "Galeria de fotos", emoji: "📸" }
   ] },
   { titulo: "Apoie e conecte-se", itens: [
