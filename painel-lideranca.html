@@ -56,7 +56,7 @@
 
   <main class="app-main">
     <div class="app-topbar">
-      <h1 id="visao-geral">Visão geral</h1>
+      <div class="lideranca-titulo"><button type="button" class="lideranca-voltar" id="lideranca-voltar" hidden>← Voltar ao painel</button><h1 id="visao-geral">Painel da Liderança</h1></div>
       <div style="display:flex; align-items:center; gap:8px;">
         <div class="notif-wrap">
           <button class="icon-btn" id="btn-notif" aria-label="Notificações">🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span></button>
@@ -70,7 +70,18 @@
       </div>
     </div>
 
-    <section class="leadership-overview" aria-label="Resumo do clube">
+    <section id="lideranca-inicio" class="lideranca-inicio" aria-label="Menu principal"><div class="lideranca-boas-vindas"><span class="eyebrow">Central da liderança</span><h2>O que vamos organizar hoje?</h2><p>Escolha uma área para ver apenas as ferramentas relacionadas.</p></div><nav class="lideranca-menu-grid" aria-label="Áreas do painel"><a class="lideranca-menu-card" href="#mural-avisos"><span class="lideranca-menu-icon" aria-hidden="true">📣</span><strong>Avisos</strong><span>Publicar e acompanhar comunicados</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="lideranca-menu-card" href="#planejamento-unidades"><span class="lideranca-menu-icon" aria-hidden="true">📋</span><strong>Planejamentos das unidades</strong><span>Propostas, aprovações e pendências</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="lideranca-menu-card" href="#lavajato"><span class="lideranca-menu-icon" aria-hidden="true">🚗</span><strong>Lava Jato</strong><span>Agenda, vagas e atendimentos</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="lideranca-menu-card" href="#desbravadores"><span class="lideranca-menu-icon" aria-hidden="true">👥</span><strong>Pessoas e unidades</strong><span>Membros, responsáveis e identidade</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="lideranca-menu-card" href="#especialidades-lideranca"><span class="lideranca-menu-icon" aria-hidden="true">🎖️</span><strong>Especialidades e compras</strong><span>Progresso e materiais necessários</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="lideranca-menu-card" href="#planejamento-clube"><span class="lideranca-menu-icon" aria-hidden="true">📅</span><strong>Planejamento do clube</strong><span>Calendário e atividades</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="lideranca-menu-card" href="#placar-acampamento"><span class="lideranca-menu-icon" aria-hidden="true">🏆</span><strong>Placar do acampamento</strong><span>Pontuação e histórico</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="lideranca-menu-card" href="#midia"><span class="lideranca-menu-icon" aria-hidden="true">📸</span><strong>Mídia</strong><span>Álbuns e pastas de fotos</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="lideranca-menu-card" href="#campori"><span class="lideranca-menu-icon" aria-hidden="true">🏕️</span><strong>Campori DSA</strong><span>Datas e organização</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="lideranca-menu-card" href="#pedidos-senha"><span class="lideranca-menu-icon" aria-hidden="true">🔐</span><strong>Acessos e segurança</strong><span>Solicitações de senha e configurações</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="lideranca-menu-card" href="#dados"><span class="lideranca-menu-icon" aria-hidden="true">📦</span><strong>Backup</strong><span>Exportar dados do clube</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a></nav></section>
+<section class="leadership-overview" aria-label="Resumo do clube">
       <div class="leadership-overview-head"><div><span class="eyebrow">Resumo rápido</span><h2>O que precisa da sua atenção</h2></div><a class="btn btn-outline btn-sm" href="#planejamento-unidades">Ver pendências</a></div>
       <div class="leadership-stats-grid">
       <div class="stat"><b id="s-unidades">0</b><span>Unidades</span></div>
@@ -437,6 +448,46 @@
   }
   radios.forEach((radio) => radio.addEventListener("change", alternar));
   alternar();
+})();
+</script>
+<script>
+/* Navegação por áreas: os formulários e os listeners originais continuam montados. */
+(function () {
+  const areas = [{"id":"mural-avisos","title":"Avisos","ids":["mural-avisos"]},{"id":"planejamento-unidades","title":"Planejamentos das unidades","ids":["planejamento-unidades"]},{"id":"lavajato","title":"Lava Jato","ids":["lavajato","lavajato-atendimentos"]},{"id":"desbravadores","title":"Pessoas e unidades","ids":["desbravadores","responsaveis","identidade-unidades"]},{"id":"especialidades-lideranca","title":"Especialidades e compras","ids":["especialidades-lideranca","compras"]},{"id":"planejamento-clube","title":"Planejamento do clube","ids":["planejamento-clube"]},{"id":"placar-acampamento","title":"Placar do acampamento","ids":["placar-acampamento"]},{"id":"midia","title":"Mídia","ids":["midia"]},{"id":"campori","title":"Campori DSA","ids":["campori"]},{"id":"pedidos-senha","title":"Acessos e segurança","ids":["pedidos-senha","config"]},{"id":"dados","title":"Backup","ids":["dados"]}];
+  const inicio = document.getElementById("lideranca-inicio");
+  const resumo = document.querySelector(".leadership-overview");
+  const voltar = document.getElementById("lideranca-voltar");
+  const titulo = document.getElementById("visao-geral");
+  const barra = document.querySelector("[data-sidebar]");
+  const sobreposicao = document.querySelector("[data-sidebar-overlay]");
+  const rotas = new Map(areas.flatMap(area => area.ids.map(id => [id,area])));
+  function navegar() {
+    const hash = decodeURIComponent(location.hash.slice(1));
+    const area = rotas.get(hash);
+    inicio.hidden = !!area;
+    resumo.hidden = !!area;
+    voltar.hidden = !area;
+    titulo.textContent = area ? area.title : "Painel da Liderança";
+    for (const item of areas) {
+      for (const id of item.ids) {
+        const secao = document.getElementById(id);
+        if (secao) secao.hidden = !area || area.id !== item.id;
+      }
+    }
+    document.querySelectorAll(".app-nav a[href^='#']").forEach(a => {
+      const atual = a.getAttribute("href").slice(1);
+      if (area && rotas.get(atual)?.id === area.id) a.setAttribute("aria-current","page");
+      else if (!area && atual === "visao-geral") a.setAttribute("aria-current","page");
+      else a.removeAttribute("aria-current");
+    });
+    barra?.classList.remove("open");
+    sobreposicao?.classList.remove("show");
+    document.body.classList.remove("sidebar-open");
+    window.scrollTo(0,0);
+  }
+  voltar.addEventListener("click", () => { location.hash = "visao-geral"; });
+  window.addEventListener("hashchange", navegar);
+  navegar();
 })();
 </script>
 <script type="module" src="assets/js/main.js"></script>
