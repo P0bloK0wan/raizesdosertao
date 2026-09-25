@@ -281,8 +281,11 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
     document.getElementById("conf-modelo").textContent = dados.modelo;
     document.getElementById("conf-placa").textContent = dados.placa;
     document.getElementById("conf-data").textContent = fmtDataLonga(dados.data);
-    atualizarPix();
-    if (!pixIntervalo) pixIntervalo = setInterval(atualizarPix, 12000);
+    configurarFormaPagamento(dados);
+    if (dados.formaPagamento === "pix" || !dados.formaPagamento) {
+      atualizarPix();
+      if (!pixIntervalo) pixIntervalo = setInterval(atualizarPix, 12000);
+    }
   }
 
   const salvo = localStorage.getItem(LS_KEY);
