@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css?v=54">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=55">
 <style>
 /* Painel da Unidade v49: identidade visual unificada e responsiva para todas as unidades. */
 .painel-unidade{--unit-accent:#dc6934;--unit-cream:#fff0d4;--unit-outline:#86563b;--unit-panel:#2a1c16;--unit-soft:#35231b}
@@ -156,6 +156,13 @@
 .painel-unidade #membros #cards-membros[hidden],.painel-unidade #membros #perfil-membro[hidden]{display:none!important}
 @media(max-width:750px){.painel-unidade #membros #cards-membros:not([hidden]){grid-template-columns:1fr!important}.painel-unidade #membros .unidade-perfil-dados{grid-template-columns:1fr!important}}
 @media(max-width:450px){.painel-unidade #unidade-subnav:not([hidden]){gap:4px!important}.painel-unidade #unidade-subnav>a{font-size:.84rem!important;padding:9px 6px!important}.painel-unidade #membros .unidade-perfil-acoes{grid-template-columns:1fr!important}.painel-unidade #membros .unidade-perfil-acoes>button.danger{grid-column:1!important}.painel-unidade #membros .unidade-perfil-cabecalho{gap:10px!important}}
+
+/* v55: componentes nativos robustos, avatar neutro sem duplicar inicial do nome. */
+.painel-unidade #membros .unidade-membro-card,.painel-unidade #membros .unidade-perfil-cabecalho{isolation:isolate}
+.painel-unidade #membros .unidade-membro-avatar{font-family:system-ui,-apple-system,sans-serif!important;font-size:1.25rem!important;line-height:1!important}
+.painel-unidade #membros .unidade-membro-info>strong,.painel-unidade #membros .unidade-perfil-cabecalho h3{white-space:normal!important;overflow-wrap:anywhere!important}
+.painel-unidade #membros .unidade-perfil-dado{height:auto!important;max-height:none!important;overflow:visible!important}
+.painel-unidade #membros .unidade-perfil-dado>small,.painel-unidade #membros .unidade-perfil-dado>strong{position:static!important;float:none!important;max-width:100%!important;white-space:normal!important}
 </style>
 </head>
 <body class="painel-unidade">
@@ -486,6 +493,6 @@
 })();
 </script>
 <script type="module" src="assets/js/main.js"></script>
-<script type="module" src="assets/js/painel-unidade.js?v=54"></script>
+<script type="module" src="assets/js/painel-unidade.js?v=55"></script>
 </body>
 </html>
