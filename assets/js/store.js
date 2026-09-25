@@ -565,7 +565,7 @@ export async function atualizarPagamentoLavaJato(registroId, pago) {
 /* Cancelamento público: lê apenas a agenda pública. O documento privado
    recebe uma prova de posse validada pelas regras, na mesma transação. */
 export async function cancelarRegistroLavaJato(registroId, data, tokenCancelamento) {
-  if (!registroId || !/^\\d{4}-\\d{2}-\\d{2}$/.test(data || "") || !tokenCancelamento) {
+  if (!registroId || !/^\d{4}-\d{2}-\d{2}$/.test(data || "") || !tokenCancelamento) {
     throw new Error("Dados de cancelamento incompletos.");
   }
   const registroRef = doc(db, "lavajato", registroId);
