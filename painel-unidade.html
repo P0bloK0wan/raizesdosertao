@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css?v=44">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=45">
 <style>
 /* Estilos essenciais da central da unidade, independentes do CSS em cache. */
 #unidade-inicio[hidden],#unidade-resumo-toggle[hidden],.unidade-voltar[hidden],.app-main>.panel-block[hidden],.app-main>.stat-row[hidden]{display:none!important}
@@ -27,6 +27,23 @@
 @media(max-width:370px){#unidade-inicio .unidade-menu-grid{grid-template-columns:1fr!important}}
 @media(hover:hover){#unidade-inicio .unidade-menu-card:hover{border-color:var(--orange,#e97305)!important;transform:translateY(-2px)}}
 @media(prefers-reduced-motion:reduce){#unidade-inicio .unidade-menu-card{transition:none!important;transform:none!important}}
+</style>
+<style>
+/* Desbravadores em cartões e compras por pendência: CSS local contra cache antigo. */
+#cards-membros.unidade-membros-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:16px 0}
+.unidade-membro-card{display:flex;align-items:center;gap:12px;width:100%;min-width:0;min-height:88px;padding:14px;border:1px solid var(--border,#a7836b);border-radius:15px;background:var(--bg-elevated,#30221b);color:var(--text,#fff2d9);text-align:left;cursor:pointer}
+.unidade-membro-avatar{display:grid;place-items:center;flex:none;width:48px;height:48px;border-radius:50%;background:var(--orange,#c96629);color:#fff;font-size:1.2rem;font-weight:800}
+.unidade-membro-info{display:flex;flex-direction:column;gap:5px;min-width:0;flex:1}.unidade-membro-info strong{font-size:1rem;overflow-wrap:anywhere}.unidade-membro-info small{color:var(--text-muted,#cbbcaf)}.unidade-membro-seta{font-size:1.5rem}
+.unidade-membro-card:focus-visible,.unidade-perfil button:focus-visible,.unidade-compra-filtros button:focus-visible{outline:3px solid var(--orange,#e97305);outline-offset:3px}
+.unidade-perfil[hidden],#cards-membros[hidden]{display:none!important}
+.unidade-perfil{padding:18px;border:1px solid var(--border,#a7836b);border-radius:16px;background:var(--bg-elevated,#30221b);margin-top:14px}
+.unidade-perfil h3{margin:18px 0 12px}.unidade-perfil-cabecalho{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.unidade-perfil-cabecalho h3{margin:0}.unidade-perfil-dados{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.unidade-perfil-dado{min-width:0;padding:12px;border:1px solid var(--border,#a7836b);border-radius:11px;overflow-wrap:anywhere}.unidade-perfil-dado small{display:block;color:var(--text-muted,#cbbcaf);margin-bottom:5px}
+.unidade-perfil-acoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.unidade-compra-filtros{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.unidade-compras-lista{display:grid;gap:10px}.unidade-compra-item{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border,#a7836b);border-radius:12px;background:var(--bg-elevated,#30221b)}.unidade-compra-item>div{flex:1;min-width:0;overflow-wrap:anywhere}.unidade-compra-item small{display:block;color:var(--text-muted,#cbbcaf);margin-top:4px}.unidade-compra-item button{min-height:42px;flex:none}.unidade-compras-gerenciar{margin-top:24px;border-top:1px solid var(--border,#a7836b);padding-top:16px}.unidade-compras-gerenciar>summary{font-weight:800;cursor:pointer;padding:12px 0}
+@media(max-width:1000px){#cards-membros.unidade-membros-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){#cards-membros.unidade-membros-grid{grid-template-columns:1fr}.unidade-perfil-dados{grid-template-columns:1fr}.unidade-compra-item{flex-wrap:wrap}.unidade-compra-item button{width:100%}}
+@media(hover:hover){.unidade-membro-card:hover{border-color:var(--orange,#e97305);transform:translateY(-2px)}}
+@media(prefers-reduced-motion:reduce){.unidade-membro-card{transition:none!important;transform:none!important}}
 </style>
 </head>
 <body class="painel-unidade">
@@ -111,12 +128,7 @@
         <h2>Meus desbravadores</h2>
         <button class="btn btn-primary btn-sm" id="btn-novo-membro">+ Cadastrar desbravador</button>
       </div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr><th>Nome</th><th>Nascimento</th><th>Idade</th><th>Classe</th><th>Responsável</th><th>Telefone</th><th>Tipo sang.</th><th>Ações</th></tr></thead>
-          <tbody id="tbody-membros"></tbody>
-        </table>
-      </div>
+      <label class="field unidade-busca"><span>Buscar desbravador</span><input type="search" id="busca-membros" placeholder="Digite um nome..." autocomplete="off"></label><p class="muted" id="contagem-membros"></p><div id="cards-membros" class="unidade-membros-grid"></div><div id="perfil-membro" class="unidade-perfil" hidden></div>
       <div class="empty-state" id="membros-vazio" style="display:none;">Nenhum desbravador cadastrado ainda. Clique em "Cadastrar desbravador".</div>
     </section>
 
@@ -177,7 +189,7 @@
         <h2>O que falta comprar</h2>
       </div>
       <p class="muted">Liste os materiais que cada desbravador precisa comprar pras atividades ou especialidades, e marque como comprado quando resolver.</p>
-      <div id="lista-materiais"></div>
+      <div class="unidade-compra-filtros" role="group" aria-label="Filtrar compras"><button type="button" class="btn btn-primary btn-sm" data-filtro-compras="pendente" aria-pressed="true">Pendentes</button><button type="button" class="btn btn-outline btn-sm" data-filtro-compras="comprado" aria-pressed="false">Comprados</button><button type="button" class="btn btn-outline btn-sm" data-filtro-compras="todos" aria-pressed="false">Todos</button></div><p id="compras-contagem" class="muted" role="status"></p><div id="compras-resumo" class="unidade-compras-lista"></div><details class="unidade-compras-gerenciar"><summary>＋ Adicionar ou gerenciar materiais por desbravador</summary><div id="lista-materiais"></div></details>
       <div class="empty-state" id="materiais-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar.</div>
     </section>
 
