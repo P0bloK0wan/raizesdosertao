@@ -116,7 +116,7 @@ export function rsProximosDomingos(qtd = 8) {
   for (let i = 0; i < qtd; i++) {
     const d = new Date(proximo);
     d.setDate(proximo.getDate() + i * 7);
-    domingos.push(d.toISOString().slice(0, 10));
+    domingos.push(rsDataLocalISO(d));
   }
   return domingos;
 }
@@ -129,7 +129,7 @@ export function rsProximosDomingosAte(dataFimISO) {
   const fim = new Date(dataFimISO + "T00:00:00");
   const d = new Date(proximo);
   while (d <= fim) {
-    domingos.push(d.toISOString().slice(0, 10));
+    domingos.push(rsDataLocalISO(d));
     d.setDate(d.getDate() + 7);
   }
   return domingos;
@@ -238,12 +238,15 @@ export const RS_PLANEJAMENTO_CLUBE_SEED = [
 { data: "2026-12-05", categoria: "Evento especial", nome: "Encerramento das atividades" },
 ];
 
+export function rsDataLocalISO(data) {
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+}
 export function rsDomingoDaSemana() {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
   const proximo = new Date(hoje);
   proximo.setDate(hoje.getDate() + ((7 - hoje.getDay()) % 7));
-  return proximo.toISOString().slice(0, 10);
+  return rsDataLocalISO(proximo);
 }
 export function rsAgendamentoDomingoAberto(horaLimite = "22:00") {
   const agora = new Date();
