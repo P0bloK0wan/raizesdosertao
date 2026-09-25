@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css?v=58">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=59">
 <style>
 /* Painel da Unidade v49: identidade visual unificada e responsiva para todas as unidades. */
 .painel-unidade{--unit-accent:#dc6934;--unit-cream:#fff0d4;--unit-outline:#86563b;--unit-panel:#2a1c16;--unit-soft:#35231b}
@@ -237,6 +237,16 @@
 .painel-unidade #frequencia .unidade-freq-legenda i.freq-ausente{background:#a23e37}
 .painel-unidade #frequencia #freq-detalhe{border:1px solid var(--border,#79513f);border-radius:11px;padding:13px;font-size:.85rem}
 @media(max-width:420px){.painel-unidade #frequencia .unidade-freq-calendario{gap:3px;padding:7px}.painel-unidade #frequencia .unidade-freq-dia{min-height:37px;font-size:.8rem}.painel-unidade #frequencia .unidade-freq-resumo strong{font-size:1.15rem}}
+/* v59: cadastro guiado e responsivo */
+#modal-membro.show{padding:10px!important}#modal-membro .cadastro-modal{box-sizing:border-box!important;width:min(100%,670px)!important;max-width:670px!important;max-height:92dvh!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding:clamp(17px,4vw,27px)!important;border-radius:19px!important}
+#modal-membro .cadastro-header{display:flex;justify-content:space-between;gap:12px}#modal-membro .cadastro-header span{font-size:.72rem;font-weight:800;color:var(--orange,#dc6934)}#modal-membro .cadastro-header h2{margin:5px 0;font-size:clamp(1.3rem,4vw,1.8rem)}#modal-membro .cadastro-header p{margin:0;font-size:.85rem;color:var(--text-muted,#cdb5a2)}#modal-membro #cadastro-fechar{flex:none;width:42px;height:42px;border:1px solid var(--border,#86563b);border-radius:10px;background:transparent;color:var(--text,#fff0d4);font:inherit}
+#modal-membro .cadastro-passos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:20px 0}#modal-membro .cadastro-passos i{height:6px;border-radius:8px;background:var(--border,#86563b)}#modal-membro .cadastro-passos i.ativo{background:var(--orange,#dc6934)}
+#modal-membro #form-membro{display:block!important}#modal-membro .cadastro-passo{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px!important;min-width:0;width:100%;margin:0;padding:0;border:0}#modal-membro .cadastro-passo[hidden]{display:none!important}#modal-membro .cadastro-passo legend{font-size:1.12rem;font-weight:800;margin-bottom:6px}#modal-membro .cadastro-passo>p{grid-column:1/-1;margin:0 0 6px;font-size:.85rem;color:var(--text-muted,#cdb5a2)}
+#modal-membro .cadastro-passo .field{display:flex!important;flex-direction:column;gap:7px;min-width:0;margin:0!important}#modal-membro .cadastro-passo label{font-size:.85rem;font-weight:750}#modal-membro .cadastro-passo input:not([type=checkbox]),#modal-membro .cadastro-passo select,#modal-membro .cadastro-passo textarea{box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:100%!important;min-height:48px!important;margin:0!important;padding:10px!important;border-radius:10px!important;font:inherit!important;font-size:1rem!important}#modal-membro .cadastro-full{grid-column:1/-1!important}
+#modal-membro .cadastro-segundo{border:1px solid var(--border,#86563b);border-radius:12px;overflow:hidden}#modal-membro .cadastro-segundo summary{padding:14px;font-weight:750;cursor:pointer}#modal-membro .cadastro-segundo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px;border-top:1px solid var(--border,#86563b)}
+#modal-membro .cadastro-revisao{display:grid;gap:8px;padding:14px;border:1px solid var(--border,#86563b);border-radius:12px;background:var(--bg-elevated,#302019)}#modal-membro .cadastro-revisao div{display:grid;grid-template-columns:1fr 2fr;gap:8px;font-size:.85rem;overflow-wrap:anywhere}#modal-membro .cadastro-outro{display:flex;align-items:center;gap:9px;font-size:.86rem}#modal-membro .cadastro-outro input{width:20px;height:20px}
+#modal-membro #cadastro-erro:not([hidden]){margin:13px 0 0;padding:10px;border:1px solid #b44b44;border-radius:9px;color:#e99d93}#modal-membro .cadastro-botoes{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border,#86563b)}#modal-membro .cadastro-botoes button{min-height:44px!important;margin:0!important;padding:9px 12px!important;border-radius:10px!important}#modal-membro .cadastro-botoes #btn-cancelar-membro{margin-right:auto!important}#modal-membro [hidden]{display:none!important}
+@media(max-width:550px){#modal-membro .cadastro-passo{grid-template-columns:1fr!important}#modal-membro .cadastro-segundo-grid{grid-template-columns:1fr}#modal-membro .cadastro-botoes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#modal-membro .cadastro-botoes button{width:100%}#modal-membro .cadastro-revisao div{grid-template-columns:1fr;gap:2px}}
 </style>
 </head>
 <body class="painel-unidade">
@@ -461,43 +471,31 @@
   </div>
 </div>
 
-<div class="modal-backdrop" id="modal-membro">
-  <div class="modal">
-    <h2>Cadastrar desbravador</h2>
-    <form id="form-membro">
-      <div class="field"><label>Nome completo</label><input type="text" id="m-nome" required></div>
-      <div class="field"><label>Data de nascimento</label><input type="date" id="m-nascimento"></div>
-      <div class="field"><label>Idade</label><input type="number" id="m-idade" min="0" max="17"></div>
-      <div class="field"><label>Classe</label>
-        <select id="m-classe">
-          <option value="">Selecione</option>
-          <option>Amigo</option><option>Companheiro</option><option>Pesquisador</option>
-          <option>Pioneiro</option><option>Excursionista</option><option>Guia</option>
-        </select>
-      </div>
-      <div class="field"><label>Tipo sanguíneo <span class="muted" style="font-weight:400;">(opcional, mas bom sabermos)</span></label>
-        <select id="m-tipo-sanguineo">
-          <option value="">Não informado</option>
-          <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
-          <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
-        </select>
-      </div>
-      <hr style="border:none; border-top:1px solid var(--border); margin:6px 0;">
-      <p class="muted" style="margin:0 0 4px;">Responsável (obrigatório)</p>
-      <div class="field"><label>Nome do responsável</label><input type="text" id="m-responsavel" required></div>
-      <div class="field"><label>Grau de parentesco</label><input type="text" id="m-parentesco" placeholder="ex.: Mãe, Pai, Avó..."></div>
-      <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="m-telefone" placeholder="(87) 9XXXX-XXXX" required></div>
-      <p class="muted" style="margin:10px 0 4px;">Segundo responsável (opcional)</p>
-      <div class="field"><label>Nome</label><input type="text" id="m-responsavel2"></div>
-      <div class="field"><label>Telefone</label><input type="tel" id="m-telefone2" placeholder="(87) 9XXXX-XXXX"></div>
-      <div class="field"><label>Observações</label><textarea id="m-observacoes-responsavel" rows="2"></textarea></div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-membro">Cancelar</button>
-        <button type="submit" class="btn btn-primary btn-block">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>
+<div class="modal-backdrop" id="modal-membro"><div class="modal cadastro-modal" role="dialog" aria-modal="true" aria-labelledby="cadastro-titulo">
+<header class="cadastro-header"><div><span>🌵 MINHA UNIDADE</span><h2 id="cadastro-titulo">Cadastrar desbravador</h2><p id="cadastro-etapa-texto" aria-live="polite">Etapa 1 de 3 · Dados pessoais</p></div><button type="button" id="cadastro-fechar" aria-label="Fechar">✕</button></header>
+<div class="cadastro-passos" aria-hidden="true"><i class="ativo"></i><i></i><i></i></div>
+<form id="form-membro" novalidate>
+<fieldset class="cadastro-passo" data-passo="0"><legend>👤 Dados pessoais</legend><p>Comece pelas informações principais.</p>
+<div class="field cadastro-full"><label for="m-nome">Nome completo *</label><input id="m-nome" type="text" required maxlength="160" autocomplete="name"></div>
+<div class="field"><label for="m-nascimento">Nascimento</label><input id="m-nascimento" type="date"></div>
+<div class="field"><label for="m-idade">Idade</label><input id="m-idade" type="number" min="0" max="99" placeholder="Automática pela data"></div>
+<div class="field cadastro-full"><label for="m-classe">Classe</label><select id="m-classe"><option value="">Selecionar</option><option>Amigo</option><option>Companheiro</option><option>Pesquisador</option><option>Pioneiro</option><option>Excursionista</option><option>Guia</option></select></div>
+</fieldset>
+<fieldset class="cadastro-passo" data-passo="1" hidden><legend>👨‍👩‍👧 Responsáveis</legend><p>Contatos para emergências e comunicação.</p>
+<div class="field cadastro-full"><label for="m-responsavel">Responsável *</label><input id="m-responsavel" type="text" required maxlength="160"></div>
+<div class="field"><label for="m-parentesco">Parentesco</label><input id="m-parentesco" type="text" placeholder="Mãe, pai, avó..." maxlength="70"></div>
+<div class="field"><label for="m-telefone">Telefone / WhatsApp *</label><input id="m-telefone" type="tel" inputmode="tel" required placeholder="(87) 99999-9999"></div>
+<details class="cadastro-full cadastro-segundo" id="cadastro-segundo"><summary>＋ Segundo responsável (opcional)</summary><div class="cadastro-segundo-grid"><div class="field"><label for="m-responsavel2">Nome</label><input id="m-responsavel2" type="text"></div><div class="field"><label for="m-telefone2">Telefone</label><input id="m-telefone2" type="tel" inputmode="tel"></div></div></details>
+</fieldset>
+<fieldset class="cadastro-passo" data-passo="2" hidden><legend>📋 Revisão</legend><p>Confira os dados antes de salvar.</p>
+<div class="field cadastro-full"><label for="m-tipo-sanguineo">Tipo sanguíneo (opcional)</label><select id="m-tipo-sanguineo"><option value="">Não informado</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>
+<div class="field cadastro-full"><label for="m-observacoes-responsavel">Observações</label><textarea id="m-observacoes-responsavel" rows="3"></textarea></div>
+<div class="cadastro-full cadastro-revisao" id="cadastro-revisao"></div>
+<label class="cadastro-full cadastro-outro"><input type="checkbox" id="cadastro-salvar-outro"> Salvar e cadastrar outro</label>
+</fieldset>
+<p id="cadastro-erro" role="alert" hidden></p>
+<footer class="cadastro-botoes"><button type="button" class="btn btn-outline" id="btn-cancelar-membro">Cancelar</button><button type="button" class="btn btn-outline" id="cadastro-voltar" hidden>← Voltar</button><button type="button" class="btn btn-primary" id="cadastro-proximo">Continuar →</button><button type="submit" class="btn btn-primary" id="cadastro-salvar" hidden>Salvar cadastro</button></footer>
+</form></div></div>
 
 <div class="modal-backdrop" id="modal-conselheiro">
   <div class="modal">
@@ -581,6 +579,6 @@
 })();
 </script>
 <script type="module" src="assets/js/main.js"></script>
-<script type="module" src="assets/js/painel-unidade.js?v=58"></script>
+<script type="module" src="assets/js/painel-unidade.js?v=59"></script>
 </body>
 </html>
