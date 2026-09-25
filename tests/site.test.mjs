@@ -22,3 +22,8 @@ test("galeria: prévia e botão de reprodução acessível",()=>{const s=read("m
 test("acréscimos de fotos e vídeos são atômicos",()=>{const s=read("assets/js/store.js");const p=read("assets/js/painel-lideranca.js");assert.match(s,/arrayUnion/);assert.match(p,/acrescentarFotosMidia/);assert.match(p,/acrescentarVideosMidia/)});
 test("painéis usam CSS atual",()=>{for(const p of ["painel-lideranca.html","painel-unidade.html"])assert.ok(read(p).includes("nordeste.css?v=85"),p)});
 test("módulos JavaScript passam na verificação de sintaxe",()=>{for(const p of readdirSync(new URL("../assets/js/",import.meta.url)).filter(x=>x.endsWith(".js"))){const result=spawnSync(process.execPath,["--check",new URL("../assets/js/"+p,import.meta.url).pathname],{encoding:"utf8"});assert.equal(result.status,0,p+": "+result.stderr)}});
+
+// Regressões do agendamento público (sem Firebase em produção).
+test("lava-jato não oferece Pix automático sem backend",()=>{const s=read("lava-jato.html");assert.ok(!/pagar agora com pix|mercado pago/i.test(s));assert.ok(s.includes("pague no dia da lavagem"))});
+test("lava-jato valida placa, evita duplo envio e não injeta motivo da agenda como HTML",()=>{const s=read("lava-jato.html");assert.match(s,/btn\.disabled = true/);assert.match(s,/\^\[A-Z\]/);assert.match(s,/motivo\.textContent = s\.motivo/);assert.match(s,/rsProximosDomingos\(8\)/)});
+test("datas de domingos usam calendário local, sem conversão UTC",()=>{const s=read("assets/js/data.js");assert.match(s,/rsDataLocalISO/);assert.ok(!s.includes("toISOString().slice(0, 10)"))});
