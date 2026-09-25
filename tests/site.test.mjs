@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync,existsSync,readdirSync} from "node:fs";
+import {readFileSync,existsSync,readdirSync} from "node:fs";\nimport {spawnSync} from "node:child_process";
 const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
 const exists=p=>existsSync(new URL("../"+p,import.meta.url));
 const pages=["index.html","historia.html","participar.html","midia.html","campori.html","lava-jato.html","redes.html","login.html","login-unidade.html","login-lideranca.html","painel-lideranca.html","painel-unidade.html","calendario.html","agenda-admin.html"];
@@ -16,3 +16,10 @@ test("login e painéis mantidos",()=>{for(const p of ["login-lideranca.html","lo
 test("menu acessível em todas as larguras",()=>{const css=read("assets/css/nordeste.css");assert.match(css,/v77: um único menu/);assert.match(css,/nav-links\.open/)});
 
 test("álbuns aceitam vídeos sem apagar fotos existentes",()=>{const store=read("assets/js/store.js");const panel=read("assets/js/painel-lideranca.js");const media=read("midia.html");assert.match(store,/adicionarVideosMidia/);assert.match(panel,/enviarVideoCloudinary/);assert.match(media,/videosValidos/);assert.match(media,/playsInline/)});
+
+test("galeria: prévia e botão de reprodução acessível",()=>{const s=read("midia.html");assert.match(s,/midia-video-assistir/);assert.match(s,/baixarVideo/);assert.match(s,/pararVideos/);assert.match(s,/IntersectionObserver/)});
+test("acréscimos de fotos e vídeos são atômicos",()=>{const s=read("assets/js/store.js");const p=read("assets/js/painel-lideranca.js");assert.match(s,/arrayUnion/);assert.match(p,/acrescentarFotosMidia/);assert.match(p,/acrescentarVideosMidia/)});
+test("painéis usam CSS atual",()=>{for(const p of ["painel-lideranca.html","painel-unidade.html"])assert.match(read(p),/nordeste\\.css\\?v=85/)});
+test("módulos JavaScript passam na verificação de sintaxe",()=>{for(const p of readdirSync(new URL("../assets/js/",import.meta.url)).filter(x=>x.endsWith(".js"))){const result=spawnSync(process.execPath,["--check",new URL("../assets/js/"+p,import.meta.url).pathname],{encoding:"utf8"});assert.equal(result.status,0,p+": "+result.stderr)}});
+function requireSyntaxCheck(){return {spawnSync:globalThis.__unusedSpawnSync||getSpawnSync()};}
+function getSpawnSync(){return spawnSyncImported;}
