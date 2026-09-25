@@ -80,7 +80,10 @@ service cloud.firestore {
         request.resource.data.cancelado == false;
       allow read: if eLideranca();
       allow update: if eLideranca() || (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelado', 'canceladoEm']) &&
+        resource.data.cancelado == false &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelado', 'canceladoEm', 'cancelamentoProva']) &&
+        request.resource.data.cancelamentoProva is string &&
+        request.resource.data.cancelamentoProva == resource.data.tokenCancelamento &&
         resource.data.get('pagamentoStatus', 'pendente') != 'approved' &&
         resource.data.get('pagamentoStatus', 'pendente') != 'pago' &&
         request.resource.data.cancelado == true &&
