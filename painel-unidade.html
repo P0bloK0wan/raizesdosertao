@@ -407,8 +407,8 @@
       <div class="block-head">
         <h2>Especialidades</h2>
       </div>
-      <p class="muted">Abra o nome do desbravador pra cadastrar as especialidades que ele está realizando, com progresso, o que falta e materiais necessários.</p>
-      <div id="lista-especialidades"></div>
+      <p class="muted">Selecione um desbravador para cadastrar as especialidades que ele está realizando, com progresso, o que falta e materiais necessários.</p>
+      <div class="requisitos-seletor"><label for="especialidades-membro-select">Especialidades de</label><select id="especialidades-membro-select" aria-label="Selecionar desbravador"><option value="">Selecione um desbravador…</option></select></div><div id="lista-especialidades"></div>
       <div class="empty-state" id="especialidades-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar.</div>
     </section>
 
@@ -417,7 +417,7 @@
         <h2>O que falta comprar</h2>
       </div>
       <p class="muted">Tudo o que a unidade precisa comprar, numa lista só.</p>
-      <div class="unidade-compras-cabecalho"><div class="unidade-compra-filtros" role="group" aria-label="Filtrar compras"><button type="button" class="btn btn-primary btn-sm" data-filtro-compras="pendente" aria-pressed="true">Pendentes</button><button type="button" class="btn btn-outline btn-sm" data-filtro-compras="comprado" aria-pressed="false">Comprados</button><button type="button" class="btn btn-outline btn-sm" data-filtro-compras="todos" aria-pressed="false">Todos</button></div><p id="compras-contagem" class="muted" role="status"></p></div><div id="compras-resumo" class="unidade-compras-lista"></div><details class="unidade-compras-gerenciar"><summary>＋ Adicionar ou gerenciar materiais</summary><div id="lista-materiais"></div></details>
+      <div class="unidade-compras-cabecalho"><div class="unidade-compra-filtros" role="group" aria-label="Filtrar compras"><button type="button" class="btn btn-primary btn-sm" data-filtro-compras="pendente" aria-pressed="true">Pendentes</button><button type="button" class="btn btn-outline btn-sm" data-filtro-compras="comprado" aria-pressed="false">Comprados</button><button type="button" class="btn btn-outline btn-sm" data-filtro-compras="todos" aria-pressed="false">Todos</button></div><p id="compras-contagem" class="muted" role="status"></p></div><div id="compras-resumo" class="unidade-compras-lista"></div><details class="unidade-compras-gerenciar"><summary>＋ Adicionar ou gerenciar materiais</summary><div class="requisitos-seletor"><label for="materiais-membro-select">Gerenciar materiais de</label><select id="materiais-membro-select" aria-label="Selecionar desbravador"><option value="">Selecione um desbravador…</option></select></div><div id="lista-materiais"></div></details>
       <div class="empty-state" id="materiais-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar.</div>
     </section>
 
@@ -591,6 +591,6 @@
 })();
 </script>
 <script type="module" src="assets/js/main.js"></script>
-<script type="module" src="assets/js/painel-unidade.js?v=65"></script>
+<script type="module" src="assets/js/painel-unidade.js?v=66"></script>
 </body>
 </html>
