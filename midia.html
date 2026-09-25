@@ -4,7 +4,7 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mídia — Raízes do Sertão</title><meta name="theme-color" content="#E97305">
 <link rel="icon" href="assets/img/logo.png"><link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/nordeste.css">
+<link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/nordeste.css"><link rel="stylesheet" href="assets/css/publico.css">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:site_name" content="Raízes do Sertão">
@@ -24,7 +24,7 @@
 <div data-site-header></div>
 <main class="section midia-page"><div class="container">
   <div class="section-head midia-heading"><span class="eyebrow">Nossos momentos</span><h1>Galeria de fotos e vídeos</h1><p>Um pedacinho da nossa história em cada registro. 🌵</p></div>
-  <div id="midia-pastas" class="midia-albuns" aria-live="polite"></div><section id="midia-album-aberto" class="midia-album-aberto" hidden aria-label="Fotos e vídeos do evento"><button type="button" id="midia-voltar" class="midia-voltar">← Voltar aos álbuns</button><div class="midia-evento-head"><h2 id="midia-evento-titulo"></h2><p id="midia-evento-contagem"></p></div><div id="midia-evento-fotos" class="midia-fotos"></div></section>
+  <div class="rs-gallery-controls" role="search"><input id="rs-album-search" type="search" placeholder="Buscar álbum ou evento" aria-label="Buscar álbum"><select id="rs-album-type" aria-label="Filtrar álbuns"><option value="todos">Todos os álbuns</option><option value="fotos">Com fotos</option><option value="videos">Com vídeos</option><option value="drive">Google Drive</option></select><select id="rs-album-year" aria-label="Filtrar por ano"><option value="todos">Todos os anos</option></select></div><div id="midia-pastas" class="midia-albuns" aria-live="polite"></div><section id="midia-album-aberto" class="midia-album-aberto" hidden aria-label="Fotos e vídeos do evento"><button type="button" id="midia-voltar" class="midia-voltar">← Voltar aos álbuns</button><div class="midia-evento-head"><h2 id="midia-evento-titulo"></h2><p id="midia-evento-contagem"></p></div><div class="rs-gallery-share"><button type="button" class="btn btn-outline" id="rs-share-album">↗ Compartilhar álbum</button><button type="button" class="btn btn-outline" id="rs-slideshow">▶ Apresentação</button></div><div id="midia-evento-fotos" class="midia-fotos"></div></section>
 </div></main>
 <div class="midia-lightbox" id="midia-lightbox" hidden role="dialog" aria-modal="true" aria-label="Visualizar foto">
   <button type="button" class="midia-fechar" id="midia-fechar" aria-label="Fechar foto">×</button>
@@ -196,10 +196,17 @@ const eventoContagem = document.getElementById("midia-evento-contagem");
 const voltar = document.getElementById("midia-voltar");
 let albumAtual = null;
 let albunsAtuais = [];
+const search=document.getElementById("rs-album-search"),type=document.getElementById("rs-album-type"),year=document.getElementById("rs-album-year");
+function anoAlbum(p){const valor=p.data||p.criadoEm?.toDate?.()?.toISOString?.()||p.nome||"";return String(valor).match(/20\d{2}/)?.[0]||"";}
+for(const el of [search,type,year])el.addEventListener(el===search?"input":"change",()=>render(albunsAtuais));
+document.getElementById("rs-share-album").addEventListener("click",async()=>{const p=albunsAtuais.find(p=>p.id===albumAtual);if(!p)return;const url=new URL(location.href);url.searchParams.set("album",p.id);try{if(navigator.share)await navigator.share({title:p.nome||"Álbum Raízes do Sertão",url:url.href});else{await navigator.clipboard.writeText(url.href);alert("Link do álbum copiado!");}}catch(e){if(e.name!=="AbortError")prompt("Copie o link:",url.href)}});
+let slideTimer=null;const slideBtn=document.getElementById("rs-slideshow");slideBtn.addEventListener("click",()=>{if(slideTimer){clearInterval(slideTimer);slideTimer=null;slideBtn.textContent="▶ Apresentação";return;}const botoes=[...eventoFotos.querySelectorAll("button.midia-foto")];if(!botoes.length){alert("Este álbum não tem fotos para apresentar.");return;}let i=0;botoes[i].click();slideBtn.textContent="■ Parar apresentação";slideTimer=setInterval(()=>{if(lightbox.hidden){clearInterval(slideTimer);slideTimer=null;slideBtn.textContent="▶ Apresentação";return;}if(!carregandoFoto)navegar(1)},5000)});
+
 voltar.addEventListener("click", () => fecharAlbum());
 function fecharAlbum() {
   pararVideos();
   albumAtual = null;
+  if(slideTimer){clearInterval(slideTimer);slideTimer=null;slideBtn.textContent="▶ Apresentação";}
   albumAberto.hidden = true;
   wrap.hidden = false;
   document.querySelector(".midia-heading").hidden = false;
@@ -241,8 +248,8 @@ function abrirAlbum(pasta) {
   });
   videos.forEach((src,i)=>{
     const card=document.createElement("div");card.className="midia-foto midia-video-card";
-    const video=document.createElement("video");video.controls=true;video.muted=true;video.defaultMuted=true;video.loop=true;video.preload="none";video.playsInline=true;video.setAttribute("playsinline","");video.setAttribute("aria-label","Vídeo "+(i+1)+" do álbum");video.dataset.preview=previewVideo(src);video.poster=miniaturaVideo(src);
-    const ativarOriginal=()=>{if(video.dataset.ativado)return;video.dataset.ativado="1";video.loop=false;video.pause();video.muted=false;video.src=src;video.load();video.play().catch(()=>{});};
+    const video=document.createElement("video");video.controls=false;video.muted=true;video.defaultMuted=true;video.loop=true;video.preload="none";video.playsInline=true;video.setAttribute("playsinline","");video.setAttribute("aria-label","Vídeo "+(i+1)+" do álbum");video.dataset.preview=previewVideo(src);video.poster=miniaturaVideo(src);
+    const ativarOriginal=()=>{if(video.dataset.ativado)return;video.dataset.ativado="1";video.controls=true;video.loop=false;video.pause();video.muted=false;video.src=src;video.load();video.play().catch(()=>{});};
     const assistir=document.createElement("button");assistir.type="button";assistir.className="midia-video-assistir";assistir.textContent="▶ Assistir com som";assistir.setAttribute("aria-label","Reproduzir vídeo "+(i+1)+" com som");assistir.addEventListener("click",()=>{ativarOriginal();assistir.remove();});
     const baixar=document.createElement("a");baixar.className="midia-video-baixar";baixar.href=baixarVideo(src);baixar.target="_blank";baixar.rel="noopener noreferrer";baixar.textContent="↓ Baixar original";baixar.setAttribute("aria-label","Baixar vídeo "+(i+1)+" na qualidade original");
     card.append(video,assistir,baixar);eventoFotos.append(card);
@@ -261,13 +268,15 @@ function abrirAlbum(pasta) {
 }
 function render(pastas) {
   albunsAtuais = pastas;
+  const anos=[...new Set(pastas.map(anoAlbum).filter(Boolean))].sort().reverse();const selecionado=year.value;year.replaceChildren(new Option("Todos os anos","todos"),...anos.map(a=>new Option(a,a)));year.value=anos.includes(selecionado)?selecionado:"todos";
+  const busca=search.value.trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();const filtradas=pastas.filter(p=>{const nome=(p.nome||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();if(busca&&!nome.includes(busca))return false;if(year.value!=="todos"&&anoAlbum(p)!==year.value)return false;const fotos=Array.isArray(p.fotos)?p.fotos:[];const videos=videosValidos(p);return type.value==="todos"||(type.value==="fotos"&&fotos.length>0)||(type.value==="videos"&&videos.length>0)||(type.value==="drive"&&!!idPastaDrive(p.link))});
   wrap.replaceChildren();
-  if (!pastas.length) {
+  if (!filtradas.length) {
     const vazio = document.createElement("div"); vazio.className = "empty-state";
-    vazio.textContent = "Os álbuns ainda estão sendo preparados. Volte em breve!";
+    vazio.textContent = pastas.length ? "Nenhum álbum encontrado. Experimente outro filtro." : "Os álbuns ainda estão sendo preparados. Volte em breve!";
     wrap.append(vazio);
   }
-  for (const pasta of pastas) {
+  for (const pasta of filtradas) {
     const idDrive = idPastaDrive(pasta.link);
     const fotos = (Array.isArray(pasta.fotos) ? pasta.fotos : []).map(urlFoto).filter(Boolean);
     const videos=videosValidos(pasta);
@@ -308,7 +317,7 @@ function render(pastas) {
     if (atualizado) abrirAlbum(atualizado); else fecharAlbum();
   }
 }
-watchMidia(render);
+watchMidia(pastas=>{render(pastas);const id=new URLSearchParams(location.search).get("album");if(id&&albumAtual===null){const p=pastas.find(p=>p.id===id);if(p)abrirAlbum(p);}});
 </script>
 <script type="module" src="assets/js/main.js"></script>
 </body></html>
