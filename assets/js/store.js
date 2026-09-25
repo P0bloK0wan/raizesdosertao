@@ -563,7 +563,7 @@ export async function criarRegistroLavaJato(dados) {
    A transação só lê a agenda pública; as regras validam o token e
    exigem que a vaga seja liberada no mesmo commit. */
 export async function cancelarRegistroLavaJato(registroId, data, tokenCancelamento) {
-  if (!registroId || !/^\\d{4}-\\d{2}-\\d{2}$/.test(data || "") || !tokenCancelamento) {
+  if (!registroId || !/^\d{4}-\d{2}-\d{2}$/.test(data || "") || !tokenCancelamento) {
     throw new Error("Dados de cancelamento incompletos. Contate a liderança.");
   }
   const registroRef = doc(db, "lavajato", registroId);
