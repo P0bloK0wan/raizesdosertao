@@ -166,8 +166,14 @@ function iniciarPainel(unidadeId) {
   const fanOutEspecialidades = criarFanOutPorMembro(unidadeId, watchEspecialidadesMembro, () => { renderEspecialidades(); renderStats(); });
   const fanOutMateriais = criarFanOutPorMembro(unidadeId, watchMateriaisMembro, () => { renderMateriais(); });
 
+  let importacaoInicialIniciada=false;
   watchMembros(unidadeId, (membros) => {
     estado.membros = membros;
+    // Só depois da primeira leitura do Firestore: nunca confundir carregamento com lista vazia.
+    if(!importacaoInicialIniciada){
+      importacaoInicialIniciada=true;
+      queueMicrotask(()=>importarNomesConfirmados(false));
+    }
     fanOutRegistros.sincronizar(membros);
     fanOutEspecialidades.sincronizar(membros);
     fanOutMateriais.sincronizar(membros);
@@ -188,22 +194,26 @@ function iniciarPainel(unidadeId) {
   const normalizarNome=nome=>String(nome||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toLocaleUpperCase("pt-BR");
   const btnImportar=document.getElementById("btn-importar-membros");
   const statusImportar=document.getElementById("importacao-membros-status");
-  btnImportar.addEventListener("click",async()=>{
+  async function importarNomesConfirmados(pedirConfirmacao){
+    if(btnImportar.disabled)return;
     const nomes=NOMES_UNIDADES[unidadeId]||[];
     const existentes=new Set(estado.membros.map(m=>normalizarNome(m.nome)));
     const pendentes=nomes.filter(nome=>!existentes.has(normalizarNome(nome)));
-    if(!pendentes.length){statusImportar.hidden=false;statusImportar.textContent="Todos os nomes confirmados desta unidade já constam no cadastro.";return}
-    if(!confirm("Adicionar "+pendentes.length+" desbravador(es) à unidade "+nomeUnidade+"? Somente nomes serão preenchidos; os demais dados poderão ser completados depois."))return;
-    btnImportar.disabled=true;statusImportar.hidden=false;
+    statusImportar.hidden=false;
+    if(!pendentes.length){statusImportar.textContent="Todos os "+nomes.length+" nomes confirmados desta unidade já constam no cadastro.";return}
+    if(pedirConfirmacao&&!confirm("Adicionar "+pendentes.length+" desbravador(es) à unidade "+nomeUnidade+"? Os demais dados poderão ser completados depois."))return;
+    btnImportar.disabled=true;
+    statusImportar.textContent="Cadastrando "+pendentes.length+" nome(s) confirmados no Firebase…";
     let adicionados=0;const falhas=[];
     for(const nome of pendentes){
       try{await addMembro(unidadeId,{nome,nascimento:"",idade:null,classe:"",tipoSanguineo:"",responsavel:"",parentesco:"",telefone:"",responsavel2Nome:"",responsavel2Telefone:"",observacoesResponsavel:""});adicionados++}
       catch(err){falhas.push(nome);console.error("Falha ao adicionar membro",err)}
     }
-    statusImportar.textContent=adicionados+" nome(s) adicionado(s). "+(falhas.length?falhas.length+" não foram salvos; tente novamente.":"Complete os dados pessoais nos cadastros quando necessário.");
+    statusImportar.textContent=adicionados+" nome(s) cadastrado(s). "+(falhas.length?falhas.length+" falharam; use o botão para tentar novamente.":"Os dados pessoais podem ser completados depois.");
     btnImportar.disabled=false;
-    if(adicionados)avisarLideranca("importou "+adicionados+" desbravador(es) para o cadastro da unidade.");
-  });
+    if(adicionados)avisarLideranca("cadastrou "+adicionados+" desbravador(es) confirmados na unidade.");
+  }
+  btnImportar.addEventListener("click",()=>importarNomesConfirmados(true));
 
   /* ---------------- Membros ---------------- */
   /* A lista mostra só nome e classe. Os dados pessoais aparecem apenas no perfil aberto. */
