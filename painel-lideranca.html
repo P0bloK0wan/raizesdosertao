@@ -279,7 +279,7 @@
     <section class="panel-block" id="midia">
       <div class="block-head">
         <h2>Mídia</h2>
-        <button type="button" class="btn btn-primary btn-sm" id="btn-nova-pasta">+ Novo álbum</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-nova-pasta" onclick="document.getElementById('modal-pasta').classList.add('show')">+ Novo álbum</button>
       </div>
       <p class="muted">Escolha: álbum com fotos enviadas do celular ou pasta do Google Drive que abre em outra aba.</p>
       <div id="lista-midia"></div>
@@ -418,6 +418,27 @@
   </div>
 </div>
 
+<script>
+/* A abertura do álbum é independente do carregamento do Firebase e dos demais módulos. */
+(function () {
+  const modal = document.getElementById("modal-pasta");
+  const cancelar = document.getElementById("btn-cancelar-pasta");
+  if (!modal || !cancelar) return;
+  cancelar.addEventListener("click", () => modal.classList.remove("show"));
+  modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("show"); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.classList.remove("show"); });
+  const radios = document.querySelectorAll('input[name="pa-tipo"]');
+  function alternar() {
+    const drive = document.querySelector('input[name="pa-tipo"]:checked')?.value === "drive";
+    document.getElementById("pa-campo-drive").hidden = !drive;
+    document.getElementById("pa-campo-fotos").hidden = drive;
+    document.getElementById("pa-link").required = drive;
+    document.getElementById("pa-fotos-arquivos").required = !drive;
+  }
+  radios.forEach((radio) => radio.addEventListener("change", alternar));
+  alternar();
+})();
+</script>
 <script type="module" src="assets/js/main.js"></script>
 <script type="module" src="assets/js/painel-lideranca.js"></script>
 </body>
