@@ -8,7 +8,34 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=43">
+<style>
+/* Estilo crítico da central: incluído no HTML para não depender do CSS antigo em cache. */
+#lideranca-inicio[hidden],.app-main>.panel-block[hidden],.leadership-overview[hidden],#lideranca-voltar[hidden]{display:none!important}
+#lideranca-inicio{display:block;width:100%;max-width:1200px;margin:0 auto}
+#lideranca-inicio .lideranca-boas-vindas{margin:8px 0 24px}
+#lideranca-inicio .lideranca-boas-vindas h2{font-size:clamp(1.35rem,4vw,2rem);line-height:1.2;margin:8px 0}
+#lideranca-inicio .lideranca-boas-vindas p{color:var(--text-muted,#cbbcaf);line-height:1.5;margin:0;font-size:.95rem}
+#lideranca-inicio .lideranca-menu-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:16px!important;width:100%;margin:0 0 26px}
+#lideranca-inicio .lideranca-menu-grid .lideranca-menu-card{box-sizing:border-box;display:flex!important;flex-direction:column!important;align-items:flex-start;gap:10px;min-width:0;min-height:166px;padding:18px!important;border:1px solid var(--border,#9b6348)!important;border-radius:17px!important;background:var(--bg-elevated,#32221a)!important;color:var(--text,#fff2d9)!important;text-decoration:none!important;box-shadow:0 4px 0 rgba(0,0,0,.16);overflow-wrap:anywhere}
+#lideranca-inicio .lideranca-menu-card .lideranca-menu-icon{font-size:1.85rem;line-height:1.1}
+#lideranca-inicio .lideranca-menu-card strong{display:block;font-size:1rem;line-height:1.3}
+#lideranca-inicio .lideranca-menu-card>span:nth-of-type(2){display:block;font-size:.81rem;line-height:1.4;color:var(--text-muted,#cbbcaf);flex:1}
+#lideranca-inicio .lideranca-menu-card .lideranca-menu-entrar{font-size:.83rem;font-weight:800;color:var(--orange,#e97305)}
+#lideranca-inicio .lideranca-menu-card:focus-visible{outline:3px solid var(--orange,#e97305);outline-offset:3px}
+#lideranca-inicio .lideranca-menu-card:active{transform:scale(.98)}
+#lideranca-resumo-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:54px;padding:13px 16px;border:1px solid var(--border,#9b6348);border-radius:13px;background:var(--bg-elevated,#32221a);color:var(--text,#fff2d9);font-weight:800;text-align:left;cursor:pointer;margin-bottom:12px}
+#lideranca-resumo-toggle[hidden]{display:none!important}
+#lideranca-resumo-toggle[aria-expanded="false"]+.leadership-overview{display:none!important}
+.lideranca-titulo{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.lideranca-titulo h1{font-size:clamp(1.25rem,3vw,1.7rem);margin:0}
+#lideranca-voltar{min-height:44px;padding:9px 14px;border:1px solid var(--border,#9b6348);border-radius:11px;background:var(--bg-elevated,#32221a);color:var(--text,#fff2d9);font-weight:800}
+@media(max-width:1100px){#lideranca-inicio .lideranca-menu-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:800px){#lideranca-inicio .lideranca-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}#lideranca-inicio .lideranca-menu-grid .lideranca-menu-card{min-height:150px;padding:14px!important;gap:8px}#lideranca-inicio .lideranca-boas-vindas{margin-bottom:20px}}
+@media(max-width:370px){#lideranca-inicio .lideranca-menu-grid{grid-template-columns:1fr!important}}
+@media(hover:hover){#lideranca-inicio .lideranca-menu-card:hover{border-color:var(--orange,#e97305)!important;transform:translateY(-2px)}}
+@media(prefers-reduced-motion:reduce){#lideranca-inicio .lideranca-menu-card{transition:none!important;transform:none!important}}
+</style>
 </head>
 <body>
 
@@ -81,7 +108,8 @@
 <a class="lideranca-menu-card" href="#campori"><span class="lideranca-menu-icon" aria-hidden="true">🏕️</span><strong>Campori DSA</strong><span>Datas e organização</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
 <a class="lideranca-menu-card" href="#pedidos-senha"><span class="lideranca-menu-icon" aria-hidden="true">🔐</span><strong>Acessos e segurança</strong><span>Solicitações de senha e configurações</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a>
 <a class="lideranca-menu-card" href="#dados"><span class="lideranca-menu-icon" aria-hidden="true">📦</span><strong>Backup</strong><span>Exportar dados do clube</span><span class="lideranca-menu-entrar" aria-hidden="true">Abrir →</span></a></nav></section>
-<section class="leadership-overview" aria-label="Resumo do clube">
+<button type="button" id="lideranca-resumo-toggle" aria-expanded="false" aria-controls="lideranca-resumo">📊 Ver resumo rápido <span aria-hidden="true">⌄</span></button>
+<section class="leadership-overview" id="lideranca-resumo" aria-label="Resumo do clube">
       <div class="leadership-overview-head"><div><span class="eyebrow">Resumo rápido</span><h2>O que precisa da sua atenção</h2></div><a class="btn btn-outline btn-sm" href="#planejamento-unidades">Ver pendências</a></div>
       <div class="leadership-stats-grid">
       <div class="stat"><b id="s-unidades">0</b><span>Unidades</span></div>
@@ -457,6 +485,8 @@
   const inicio = document.getElementById("lideranca-inicio");
   const resumo = document.querySelector(".leadership-overview");
   const voltar = document.getElementById("lideranca-voltar");
+  const resumoToggle = document.getElementById("lideranca-resumo-toggle");
+  resumoToggle.addEventListener("click", () => { const aberto = resumoToggle.getAttribute("aria-expanded") === "true"; resumoToggle.setAttribute("aria-expanded", String(!aberto)); });
   const titulo = document.getElementById("visao-geral");
   const barra = document.querySelector("[data-sidebar]");
   const sobreposicao = document.querySelector("[data-sidebar-overlay]");
@@ -466,6 +496,7 @@
     const area = rotas.get(hash);
     inicio.hidden = !!area;
     resumo.hidden = !!area;
+    resumoToggle.hidden = !!area;
     voltar.hidden = !area;
     titulo.textContent = area ? area.title : "Painel da Liderança";
     for (const item of areas) {
