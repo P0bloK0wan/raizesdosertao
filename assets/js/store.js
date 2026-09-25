@@ -630,6 +630,9 @@ export function watchMidia(cb) {
 export function addPastaMidia(nome, fotos = [], link = "", videos = []) {
   return addDoc(collection(db, "midia"), { nome, fotos, videos, link, tipo: link ? "drive" : "fotos", criadoEm: serverTimestamp() });
 }
+export function renomearPastaMidia(pastaId, nome) {
+  return updateDoc(doc(db, "midia", pastaId), { nome });
+}
 export function adicionarFotosMidia(pastaId, fotos) {
   return updateDoc(doc(db, "midia", pastaId), { fotos });
 }
