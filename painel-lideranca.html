@@ -279,11 +279,11 @@
     <section class="panel-block" id="midia">
       <div class="block-head">
         <h2>Mídia</h2>
-        <button class="btn btn-primary btn-sm" id="btn-nova-pasta">+ Novo álbum</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-nova-pasta">+ Novo álbum</button>
       </div>
-      <p class="muted">Crie álbuns e envie fotos do celular ou computador. As imagens ficam no Cloudinary e aparecem na galeria do site.</p>
+      <p class="muted">Escolha: álbum com fotos enviadas do celular ou pasta do Google Drive que abre em outra aba.</p>
       <div id="lista-midia"></div>
-      <div class="empty-state" id="midia-vazio" style="display:none;">Nenhuma pasta publicada ainda.</div>
+      <div class="empty-state" id="midia-vazio" style="display:none;">Nenhum álbum publicado ainda.</div>
     </section>
 
     <section class="panel-block" id="campori">
@@ -322,14 +322,17 @@
 
 <div class="modal-backdrop" id="modal-pasta">
   <div class="modal">
-    <h2>Novo álbum de fotos</h2>
+    <h2>Novo álbum</h2>
     <form id="form-pasta">
-      <div class="field"><label>Nome do álbum</label><input type="text" id="pa-nome" placeholder="ex.: Acampamento 2026" required></div>
-      <div class="field"><label>Selecionar fotos</label><input type="file" id="pa-fotos-arquivos" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple required><small class="muted">Até 10 MB por foto. Selecione várias imagens de uma vez.</small></div><p id="pa-progresso" class="muted" role="status"></p>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-pasta">Cancelar</button>
-        <button type="submit" class="btn btn-primary btn-block">Publicar</button>
-      </div>
+      <div class="field"><label for="pa-nome">Nome do álbum</label><input type="text" id="pa-nome" placeholder="Ex.: Acampamento 2026" required></div>
+      <fieldset class="midia-tipo-opcoes"><legend>Como deseja publicar?</legend>
+        <label><input type="radio" name="pa-tipo" value="fotos" checked> 📸 Enviar minhas fotos</label>
+        <label><input type="radio" name="pa-tipo" value="drive"> 📁 Pasta do Google Drive</label>
+      </fieldset>
+      <div class="field" id="pa-campo-fotos"><label for="pa-fotos-arquivos">Selecionar fotos</label><input type="file" id="pa-fotos-arquivos" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple required><small class="muted">Selecione até 40 fotos por vez, com até 10 MB cada.</small></div>
+      <div class="field" id="pa-campo-drive" hidden><label for="pa-link">Link público da pasta no Google Drive</label><input type="url" id="pa-link" placeholder="https://drive.google.com/drive/folders/..." ><small class="muted">Compartilhe a pasta como “Qualquer pessoa com o link — Leitor”.</small></div>
+      <p id="pa-progresso" class="muted" role="status"></p>
+      <div class="modal-actions"><button type="button" class="btn btn-outline btn-block" id="btn-cancelar-pasta">Cancelar</button><button type="submit" class="btn btn-primary btn-block">Publicar</button></div>
     </form>
   </div>
 </div>
