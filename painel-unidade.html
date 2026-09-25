@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css?v=51">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=52">
 <style>
 /* Painel da Unidade v49: identidade visual unificada e responsiva para todas as unidades. */
 .painel-unidade{--unit-accent:#dc6934;--unit-cream:#fff0d4;--unit-outline:#86563b;--unit-panel:#2a1c16;--unit-soft:#35231b}
@@ -104,6 +104,10 @@
 @media(max-width:950px){.painel-unidade #unidade-inicio .unidade-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:700px){.painel-unidade #unidade-inicio .unidade-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}.painel-unidade #unidade-inicio .unidade-menu-grid>.unidade-menu-card{min-height:150px!important;padding:13px!important}.painel-unidade #unidade-inicio .unidade-atalhos{grid-template-columns:repeat(2,minmax(0,1fr))!important}.painel-unidade #unidade-inicio .unidade-atalhos>a:first-child{grid-column:1/-1!important}}
 @media(max-width:360px){.painel-unidade #unidade-inicio .unidade-menu-grid>.unidade-menu-card>strong{font-size:.92rem!important}.painel-unidade #unidade-inicio .unidade-menu-grid>.unidade-menu-card>span:nth-of-type(2){font-size:.76rem!important}}
+
+/* v52: nenhuma seção aparece antes de ser selecionada; inclusive se o JS atrasar. */
+.painel-unidade .app-main>section.panel-block[hidden],.painel-unidade .app-main>section.stat-row[hidden],.painel-unidade #unidade-inicio[hidden],.painel-unidade #unidade-subnav[hidden]{display:none!important}
+.painel-unidade:not(.unidade-ready) .app-main>section.panel-block{display:none!important}
 </style>
 </head>
 <body class="painel-unidade">
@@ -168,21 +172,21 @@
 <a class="unidade-menu-card" href="#config"><span class="unidade-menu-icon" aria-hidden="true">⚙️</span><strong>Configurações</strong><span>Acesso e segurança</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a></nav></section>
 <div id="unidade-subnav" class="unidade-subnav" hidden aria-label="Seções da área"></div>
 <button type="button" id="unidade-resumo-toggle" aria-expanded="false" aria-controls="unidade-resumo">📊 Ver resumo rápido <span aria-hidden="true">⌄</span></button>
-<section class="stat-row" id="unidade-resumo">
+<section class="stat-row" id="unidade-resumo" hidden>
       <div class="stat"><b id="s-membros">0</b><span>Desbravadores da unidade</span></div>
       <div class="stat"><b id="s-topicos">0</b><span>Registros de requisitos lançados</span></div>
       <div class="stat"><b id="s-planejamentos">0</b><span>Propostas de planejamento</span></div>
       <div class="stat"><b id="s-especialidades">0</b><span>Especialidades em andamento</span></div>
     </section>
 
-    <section class="panel-block" id="mural-avisos">
+    <section class="panel-block" id="mural-avisos" hidden>
       <div class="block-head"><h2>Mural de Avisos</h2></div>
       <p class="muted">Comunicados da diretoria — só leitura.</p>
       <div id="lista-avisos-unidade"></div>
       <div class="empty-state" id="avisos-unidade-vazio" style="display:none;">Nenhum aviso publicado ainda.</div>
     </section>
 
-    <section class="panel-block" id="membros">
+    <section class="panel-block" id="membros" hidden>
       <div class="block-head">
         <h2>Meus desbravadores</h2>
         <button class="btn btn-primary btn-sm" id="btn-novo-membro">+ Cadastrar desbravador</button>
@@ -191,7 +195,7 @@
       <div class="empty-state" id="membros-vazio" style="display:none;">Nenhum desbravador cadastrado ainda. Clique em "Cadastrar desbravador".</div>
     </section>
 
-    <section class="panel-block" id="conselheiros">
+    <section class="panel-block" id="conselheiros" hidden>
       <div class="block-head">
         <h2>Conselheiros</h2>
         <button class="btn btn-primary btn-sm" id="btn-novo-conselheiro">+ Cadastrar conselheiro</button>
@@ -205,7 +209,7 @@
       <div class="empty-state" id="conselheiros-vazio" style="display:none;">Nenhum conselheiro cadastrado ainda.</div>
     </section>
 
-    <section class="panel-block" id="presenca">
+    <section class="panel-block" id="presenca" hidden>
       <div class="block-head">
         <h2>Presença</h2>
       </div>
@@ -225,7 +229,7 @@
       <div class="empty-state" id="presencas-vazio" style="display:none;">Nenhuma chamada registrada ainda.</div></div></details>
     </section>
 
-    <section class="panel-block" id="topicos">
+    <section class="panel-block" id="topicos" hidden>
       <div class="block-head">
         <h2>Atividades / requisitos</h2>
       </div>
@@ -234,7 +238,7 @@
       <div class="empty-state" id="requisitos-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar a lançar requisitos.</div>
     </section>
 
-    <section class="panel-block" id="especialidades">
+    <section class="panel-block" id="especialidades" hidden>
       <div class="block-head">
         <h2>Especialidades</h2>
       </div>
@@ -243,7 +247,7 @@
       <div class="empty-state" id="especialidades-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar.</div>
     </section>
 
-    <section class="panel-block" id="materiais">
+    <section class="panel-block" id="materiais" hidden>
       <div class="block-head">
         <h2>O que falta comprar</h2>
       </div>
@@ -252,7 +256,7 @@
       <div class="empty-state" id="materiais-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar.</div>
     </section>
 
-    <section class="panel-block" id="planejamento">
+    <section class="panel-block" id="planejamento" hidden>
       <div class="block-head">
         <h2>Planejamento</h2>
         <button class="btn btn-primary btn-sm" id="btn-novo-planejamento">+ Nova proposta</button>
@@ -262,7 +266,7 @@
       <div class="empty-state" id="planejamento-vazio" style="display:none;">Nenhuma proposta enviada ainda.</div>
     </section>
 
-    <section class="panel-block" id="planejamento-clube">
+    <section class="panel-block" id="planejamento-clube" hidden>
       <div class="block-head">
         <h2>Planejamento do Clube</h2>
       </div>
@@ -276,7 +280,7 @@
       <p class="cal-aviso">⚠️ Sujeito a mudanças. As datas e atividades podem ser alteradas pela liderança a qualquer momento.</p>
     </section>
 
-    <section class="panel-block" id="placar-acampamento">
+    <section class="panel-block" id="placar-acampamento" hidden>
       <div class="block-head">
         <h2>Placar do Acampamento</h2>
       </div>
@@ -286,7 +290,7 @@
       <div id="placar-historico"></div>
     </section>
 
-    <section class="panel-block" id="config">
+    <section class="panel-block" id="config" hidden>
       <div class="block-head"><h2>Configurações</h2></div>
       <h3 style="font-size:1rem;">Trocar senha da unidade</h3>
       <p class="muted">A troca passa pela aprovação da liderança. Depois de aprovada, ela vale sozinha na próxima vez que você entrar usando a senha atual.</p>
@@ -426,6 +430,7 @@
   });
   barra?.classList.remove("open");overlay?.classList.remove("show");
   document.body.classList.remove("sidebar-open");
+  document.body.classList.add("unidade-ready");
   window.scrollTo(0,0);
  }
  voltar.addEventListener("click",()=>{location.hash="visao-geral";});
@@ -433,6 +438,6 @@
 })();
 </script>
 <script type="module" src="assets/js/main.js"></script>
-<script type="module" src="assets/js/painel-unidade.js?v=51"></script>
+<script type="module" src="assets/js/painel-unidade.js?v=52"></script>
 </body>
 </html>
