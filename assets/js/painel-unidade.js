@@ -219,6 +219,7 @@ function iniciarPainel(unidadeId) {
     statusImportar.textContent=(nomes.length-faltam)+" de "+nomes.length+" nomes confirmados cadastrados."+(faltam?" Faltam "+faltam+"; use o botão para sincronizar.":"");
   }
   btnImportar.addEventListener("click",importarNomesConfirmados);
+  const escHTML=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   /* ---------------- Membros ---------------- */
   /* A lista mostra só nome e classe. Os dados pessoais aparecem apenas no perfil aberto. */
   let membroSelecionado = null;
@@ -538,7 +539,7 @@ function iniciarPainel(unidadeId) {
         const linhas = regs
           .map(
             (r) => `<li data-reg="${r.id}">
-              <span class="rg-criterio">${r.criterio}</span>
+              <span class="rg-criterio">${escHTML(r.criterio)}</span>
               <span class="rg-data">${fmtDataBr(r.data)}</span>
               <button data-del-registro="${m.id}:${r.id}" style="background:none; border:none; color:#c1443a; font-weight:700; cursor:pointer;">Excluir</button>
             </li>`
@@ -546,7 +547,7 @@ function iniciarPainel(unidadeId) {
           .join("");
         return `
         <details class="month-acc" data-membro-acc="${m.id}"${" open"}>
-          <summary>${m.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${regs.length} registro(s))</span></summary>
+          <summary>${escHTML(m.nome)} <span class="muted" style="font-weight:600; font-size:.8rem;">(${regs.length} registro(s))</span></summary>
           <div class="unidade-acc-conteudo">
             <ul class="registro-list">${linhas || "<li class='muted' style='border:none;'>Nenhum registro lançado ainda.</li>"}</ul>
             <form class="registro-add-form" data-form-registro="${m.id}">
@@ -636,7 +637,7 @@ function iniciarPainel(unidadeId) {
             (e) => `
           <li class="esp-item" data-esp="${m.id}:${e.id}">
             <div class="esp-linha">
-              <input class="esp-nome" value="${e.nome || ""}" placeholder="Nome da especialidade">
+              <input class="esp-nome" value="${escHTML(e.nome || "")}" placeholder="Nome da especialidade">
               <select class="esp-status">
                 <option value="pendente" ${e.status === "pendente" ? "selected" : ""}>Pendente</option>
                 <option value="andamento" ${e.status === "andamento" ? "selected" : ""}>Em andamento</option>
@@ -644,13 +645,13 @@ function iniciarPainel(unidadeId) {
               </select>
             </div>
             <div class="esp-linha">
-              <input class="esp-instrutor" value="${e.instrutor || ""}" placeholder="Instrutor/responsável">
+              <input class="esp-instrutor" value="${escHTML(e.instrutor || "")}" placeholder="Instrutor/responsável">
               <input type="date" class="esp-data-inicio" value="${e.dataInicio || ""}">
             </div>
-            <textarea class="esp-concluido" rows="2" placeholder="O que já foi concluído">${e.concluido || ""}</textarea>
-            <textarea class="esp-falta" rows="2" placeholder="O que ainda falta">${e.falta || ""}</textarea>
-            <textarea class="esp-materiais" rows="2" placeholder="Materiais necessários">${e.materiais || ""}</textarea>
-            <textarea class="esp-observacoes" rows="2" placeholder="Observações">${e.observacoes || ""}</textarea>
+            <textarea class="esp-concluido" rows="2" placeholder="O que já foi concluído">${escHTML(e.concluido || "")}</textarea>
+            <textarea class="esp-falta" rows="2" placeholder="O que ainda falta">${escHTML(e.falta || "")}</textarea>
+            <textarea class="esp-materiais" rows="2" placeholder="Materiais necessários">${escHTML(e.materiais || "")}</textarea>
+            <textarea class="esp-observacoes" rows="2" placeholder="Observações">${escHTML(e.observacoes || "")}</textarea>
             <div class="esp-linha">
               <button type="button" class="btn btn-outline btn-sm esp-salvar">Salvar alterações</button>
               <button type="button" class="danger" data-del-esp="${m.id}:${e.id}">Excluir</button>
@@ -660,7 +661,7 @@ function iniciarPainel(unidadeId) {
           .join("");
         return `
         <details class="month-acc" data-esp-acc="${m.id}"${abertosEspecialidades.has(m.id) ? " open" : ""}>
-          <summary>${m.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${lista.length} especialidade(s))</span></summary>
+          <summary>${escHTML(m.nome)} <span class="muted" style="font-weight:600; font-size:.8rem;">(${lista.length} especialidade(s))</span></summary>
           <div class="unidade-acc-conteudo">
             <ul class="esp-list">${itens || "<li class='muted' style='border:none;'>Nenhuma especialidade cadastrada ainda.</li>"}</ul>
             <form class="registro-add-form" data-form-esp="${m.id}">
@@ -776,8 +777,8 @@ function iniciarPainel(unidadeId) {
         const itens = lista
           .map(
             (it) => `<li data-mat="${m.id}:${it.id}" class="${it.status === "comprado" ? "comprado" : ""}">
-              <span class="mat-nome">${it.nome}</span>
-              ${it.especialidade ? `<span class="muted">(${it.especialidade})</span>` : ""}
+              <span class="mat-nome">${escHTML(it.nome)}</span>
+              ${it.especialidade ? `<span class="muted">(${escHTML(it.especialidade)})</span>` : ""}
               <button type="button" class="btn btn-sm ${it.status === "comprado" ? "btn-outline" : "btn-primary"}" data-toggle-mat="${m.id}:${it.id}:${it.status}">${it.status === "comprado" ? "✓ Comprado" : "Marcar comprado"}</button>
               <button type="button" data-del-mat="${m.id}:${it.id}" style="background:none; border:none; color:#c1443a; font-weight:700; cursor:pointer;">Excluir</button>
             </li>`
@@ -785,7 +786,7 @@ function iniciarPainel(unidadeId) {
           .join("");
         return `
         <details class="month-acc" data-mat-acc="${m.id}"${abertosMateriais.has(m.id) ? " open" : ""}>
-          <summary>${m.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${pendentes} pendente(s) de ${lista.length})</span></summary>
+          <summary>${escHTML(m.nome)} <span class="muted" style="font-weight:600; font-size:.8rem;">(${pendentes} pendente(s) de ${lista.length})</span></summary>
           <div class="unidade-acc-conteudo">
             <ul class="mat-list">${itens || "<li class='muted' style='border:none;'>Nenhum item cadastrado ainda.</li>"}</ul>
             <form class="registro-add-form" data-form-mat="${m.id}">
