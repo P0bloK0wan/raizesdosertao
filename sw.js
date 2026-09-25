@@ -1,15 +1,11 @@
 /* Service worker simples — cache do "app shell" para o site
    abrir rápido e funcionar offline depois da primeira visita. */
 
-const CACHE_NAME = "raizes-do-sertao-v71";
+const CACHE_NAME = "raizes-do-sertao-v72";
 const APP_SHELL = [
   "./index.html",
   "./historia.html",
-  "./agenda.html",
-  "./unidades.html",
   "./participar.html",
-  "./projetos.html",
-  "./aventuras.html",
   "./midia.html",
   "./campori.html",
   "./lava-jato.html",
@@ -29,8 +25,6 @@ const APP_SHELL = [
   "./assets/js/firebase.js",
   "./assets/js/auth.js",
   "./assets/js/main.js",
-  "./assets/js/agenda-publica.js",
-  "./assets/js/publicar-agenda.js",
   "./assets/js/cloudinary.js",
   "./assets/js/painel-lideranca.js",
   "./assets/js/painel-unidade.js",
