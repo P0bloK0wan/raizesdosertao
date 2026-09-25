@@ -1,7 +1,7 @@
 /* Service worker simples — cache do "app shell" para o site
    abrir rápido e funcionar offline depois da primeira visita. */
 
-const CACHE_NAME = "raizes-do-sertao-v77";
+const CACHE_NAME = "raizes-do-sertao-v78";
 const APP_SHELL = [
   "./index.html",
   "./historia.html",
@@ -44,7 +44,7 @@ const APP_SHELL = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).catch(() => {})
+    caches.open(CACHE_NAME).then((cache) => Promise.allSettled(APP_SHELL.map((path) => cache.add(path))))
   );
   self.skipWaiting();
 });
@@ -76,6 +76,6 @@ self.addEventListener("fetch", (event) => {
         }
         return resp;
       })
-      .catch(() => caches.match(event.request))
+      .catch(async () => (await caches.match(event.request)) || (await caches.match(event.request, { ignoreSearch: true })) || (event.request.mode === "navigate" ? caches.match("./index.html") : undefined))
   );
 });
