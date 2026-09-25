@@ -25,13 +25,13 @@ fecharVagaNormal, reabrirVagaNormal,
   watchIdentidadeUnidade, salvarIdentidadeUnidade, watchConselheiros,
   gerarDesbloqueioUnidade,
   addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
-  watchMidia, addPastaMidia, adicionarFotosMidia, deletePastaMidia,
+  watchMidia, addPastaMidia, adicionarFotosMidia, adicionarVideosMidia, deletePastaMidia,
   watchCampori, setCamporiData,
   watchAvisos, addAviso, updateAviso, deleteAviso,
   exportarBackup,
 } from "./store.js";
 import { criarCalendarioClube } from "./calendario-clube.js";
-import { enviarImagemCloudinary } from "./cloudinary.js";
+import { enviarImagemCloudinary, enviarVideoCloudinary } from "./cloudinary.js";
 import { mostrarToast } from "./main.js";
 import { iniciarConvitePwa } from "./pwa-install.js";
 
@@ -1287,6 +1287,7 @@ if (btnReabrirVaga) {
   const formPasta = document.getElementById("form-pasta");
   const MAX_FOTO = 10 * 1024 * 1024;
   const TIPOS_FOTO = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+  const TIPOS_VIDEO = ["video/mp4", "video/webm", "video/quicktime"];
   function idPastaDrive(link) {
     try {
       const url = new URL(link);
@@ -1305,23 +1306,25 @@ if (btnReabrirVaga) {
   }
   formPasta.querySelectorAll('input[name="pa-tipo"]').forEach(radio => radio.addEventListener("change", alternarTipo));
   alternarTipo();
-  function validarFotos(arquivos) {
-    if (!arquivos.length) throw new Error("Selecione pelo menos uma foto.");
-    if (arquivos.length > 40) throw new Error("Envie no máximo 40 fotos por vez.");
-    for (const arquivo of arquivos) {
-      if (!TIPOS_FOTO.includes(arquivo.type)) throw new Error("Formato não aceito: " + arquivo.name);
-      if (arquivo.size > MAX_FOTO) throw new Error("A foto " + arquivo.name + " ultrapassa 10 MB.");
+  function validarArquivos(arquivos){
+    if(!arquivos.length)throw new Error("Selecione fotos ou vídeos.");
+    if(arquivos.length>40)throw new Error("Envie até 40 arquivos por vez.");
+    for(const arquivo of arquivos){
+      if(TIPOS_FOTO.includes(arquivo.type)){if(arquivo.size>MAX_FOTO)throw new Error("Foto acima de 10 MB: "+arquivo.name);}
+      else if(TIPOS_VIDEO.includes(arquivo.type)){if(arquivo.size>50*1024*1024)throw new Error("Vídeo acima de 50 MB: "+arquivo.name);}
+      else throw new Error("Formato não aceito: "+arquivo.name);
     }
   }
-  async function enviarFotos(arquivos, status = progresso) {
-    validarFotos(arquivos);
-    const urls = [];
-    for (let i = 0; i < arquivos.length; i++) {
-      status.textContent = "Enviando foto " + (i + 1) + " de " + arquivos.length + "…";
-      const resultado = await enviarImagemCloudinary(arquivos[i]);
-      urls.push(resultado.url);
+  async function enviarArquivos(arquivos,status=progresso){
+    validarArquivos(arquivos);
+    const fotos=[],videos=[];
+    for(let i=0;i<arquivos.length;i++){
+      const arquivo=arquivos[i],video=TIPOS_VIDEO.includes(arquivo.type);
+      status.textContent="Enviando "+(video?"vídeo ":"foto ")+(i+1)+" de "+arquivos.length+"…";
+      const resultado=video?await enviarVideoCloudinary(arquivo):await enviarImagemCloudinary(arquivo);
+      (video?videos:fotos).push(resultado.url);
     }
-    return urls;
+    return {fotos,videos};
   }
   function renderMidia() {
     const wrap = document.getElementById("lista-midia");
@@ -1333,11 +1336,11 @@ if (btnReabrirVaga) {
       const cab = document.createElement("div"); cab.className = "pasta-cabecalho";
       const titulo = document.createElement("h3"); titulo.textContent = (idDrive ? "📁 " : "📸 ") + (album.nome || "Álbum");
       const acoes = document.createElement("div"); acoes.className = "midia-admin-acoes";
-      const contador = document.createElement("p"); contador.className = "muted"; contador.textContent = idDrive ? "Pasta externa do Google Drive" : (album.fotos || []).length + " fotos";
+      const contador = document.createElement("p"); contador.className = "muted"; contador.textContent = idDrive ? "Pasta externa do Google Drive" : (album.fotos || []).length + " fotos · " + (album.videos || []).length + " vídeos";
       if (idDrive) {
         const abrir = document.createElement("a"); abrir.className = "btn btn-outline btn-sm"; abrir.href = "https://drive.google.com/drive/folders/" + encodeURIComponent(idDrive); abrir.target = "_blank"; abrir.rel = "noopener noreferrer"; abrir.textContent = "Abrir no Drive ↗"; acoes.append(abrir);
       } else {
-        const adicionar = document.createElement("button"); adicionar.type = "button"; adicionar.className = "btn btn-outline btn-sm"; adicionar.textContent = "+ Adicionar fotos";
+        const adicionar = document.createElement("button"); adicionar.type = "button"; adicionar.className = "btn btn-outline btn-sm"; adicionar.textContent = "+ Adicionar fotos/vídeos";
         const input = document.createElement("input"); input.type = "file"; input.accept = arquivosInput.accept; input.multiple = true; input.hidden = true;
         const status = document.createElement("p"); status.className = "muted"; status.setAttribute("role", "status");
         adicionar.addEventListener("click", () => input.click());
@@ -1346,9 +1349,10 @@ if (btnReabrirVaga) {
           if (!arquivos.length) return;
           adicionar.disabled = true;
           try {
-            const urls = await enviarFotos(arquivos, status);
-            await adicionarFotosMidia(album.id, [...(album.fotos || []), ...urls]);
-            mostrarToast("Fotos adicionadas!");
+            const enviados=await enviarArquivos(arquivos,status);
+            if(enviados.fotos.length)await adicionarFotosMidia(album.id,[...(album.fotos||[]),...enviados.fotos]);
+            if(enviados.videos.length)await adicionarVideosMidia(album.id,[...(album.videos||[]),...enviados.videos]);
+            mostrarToast("Arquivos adicionados!");
           } catch (e) { alert(e.message || "Não foi possível enviar as fotos."); }
           finally { adicionar.disabled = false; status.textContent = ""; input.value = ""; }
         });
@@ -1379,8 +1383,8 @@ if (btnReabrirVaga) {
         if (!id) throw new Error("Cole um link válido de pasta do Google Drive.");
         await addPastaMidia(nome, [], "https://drive.google.com/drive/folders/" + id);
       } else {
-        const fotos = await enviarFotos(Array.from(arquivosInput.files || []));
-        await addPastaMidia(nome, fotos);
+        const enviados=await enviarArquivos(Array.from(arquivosInput.files||[]));
+        await addPastaMidia(nome,enviados.fotos,"",enviados.videos);
       }
       modalPasta.classList.remove("show"); formPasta.reset(); alternarTipo(); progresso.textContent = "";
       mostrarToast("Álbum publicado!");
