@@ -183,6 +183,28 @@ function iniciarPainel(unidadeId) {
     renderStats();
   });
 
+  /* Nomes confirmados pela direção. Importação manual, idempotente e sem criar contas. */
+  const NOMES_UNIDADES={"carcara":["ADRIEL LUCAS DUARTE DA SILVA","ADRYAN LEVI GONÇALVES DOS SANTOS","ANDRÉ GABRIEL DOS ANJOS RODRIGUES","BERNARDO LEVI CARVALHO SILVA","GUSTAVO DIMAS DA SILVA","JOÃO MIGUEL SANTOS BARROS","LUCAS GABRIEL DE LIMA SANTOS","NEEMIAS ALBANO FURTADO","PAULO DAVI AMARAL DOS SANTOS","PEDRO ARTHUR FERREIRA DOS SANTOS FERRAZ"],"tarantula":["ANTONIO EDUARDO RIBEIRO ALVES","ARTHUR OLIVEIRA SANTOS","ERIK FELIPE DE SOUZA SANTOS","IAN BARROS AZEVEDO","JOÃO PEDRO CORDEIRO FEITOSA","JOÃO PEDRO GOMES CARNEIRO","JONATAS RIAN DA SILVA SOUSA","LUIZ HENRIQUE RODRIQUES ALVES","NICKOLLAS TAYLLOR TORRES DELMONDES","PEDRO HENRIQUE DE BARROS TORRES","PEDRO RYAN FARIAS CAVALCANTE","PIETRO ALEXANDER TENORIO BANDEIRA"],"raposa":["ADELLE SOFIA DA SILVA SOUSA","AYLA BARROS AZEVEDO","BRIZA LETÍCIA FERREIRA LINO","HELOÍSA RIBEIRO AZEVEDO DE SOUZA","JANINE OLIVEIRA SILVA","LARA EMYLLY PEREIRA ARAÚJO","NARA BELLY TORRES DELMONDES","REBECA NOGUEIRA PEDROZA"],"beijaflor":["ALICE APARECIDA AMARAL DOS SANTOS","ALICIA MEDRADO GOMES","IANDRA ALVES RODRIGUES","MARIA JÚLIA GIL BARBOSA","NANDA VALÉRIA FERREIRA LINO"],"andorinha":["ANNY GABRIELA NUNES RIBEIRO","LORENA SOUZA COSTA","YASMIM DE SOUZA ARAUJO"]};
+  const normalizarNome=nome=>String(nome||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/\\s+/g," ").trim().toLocaleUpperCase("pt-BR");
+  const btnImportar=document.getElementById("btn-importar-membros");
+  const statusImportar=document.getElementById("importacao-membros-status");
+  btnImportar.addEventListener("click",async()=>{
+    const nomes=NOMES_UNIDADES[unidadeId]||[];
+    const existentes=new Set(estado.membros.map(m=>normalizarNome(m.nome)));
+    const pendentes=nomes.filter(nome=>!existentes.has(normalizarNome(nome)));
+    if(!pendentes.length){statusImportar.hidden=false;statusImportar.textContent="Todos os nomes confirmados desta unidade já constam no cadastro.";return}
+    if(!confirm("Adicionar "+pendentes.length+" desbravador(es) à unidade "+nomeUnidade+"? Somente nomes serão preenchidos; os demais dados poderão ser completados depois."))return;
+    btnImportar.disabled=true;statusImportar.hidden=false;
+    let adicionados=0;const falhas=[];
+    for(const nome of pendentes){
+      try{await addMembro(unidadeId,{nome,nascimento:"",idade:null,classe:"",tipoSanguineo:"",responsavel:"",parentesco:"",telefone:"",responsavel2Nome:"",responsavel2Telefone:"",observacoesResponsavel:""});adicionados++}
+      catch(err){falhas.push(nome);console.error("Falha ao adicionar membro",err)}
+    }
+    statusImportar.textContent=adicionados+" nome(s) adicionado(s). "+(falhas.length?falhas.length+" não foram salvos; tente novamente.":"Complete os dados pessoais nos cadastros quando necessário.");
+    btnImportar.disabled=false;
+    if(adicionados)avisarLideranca("importou "+adicionados+" desbravador(es) para o cadastro da unidade.");
+  });
+
   /* ---------------- Membros ---------------- */
   /* A lista mostra só nome e classe. Os dados pessoais aparecem apenas no perfil aberto. */
   let membroSelecionado = null;
