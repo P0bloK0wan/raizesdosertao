@@ -611,3 +611,8 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 @media(max-width:390px){.site-header .container{gap:6px;padding-inline:10px;}.site-header .brand{gap:7px;max-width:calc(100% - 103px);}.site-header .brand img{max-height:38px;}.site-header .brand span{font-size:clamp(.9rem,4vw,1.1rem);}.site-header .brand small{display:none;}.site-header .header-actions{gap:5px;}}
 @media(max-width:700px){.container,.app-main,.app-content,.panel-main{min-width:0;}.table-wrap,.table-responsive{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}input,select,textarea{max-width:100%;}input[type=text],input[type=email],input[type=password],input[type=tel],input[type=date],select,textarea{font-size:max(16px,1rem);}}
 @media(prefers-reduced-motion:reduce){[data-site-header] .nav-links,[data-site-header] .nav-toggle span{transition:none!important;}}
+
+/* v80: vídeos dentro dos álbuns, sem reprodução automática e adaptáveis ao celular. */
+.midia-video-card{position:relative;overflow:hidden;min-width:0;min-height:0;aspect-ratio:4/5;display:flex;align-items:center;background:#171717;border-radius:14px;}
+.midia-video-card video{display:block;width:100%;height:100%;max-height:480px;object-fit:contain;background:#171717;border-radius:14px;}
+@media(max-width:700px){.midia-video-card{aspect-ratio:4/5;}.midia-video-card video{max-height:70dvh;}}
