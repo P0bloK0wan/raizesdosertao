@@ -11,43 +11,87 @@
 <link rel="stylesheet" href="assets/css/nordeste.css">
 </head>
 <body>
-
 <div data-site-header></div>
-
 <section class="section">
   <div class="container">
     <div class="section-head">
       <span class="eyebrow">Registros</span>
       <h1>Mídia</h1>
-      <p>Fotos dos nossos eventos, acampamentos e edições do Lava Jato — organizadas em pastas pela diretoria. Clique em "Abrir no Drive" pra ver e baixar as fotos.</p>
+      <p>Veja as fotos dos nossos eventos aqui mesmo. Para baixar os arquivos originais, abra a pasta no Drive.</p>
     </div>
-    <div id="midia-pastas"></div>
+    <div id="midia-pastas" class="midia-galerias" aria-live="polite"></div>
   </div>
 </section>
-
 <div data-site-footer></div>
-
 <script type="module">
   import { watchMidia } from "./assets/js/store.js";
-
   const wrap = document.getElementById("midia-pastas");
 
-  watchMidia((pastas) => {
+  // Aceita os dois formatos usuais de links públicos para pastas do Drive.
+  function idPasta(link) {
+    try {
+      const url = new URL(link);
+      if (!["drive.google.com", "www.drive.google.com"].includes(url.hostname)) return null;
+      const match = url.pathname.match(/\/folders\/([\w-]+)/);
+      const id = match ? match[1] : url.searchParams.get("id");
+      return id && /^[\w-]+$/.test(id) ? id : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function mostrarPastas(pastas) {
+    wrap.replaceChildren();
     if (!pastas.length) {
-      wrap.innerHTML = `<div class="empty-state">Ainda não há pastas publicadas. A diretoria pode adicionar pelo painel da liderança.</div>`;
+      const vazio = document.createElement("div");
+      vazio.className = "empty-state";
+      vazio.textContent = "Ainda não há pastas publicadas. A diretoria pode adicionar pelo painel da liderança.";
+      wrap.append(vazio);
       return;
     }
-    wrap.innerHTML = pastas
-      .map(
-        (p) => `<div class="pasta-bloco">
-          <div class="pasta-cabecalho">
-            <h3>📁 ${p.nome}</h3>
-            <a class="btn btn-outline btn-sm" href="${p.link}" target="_blank" rel="noopener">Abrir no Drive ↗</a>
-          </div>
-        </div>`
-      )
-      .join("");
-  });
+
+    for (const pasta of pastas) {
+      const bloco = document.createElement("section");
+      bloco.className = "pasta-bloco midia-galeria";
+      const cabecalho = document.createElement("div");
+      cabecalho.className = "pasta-cabecalho";
+      const titulo = document.createElement("h3");
+      titulo.textContent = "📸 " + (pasta.nome || "Álbum");
+      cabecalho.append(titulo);
+
+      const id = idPasta(pasta.link);
+      if (id) {
+        const link = document.createElement("a");
+        link.className = "btn btn-outline btn-sm";
+        link.href = "https://drive.google.com/drive/folders/" + encodeURIComponent(id);
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "Ver originais no Drive ↗";
+        cabecalho.append(link);
+
+        const frame = document.createElement("iframe");
+        frame.className = "midia-drive-frame";
+        frame.title = "Fotos do álbum " + (pasta.nome || "do clube");
+        frame.loading = "lazy";
+        frame.referrerPolicy = "no-referrer-when-downgrade";
+        frame.src = "https://drive.google.com/embeddedfolderview?id=" + encodeURIComponent(id) + "#grid";
+        bloco.append(cabecalho, frame);
+
+        const aviso = document.createElement("p");
+        aviso.className = "muted midia-ajuda";
+        aviso.textContent = "Se as fotos não aparecerem, a pasta precisa estar compartilhada como “Qualquer pessoa com o link — Leitor”.";
+        bloco.append(aviso);
+      } else {
+        const aviso = document.createElement("p");
+        aviso.className = "muted";
+        aviso.textContent = "Este álbum precisa de um link válido de pasta do Google Drive para exibir as fotos aqui.";
+        bloco.append(cabecalho, aviso);
+      }
+      wrap.append(bloco);
+    }
+  }
+
+  watchMidia(mostrarPastas);
 </script>
 <script type="module" src="assets/js/main.js"></script>
 </body>
