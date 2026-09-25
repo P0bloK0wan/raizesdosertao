@@ -67,18 +67,19 @@
     <h1>Clube Raízes do Sertão</h1>
     <p class="lead" style="margin-inline:auto;">Desde 2004 formando o caráter de crianças e adolescentes através da aventura, do serviço e da fé. Um clube de Desbravadores que é, antes de tudo, uma família.</p>
     <svg class="scribble-arrow" data-reveal style="width:56px; height:42px; margin:4px auto -8px; --rs-arrow-rot:72deg; color:#fff;" aria-hidden="true"><use href="#rs-seta"></use></svg>
-    <div class="hero-actions" style="justify-content:center;">
+    <img class="rs-home-hero-image" src="assets/img/banner-compartilhamento.png" alt="Arte oficial do Raízes do Sertão com o escudo do clube e o sertão" width="500" height="281" fetchpriority="high"><div class="hero-actions" style="justify-content:center;">
       <a href="participar.html" class="btn btn-gold">Quero participar</a>
-      <a href="https://iasdvilaeduardo.github.io/iasd/" target="_blank" rel="noopener" class="btn btn-outline">⛪ Conheça nossa Igreja</a>
+      <a href="midia.html" class="btn btn-outline">📸 Ver fotos</a><a href="lava-jato.html" class="btn btn-outline">🚗 Apoiar o clube</a><a href="https://iasdvilaeduardo.github.io/iasd/" target="_blank" rel="noopener" class="btn btn-outline">⛪ Conheça nossa Igreja</a>
     </div>
     <div class="hero-stats" style="justify-content:center;">
-      <div class="hero-stat"><b>22+</b><span>anos de história</span></div>
+      <div class="hero-stat"><b id="rs-anos-clube">22</b><span>anos de história</span></div>
       <div class="hero-stat"><b>5</b><span>unidades ativas</span></div>
       <div class="hero-stat"><b>2004</b><span>ano de fundação</span></div>
     </div>
   </div>
 </section>
 
+<section class="section"><div class="container"><div class="section-head"><span class="eyebrow">Nosso próximo passo</span><h2>Conheça, participe e apoie</h2><p>Atividades públicas, registros do clube e formas de ajudar nossos desbravadores.</p></div><div class="rs-feature-grid"><article class="card"><h3>📅 Próxima atividade</h3><p>Confira com a liderança a próxima reunião aberta a visitantes. As datas são confirmadas pelo WhatsApp.</p><a class="btn btn-primary" href="participar.html">Como participar</a></article><article class="card"><h3>📸 Nossos registros</h3><p>Fotos e vídeos dos eventos que o clube já publicou.</p><a class="btn btn-outline" href="midia.html">Abrir galeria</a></article><article class="card"><h3>💚 Apoie o Campori</h3><p>Reserve uma lavagem e contribua com as atividades do clube.</p><a class="btn btn-primary" href="lava-jato.html">Reservar lava-jato</a></article></div></div></section>
 <!-- FAIXA DE VALORES -->
 <div class="marquee">
   <div class="marquee-track">
@@ -113,6 +114,7 @@
   </div>
 </section>
 
+<section class="section section-alt"><div class="container"><div class="section-head"><span class="eyebrow">Nossa essência</span><h2>O que são os Desbravadores?</h2><p>Um clube para crianças e adolescentes de 10 a 15 anos, com atividades de natureza, serviço à comunidade, amizade, habilidades práticas e desenvolvimento espiritual.</p></div><div class="rs-feature-grid"><article class="card"><h3>🏕️ Aventura</h3><p>Acampamentos, atividades ao ar livre e aprendizado em equipe.</p></article><article class="card"><h3>🤝 Serviço</h3><p>Solidariedade e participação em ações comunitárias.</p></article><article class="card"><h3>🌵 Nossa história</h3><p>Conheça as raízes do clube e seus projetos.</p><a class="btn btn-outline" href="historia.html">Ver nossa história</a></article></div></div></section>
 <!-- PERGUNTAS FREQUENTES -->
 <section class="section">
   <div class="container" style="max-width:720px;">
@@ -153,6 +155,6 @@
 
 <div data-site-footer></div>
 
-<script type="module" src="assets/js/main.js"></script>
+<script>document.getElementById("rs-anos-clube").textContent=Math.max(0,new Date().getFullYear()-2004);</script><script type="module" src="assets/js/main.js"></script>
 </body>
 </html>
