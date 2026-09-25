@@ -79,6 +79,8 @@
       <p>Anotamos o carro <strong id="conf-modelo"></strong> (<span id="conf-placa"></span>) em nome de <strong id="conf-nome"></strong> pro domingo <strong id="conf-data"></strong>. Te esperamos lá!</p>
       <p class="form-note">Pagamento de R$ 50,00 no dia da lavagem.</p>
       <button class="btn btn-outline btn-block" id="btn-cancelar-meu">Cancelar meu atendimento</button>
+      <button class="btn btn-outline btn-block" id="btn-limpar-reserva-antiga" style="display:none;margin-top:12px;">Voltar ao cadastro</button>
+      <p class="form-note" id="aviso-reserva-antiga" style="display:none;">A agenda indica zero vagas ocupadas para esse domingo, mas não foi possível verificar seu cadastro privado. Voltar ao formulário apaga apenas os dados salvos neste aparelho; não cancela uma reserva que ainda exista no Firebase. Confirme com a liderança se tiver dúvida.</p>
     </div>
   </div>
 </section>
@@ -256,6 +258,22 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
     } finally { btn.textContent = "Confirmar minha reserva →"; }
   });
 
+  function voltarAoCadastro() {
+    try { localStorage.removeItem(LS_KEY); } catch (e) { console.warn("Não foi possível limpar o armazenamento:", e); }
+    blocoConfirmado.style.display = "none";
+    blocoCadastro.style.display = "block";
+    document.getElementById("form-cadastro").reset();
+    document.getElementById("btn-limpar-reserva-antiga").style.display = "none";
+    document.getElementById("aviso-reserva-antiga").style.display = "none";
+    renderAgenda();
+    renderSelect();
+    blocoCadastro.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  document.getElementById("btn-limpar-reserva-antiga").addEventListener("click", () => {
+    if (confirm("A agenda está com zero vagas ocupadas, mas não podemos confirmar se o registro privado foi cancelado. Voltar ao cadastro remove somente a reserva salva neste aparelho. Deseja continuar?")) voltarAoCadastro();
+  });
+
   document.getElementById("btn-cancelar-meu").addEventListener("click", async () => {
     if (!confirm("Cancelar seu atendimento no Lava Jato?")) return;
     let dados;
@@ -268,17 +286,15 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
     btn.disabled = true;
     try {
       await cancelarRegistroLavaJato(dados.id, dados.data, dados.tokenCancelamento);
-      try { localStorage.removeItem(LS_KEY); } catch (storageError) {
-        console.warn("Não foi possível limpar o armazenamento local após o cancelamento confirmado:", storageError);
-      }
-      blocoConfirmado.style.display = "none";
-      blocoCadastro.style.display = "block";
-      document.getElementById("form-cadastro").reset();
-      renderAgenda();
-      renderSelect();
-      blocoCadastro.scrollIntoView({ behavior: "smooth", block: "start" });
+      voltarAoCadastro();
     } catch (err) {
       console.error("Falha ao cancelar reserva do lava-jato:", err);
+      if (/Esta reserva já pode ter sido cancelada/.test(err?.message || "")) {
+        document.getElementById("btn-limpar-reserva-antiga").style.display = "block";
+        document.getElementById("aviso-reserva-antiga").style.display = "block";
+        alert("A agenda desse domingo já está com zero vagas ocupadas. Use o botão Voltar ao cadastro para limpar o registro deste aparelho, após conferir o aviso.");
+        return;
+      }
       const codigo = err?.code || "";
       const mensagem = err?.message || "";
       const texto = codigo === "permission-denied"
