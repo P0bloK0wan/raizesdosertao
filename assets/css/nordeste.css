@@ -457,3 +457,14 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 .midia-lightbox img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:8px}.midia-lightbox p{color:white;margin:12px}
 .midia-fechar{position:absolute;top:12px;right:20px;border:0;background:transparent;color:#fff;font-size:2.5rem;cursor:pointer}
 @media(max-width:700px){.midia-page .midia-heading{margin-bottom:24px}.midia-albuns{gap:18px}.midia-album{border-radius:16px;box-shadow:3px 4px 0 rgba(0,0,0,.15)}.midia-fotos{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.midia-foto{aspect-ratio:1}.midia-link{width:100%}.midia-capa-vazia{min-height:145px}}
+
+/* Duas modalidades de mídia: álbuns próprios e pastas externas. */
+.midia-tipo-opcoes{border:1px solid var(--border);border-radius:12px;padding:12px;display:grid;gap:12px;margin-bottom:16px}
+.midia-tipo-opcoes legend{font-weight:800;padding:0 6px}
+.midia-tipo-opcoes label{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}
+.midia-tipo-opcoes input{width:20px;height:20px;flex-shrink:0}
+#pa-campo-drive[hidden],#pa-campo-fotos[hidden]{display:none!important}
+.midia-admin-acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.midia-pasta-drive{min-height:175px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;border:2px dashed var(--border);border-radius:14px;background:linear-gradient(135deg,rgba(220,110,40,.13),rgba(220,170,80,.06));text-align:center;padding:22px}
+.midia-pasta-drive span{font-size:4rem}.midia-pasta-drive p{margin:0;font-weight:700}
+@media(max-width:700px){.midia-admin-acoes{width:100%}.midia-admin-acoes .btn,.midia-admin-acoes .danger{flex:1;min-height:44px}}
