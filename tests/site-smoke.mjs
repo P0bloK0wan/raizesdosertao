@@ -25,10 +25,10 @@ console.log('PASS: '+pages.length+' páginas, navegação, cache e verificaçõe
 
 /* Regressões de navegação, página inicial e PWA. */
 const home=read('index.html');
-assert.equal((home.match(/href="assets\\/css\\/publico\\.css"/g)||[]).length,1,'CSS público duplicado');
-assert.equal((home.match(/class="public-links"/g)||[]).length,1,'vitrines públicas duplicadas');
+assert.equal(home.split('href="assets/css/publico.css"').length-1,1,'CSS público duplicado');
+assert.equal(home.split('class="public-links"').length-1,1,'vitrines públicas duplicadas');
 const shell=read('sw.js');
-const cached=[...shell.matchAll(/"\\.\\/([^"]+)"/g)].map(m=>m[1]);
+const cached=shell.split('\\n').filter(line=>line.trim().startsWith('"./')).map(line=>line.trim().split('"')[1].slice(2));
 assert.equal(new Set(cached).size,cached.length,'arquivos repetidos no cache');
 for(const p of cached)assert.ok(existsSync(new URL('../'+p,import.meta.url)),'cache aponta para arquivo ausente: '+p);
 console.log('PASS: vitrine única, CSS e cache sem duplicações.');
