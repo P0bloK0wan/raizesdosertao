@@ -27,3 +27,9 @@ test("módulos JavaScript passam na verificação de sintaxe",()=>{for(const p o
 test("lava-jato não oferece Pix automático sem backend",()=>{const s=read("lava-jato.html");assert.ok(!/pagar agora com pix|mercado pago/i.test(s));assert.ok(s.includes("pague no dia da lavagem"))});
 test("lava-jato valida placa, evita duplo envio e não injeta motivo da agenda como HTML",()=>{const s=read("lava-jato.html");assert.match(s,/btn\.disabled = true/);assert.match(s,/\^\[A-Z\]/);assert.match(s,/motivo\.textContent = s\.motivo/);assert.match(s,/rsProximosDomingos\(8\)/)});
 test("datas de domingos usam calendário local, sem conversão UTC",()=>{const s=read("assets/js/data.js");assert.match(s,/rsDataLocalISO/);assert.ok(!s.includes("toISOString().slice(0, 10)"))});
+
+// Recursos públicos adicionados na versão 89.
+test("galeria tem busca, filtros, compartilhamento e apresentação",()=>{const html=read("midia.html");for(const id of ["rs-album-search","rs-album-type","rs-album-year","rs-share-album","rs-slideshow"])assert.ok(html.includes(id),id);assert.match(html,/new URLSearchParams\(location.search\)/);assert.match(html,/video\.controls=true/)});
+test("páginas públicas carregam estilos responsivos",()=>{for(const p of ["index.html","historia.html","participar.html","midia.html","campori.html","lava-jato.html","redes.html"])assert.ok(read(p).includes("assets/css/publico.css"),p)});
+test("acessibilidade pública, navegação rápida e fallback sem IntersectionObserver",()=>{const js=read("assets/js/main.js");for(const id of ["rs-font-minus","rs-font-plus","rs-contrast","rs-top","rs-bottom-nav"])assert.ok(js.includes(id),id);assert.ok(js.includes('"IntersectionObserver" in window'))});
+test("reserva pública continua sem cobrança online",()=>{const html=read("lava-jato.html");assert.match(html,/Sem pagamento online/);assert.ok(!html.includes("Pagar agora com Pix"))});
