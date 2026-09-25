@@ -153,9 +153,7 @@ if (navToggle && navLinks) {
   window.addEventListener("hashchange", fecharNav);
   window.addEventListener("popstate", fecharNav);
   window.addEventListener("pagehide", fecharNav);
-  window.addEventListener("resize", () => {
-    if (window.innerWidth > 1520 && navLinks.classList.contains("open")) fecharNav();
-  });
+
 }
 
 /* Sidebar dos painéis (mobile) */
