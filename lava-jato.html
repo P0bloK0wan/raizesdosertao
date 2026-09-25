@@ -64,6 +64,7 @@
         <div class="field"><label>Placa do carro</label><input type="text" id="lj-placa" placeholder="ABC-1D23" required style="text-transform:uppercase;"></div>
         <div class="field"><label>Modelo do carro</label><input type="text" id="lj-modelo" required></div>
         <div class="field"><label>Cor do carro</label><input type="text" id="lj-cor" required></div>
+        <div class="field"><label for="lj-forma-pagamento">Como deseja pagar?</label><select id="lj-forma-pagamento" required><option value="local">Pagar no local (no dia)</option><option value="pix">Pix</option></select></div>
         <button class="btn btn-primary btn-block" type="submit">Cadastrar atendimento</button>
       </form>
       <p class="form-note">A vaga é reservada mesmo sem pagamento. Você poderá pagar R$ 50,00 por Pix quando quiser ou no dia da lavagem.</p>
@@ -75,7 +76,8 @@
       <p>Anotamos o carro <strong id="conf-modelo"></strong> (<span id="conf-placa"></span>) em nome de <strong id="conf-nome"></strong> pro domingo <strong id="conf-data"></strong>. Te esperamos lá!</p>
       <div id="lj-pagamento" style="text-align:left; margin:20px 0; padding:16px; border:1px solid var(--border, #b9c7b7); border-radius:14px;">
         <h3 style="margin:0 0 8px;">💚 Pagamento — R$ 50,00</h3>
-        <p id="lj-pix-status" role="status" aria-live="polite">Você pode pagar por Pix agora ou no dia da lavagem.</p>
+        <p id="lj-pix-status" role="status" aria-live="polite">Pagamento pendente.</p>
+        <p id="lj-local-aviso" hidden>Você escolheu pagar no local. Sua reserva está confirmada e o pagamento será registrado pela liderança no dia.</p>
         <div id="lj-pix-form">
           <label for="lj-email-pix">E-mail para o comprovante Pix</label>
           <input id="lj-email-pix" type="email" autocomplete="email" placeholder="voce@exemplo.com" style="width:100%; margin:8px 0 12px;">
@@ -122,6 +124,12 @@ import {
     const resultado = await resposta.json().catch(() => ({}));
     if (!resposta.ok) throw new Error(resultado.erro || "Pix ainda não disponível. Você pode pagar no dia.");
     return resultado;
+  }
+  function configurarFormaPagamento(reserva) {
+    const local = reserva.formaPagamento !== "pix";
+    document.getElementById("lj-local-aviso").hidden = !local;
+    pixForm.hidden = local;
+    if (local) pixStatus.textContent = "💵 Pagar no local — R$ 50,00 (pendente)";
   }
   function exibirPix(pix) {
     if (!pix.codigo) return;
@@ -294,11 +302,12 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
       placa: document.getElementById("lj-placa").value.trim().toUpperCase(),
       modelo: document.getElementById("lj-modelo").value.trim(),
       cor: document.getElementById("lj-cor").value.trim(),
+      formaPagamento: document.getElementById("lj-forma-pagamento").value,
     };
     try {
       const ref = await criarRegistroLavaJato(dados);
       localStorage.setItem(LS_KEY, JSON.stringify({ ...dados, id: ref.id, tokenCancelamento: ref.tokenCancelamento }));
-      mostrarConfirmado(dados);
+      mostrarConfirmado({ ...dados, id: ref.id, tokenCancelamento: ref.tokenCancelamento });
     } catch (err) {
       erro.textContent = err.message && err.message.includes("domingo")
         ? err.message
