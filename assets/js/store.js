@@ -8,7 +8,7 @@ import { db } from "./firebase.js";
 import { RS_UNIDADES, RS_CAMPORI_DATA_PADRAO, RS_LAVAJATO_VAGAS_POR_DOMINGO } from "./data.js";
 import {
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, getDoc, getDocs,
-  onSnapshot, serverTimestamp, orderBy, query, runTransaction,
+  onSnapshot, serverTimestamp, orderBy, query, runTransaction, arrayUnion,
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 /* ---------- tema (só de exibição, pode ficar local) ---------- */
@@ -632,6 +632,12 @@ export function addPastaMidia(nome, fotos = [], link = "", videos = []) {
 }
 export function renomearPastaMidia(pastaId, nome) {
   return updateDoc(doc(db, "midia", pastaId), { nome });
+}
+export function acrescentarFotosMidia(pastaId, fotos) {
+  return updateDoc(doc(db, "midia", pastaId), { fotos: arrayUnion(...fotos) });
+}
+export function acrescentarVideosMidia(pastaId, videos) {
+  return updateDoc(doc(db, "midia", pastaId), { videos: arrayUnion(...videos) });
 }
 export function adicionarFotosMidia(pastaId, fotos) {
   return updateDoc(doc(db, "midia", pastaId), { fotos });
