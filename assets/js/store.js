@@ -28,6 +28,21 @@ export function watchMembros(unidadeId, cb) {
 export function addMembro(unidadeId, membro) {
   return addDoc(collection(db, "unidades", unidadeId, "membros"), membro);
 }
+/* Importação idempotente: documento determinístico e transação sem sobrescrita. */
+export function importarMembroConfirmado(unidadeId, nome) {
+  const chave = nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    .trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 160);
+  if (!chave) return Promise.reject(new Error("Nome inválido"));
+  const ref = doc(db, "unidades", unidadeId, "membros", "importado-" + chave);
+  return runTransaction(db, async tx => {
+    const atual = await tx.get(ref);
+    if (atual.exists()) return false;
+    tx.set(ref, {nome, nascimento:"", idade:null, classe:"", tipoSanguineo:"",
+      responsavel:"", parentesco:"", telefone:"", responsavel2Nome:"",
+      responsavel2Telefone:"", observacoesResponsavel:""});
+    return true;
+  });
+}
 export function updateMembro(unidadeId, membroId, dados) {
   return updateDoc(doc(db, "unidades", unidadeId, "membros", membroId), dados);
 }
