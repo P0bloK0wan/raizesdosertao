@@ -281,7 +281,7 @@
         <h2>Mídia</h2>
         <button class="btn btn-primary btn-sm" id="btn-nova-pasta">+ Nova pasta</button>
       </div>
-      <p class="muted">Crie uma pasta com um nome e o link de uma pasta do Google Drive (compartilhada como "Qualquer pessoa com o link"). Ela aparece na hora na página pública de Mídia, com um botão pra abrir no Drive.</p>
+      <p class="muted">Crie uma pasta com um nome e o link de uma pasta do Google Drive (compartilhada como "Qualquer pessoa com o link"). Adicione também os links individuais das fotos para montar uma galeria bonita dentro do site. Sem links individuais, o álbum terá um botão para abrir no Drive.</p>
       <div id="lista-midia"></div>
       <div class="empty-state" id="midia-vazio" style="display:none;">Nenhuma pasta publicada ainda.</div>
     </section>
@@ -325,7 +325,7 @@
     <h2>Nova pasta de mídia</h2>
     <form id="form-pasta">
       <div class="field"><label>Nome da pasta</label><input type="text" id="pa-nome" placeholder="ex.: Acampamento 2026" required></div>
-      <div class="field"><label>Link do Google Drive</label><input type="url" id="pa-link" placeholder="https://drive.google.com/..." required></div>
+      <div class="field"><label>Link da pasta do Google Drive</label><input type="url" id="pa-link" placeholder="https://drive.google.com/drive/folders/..." required></div><div class="field"><label>Links das fotos (um por linha, opcional)</label><textarea id="pa-fotos" rows="5" placeholder="https://drive.google.com/file/d/ID_DA_FOTO/view"></textarea><small class="muted">No Drive, compartilhe cada foto como “Qualquer pessoa com o link — Leitor”. As fotos aparecerão em grade na página Mídia.</small></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline btn-block" id="btn-cancelar-pasta">Cancelar</button>
         <button type="submit" class="btn btn-primary btn-block">Publicar</button>
