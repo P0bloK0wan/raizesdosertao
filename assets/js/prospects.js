@@ -23,6 +23,7 @@ onAuthStateChanged(auth, user => {
         try { await updateDoc(doc(db, "prospects", item.id), { status: select.value }); }
         catch (e) { erro.textContent = "Erro ao atualizar status."; }
       });
+      ["Nome", "Telefone", "Instagram", "Status", "Motivo", "Observações", "Ações"].forEach((label, index) => tr.children[index].dataset.label = label);
       tr.children[3].append(select);
       tr.querySelector("button").addEventListener("click", async () => {
         if (!confirm("Excluir este cliente?")) return;
