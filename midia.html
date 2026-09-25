@@ -39,19 +39,34 @@ function urlFoto(link) {
     return null;
   } catch { return null; }
 }
+function idPastaDrive(link) {
+  try {
+    const url = new URL(link);
+    if (!["drive.google.com","www.drive.google.com"].includes(url.hostname)) return null;
+    const id = url.pathname.match(/\/folders\/([\w-]+)/)?.[1] || url.searchParams.get("id");
+    return id && /^[\w-]+$/.test(id) ? id : null;
+  } catch { return null; }
+}
 function render(pastas) {
   wrap.replaceChildren();
   if (!pastas.length) {
     const empty = document.createElement("div");empty.className="empty-state";empty.textContent="Os álbuns ainda estão sendo preparados. Volte em breve!";wrap.append(empty);return;
   }
   for (const pasta of pastas) {
+    const idDrive = idPastaDrive(pasta.link);
     const fotos = (Array.isArray(pasta.fotos) ? pasta.fotos : []).map(urlFoto).filter(Boolean);
     const card = document.createElement("article");card.className="midia-album";
     const head = document.createElement("div");head.className="midia-album-head";
-    const title = document.createElement("h2");title.textContent=pasta.nome || "Nosso álbum";
-    const tag = document.createElement("span");tag.className="midia-album-tag";tag.textContent=fotos.length ? fotos.length+" fotos" : "Álbum";
+    const title = document.createElement("h2");title.textContent=(idDrive ? "📁 " : "") + (pasta.nome || "Nosso álbum");
+    const tag = document.createElement("span");tag.className="midia-album-tag";tag.textContent=idDrive ? "Google Drive" : (fotos.length ? fotos.length+" fotos" : "Álbum");
     head.append(title,tag);card.append(head);
-    if (fotos.length) {
+    if (idDrive) {
+      const pastaVisual = document.createElement("div"); pastaVisual.className = "midia-pasta-drive";
+      const icone = document.createElement("span"); icone.textContent = "📁"; icone.setAttribute("aria-hidden","true");
+      const texto = document.createElement("p"); texto.textContent = "Fotos disponíveis no Google Drive";
+      pastaVisual.append(icone,texto); card.append(pastaVisual);
+      const abrir = document.createElement("a"); abrir.className = "midia-link"; abrir.href = "https://drive.google.com/drive/folders/" + encodeURIComponent(idDrive); abrir.target = "_blank"; abrir.rel = "noopener noreferrer"; abrir.textContent = "Abrir pasta no Drive ↗"; card.append(abrir);
+    } else if (fotos.length) {
       const grid = document.createElement("div");grid.className="midia-fotos";
       fotos.forEach((src,i) => {
         const btn=document.createElement("button");btn.type="button";btn.className="midia-foto";btn.setAttribute("aria-label","Ampliar foto "+(i+1)+" de "+title.textContent);
