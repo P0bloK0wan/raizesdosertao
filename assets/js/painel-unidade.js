@@ -248,29 +248,40 @@ function iniciarPainel(unidadeId) {
     acoes.append(compras,excluir); perfil.append(voltar,cab,dados,acoes);
   }
 
-  const modalMembro = document.getElementById("modal-membro");
-  document.getElementById("btn-novo-membro").addEventListener("click", () => modalMembro.classList.add("show"));
-  document.getElementById("btn-cancelar-membro").addEventListener("click", () => modalMembro.classList.remove("show"));
-  document.getElementById("form-membro").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    await addMembro(unidadeId, {
-      nome: document.getElementById("m-nome").value.trim(),
-      nascimento: document.getElementById("m-nascimento").value,
-      idade: document.getElementById("m-idade").value ? Number(document.getElementById("m-idade").value) : null,
-      classe: document.getElementById("m-classe").value,
-      tipoSanguineo: document.getElementById("m-tipo-sanguineo").value,
-      responsavel: document.getElementById("m-responsavel").value.trim(),
-      parentesco: document.getElementById("m-parentesco").value.trim(),
-      telefone: document.getElementById("m-telefone").value.trim(),
-      responsavel2Nome: document.getElementById("m-responsavel2").value.trim(),
-      responsavel2Telefone: document.getElementById("m-telefone2").value.trim(),
-      observacoesResponsavel: document.getElementById("m-observacoes-responsavel").value.trim(),
-    });
-    modalMembro.classList.remove("show");
-    const nomeCadastrado = document.getElementById("m-nome").value.trim();
-    e.target.reset();
-    avisarLideranca(`cadastrou o desbravador "${nomeCadastrado}".`);
-    mostrarToast("Desbravador cadastrado.");
+  const modalMembro=document.getElementById("modal-membro"),formMembro=document.getElementById("form-membro");
+  const cm=id=>document.getElementById(id),passos=[...formMembro.querySelectorAll("[data-passo]")];
+  let passoCadastro=0,salvandoCadastro=false;
+  function idadeCadastro(v){if(!v)return null;const [a,m,d]=v.split("-").map(Number),dt=new Date(a,m-1,d),hoje=new Date();if(dt.getFullYear()!==a||dt.getMonth()!==m-1||dt.getDate()!==d||dt>hoje)return null;return hoje.getFullYear()-a-(hoje.getMonth()<m-1||(hoje.getMonth()===m-1&&hoje.getDate()<d)?1:0)}
+  cm("m-nascimento").addEventListener("change",()=>{const idade=idadeCadastro(cm("m-nascimento").value);cm("m-idade").value=idade===null?"":idade;cm("m-idade").readOnly=idade!==null});
+  function etapaCadastro(n){
+    passoCadastro=Math.max(0,Math.min(2,n));passos.forEach((p,i)=>p.hidden=i!==passoCadastro);
+    document.querySelectorAll("#modal-membro .cadastro-passos i").forEach((p,i)=>p.classList.toggle("ativo",i<=passoCadastro));
+    cm("cadastro-etapa-texto").textContent="Etapa "+(passoCadastro+1)+" de 3 · "+["Dados pessoais","Responsáveis","Revisão"][passoCadastro];
+    cm("cadastro-voltar").hidden=passoCadastro===0;cm("cadastro-proximo").hidden=passoCadastro===2;cm("cadastro-salvar").hidden=passoCadastro!==2;cm("cadastro-erro").hidden=true;
+    if(passoCadastro===2){const box=cm("cadastro-revisao");box.replaceChildren();[["Nome","m-nome"],["Nascimento","m-nascimento"],["Idade","m-idade"],["Classe","m-classe"],["Responsável","m-responsavel"],["Parentesco","m-parentesco"],["Telefone","m-telefone"],["Segundo responsável","m-responsavel2"],["Telefone adicional","m-telefone2"]].forEach(([label,id])=>{const row=document.createElement("div"),a=document.createElement("span"),b=document.createElement("strong");a.textContent=label;b.textContent=cm(id).value||"Não informado";row.append(a,b);box.append(row)})}
+  }
+  function validaCadastro(n){
+    for(const el of passos[n].querySelectorAll("input,select,textarea"))if(!el.checkValidity()){cm("cadastro-erro").textContent="Preencha ou corrija os campos desta etapa.";cm("cadastro-erro").hidden=false;el.focus();return false}
+    if(n===0&&cm("m-nascimento").value&&idadeCadastro(cm("m-nascimento").value)===null){cm("cadastro-erro").textContent="Data de nascimento inválida.";cm("cadastro-erro").hidden=false;return false}
+    if(n===1)for(const id of ["m-telefone","m-telefone2"]){const el=cm(id);if(el.value.trim()&&el.value.replace(/[^0-9]/g,"").length<10){if(id==="m-telefone2")cm("cadastro-segundo").open=true;cm("cadastro-erro").textContent="Informe o telefone com DDD.";cm("cadastro-erro").hidden=false;el.focus();return false}}
+    cm("cadastro-erro").hidden=true;return true;
+  }
+  function fecharCadastro(){if(!salvandoCadastro)modalMembro.classList.remove("show")}
+  cm("btn-novo-membro").addEventListener("click",()=>{formMembro.reset();cm("m-idade").readOnly=false;cm("cadastro-segundo").open=false;etapaCadastro(0);modalMembro.classList.add("show")});
+  cm("btn-cancelar-membro").addEventListener("click",fecharCadastro);cm("cadastro-fechar").addEventListener("click",fecharCadastro);
+  cm("cadastro-voltar").addEventListener("click",()=>etapaCadastro(passoCadastro-1));
+  cm("cadastro-proximo").addEventListener("click",()=>{if(validaCadastro(passoCadastro))etapaCadastro(passoCadastro+1)});
+  formMembro.addEventListener("submit",async e=>{
+    e.preventDefault();if(salvandoCadastro)return;
+    for(let n=0;n<3;n++)if(!validaCadastro(n)){etapaCadastro(n);validaCadastro(n);return}
+    const nome=cm("m-nome").value.trim(),outro=cm("cadastro-salvar-outro").checked;
+    salvandoCadastro=true;cm("cadastro-salvar").disabled=true;
+    try{
+      await addMembro(unidadeId,{nome,nascimento:cm("m-nascimento").value,idade:cm("m-idade").value?Number(cm("m-idade").value):null,classe:cm("m-classe").value,tipoSanguineo:cm("m-tipo-sanguineo").value,responsavel:cm("m-responsavel").value.trim(),parentesco:cm("m-parentesco").value.trim(),telefone:cm("m-telefone").value.trim(),responsavel2Nome:cm("m-responsavel2").value.trim(),responsavel2Telefone:cm("m-telefone2").value.trim(),observacoesResponsavel:cm("m-observacoes-responsavel").value.trim()});
+      formMembro.reset();cm("m-idade").readOnly=false;cm("cadastro-segundo").open=false;if(outro)etapaCadastro(0);else modalMembro.classList.remove("show");
+      avisarLideranca('cadastrou o desbravador "'+nome+'".');mostrarToast("Desbravador cadastrado.");
+    }catch(err){cm("cadastro-erro").textContent="Não foi possível salvar. Tente novamente.";cm("cadastro-erro").hidden=false;console.error(err)}
+    finally{salvandoCadastro=false;cm("cadastro-salvar").disabled=false}
   });
 
   /* ---------------- Conselheiros ---------------- */
