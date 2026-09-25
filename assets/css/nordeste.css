@@ -435,3 +435,25 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 .midia-drive-frame{display:block;width:100%;height:520px;border:2px solid var(--border);border-radius:14px;background:#fff}
 .midia-ajuda{font-size:.85rem;margin:12px 0 0}
 @media(max-width:700px){.midia-galerias{gap:18px}.midia-galeria .pasta-cabecalho{align-items:stretch;flex-direction:column}.midia-galeria .pasta-cabecalho .btn{width:100%;justify-content:center}.midia-drive-frame{height:440px}}
+
+/* Mídia: álbuns nativos, sem iframe do Drive. */
+.midia-page .midia-heading{max-width:650px;margin:0 auto 36px;text-align:center}
+.midia-page .midia-heading p{max-width:500px;margin:12px auto 0}
+.midia-albuns{display:grid;gap:26px;max-width:1100px;margin:0 auto}
+.midia-album{padding:clamp(16px,3vw,30px);border:2px solid var(--border);border-radius:20px;background:var(--bg-elevated);box-shadow:5px 6px 0 rgba(0,0,0,.16);min-width:0}
+.midia-album-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.midia-album-head h2{font-size:clamp(1.25rem,4vw,1.8rem);margin:0;overflow-wrap:anywhere}
+.midia-album-tag{background:var(--orange);color:#fff9dc;padding:7px 12px;border-radius:100px;font-size:.75rem;font-weight:800;white-space:nowrap}
+.midia-fotos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.midia-foto{border:0;padding:0;background:var(--bg);border-radius:12px;aspect-ratio:4/3;overflow:hidden;cursor:zoom-in;display:block;width:100%}
+.midia-foto img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s}
+.midia-foto:hover img{transform:scale(1.05)}
+.midia-foto:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+.midia-capa-vazia{min-height:180px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;background:linear-gradient(135deg,rgba(220,110,40,.15),rgba(220,170,80,.08));padding:24px}
+.midia-capa-vazia span{font-size:3rem}.midia-capa-vazia p{margin:0;color:var(--text-muted);max-width:320px}
+.midia-link{display:inline-flex;align-items:center;justify-content:center;min-height:46px;margin-top:20px;padding:10px 18px;background:var(--orange);color:#fff9dc!important;border-radius:12px;font-weight:800;text-decoration:none!important}
+.midia-link:hover{filter:brightness(1.1)}
+.midia-lightbox:not([hidden]){position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.94);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:55px 14px 22px}
+.midia-lightbox img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:8px}.midia-lightbox p{color:white;margin:12px}
+.midia-fechar{position:absolute;top:12px;right:20px;border:0;background:transparent;color:#fff;font-size:2.5rem;cursor:pointer}
+@media(max-width:700px){.midia-page .midia-heading{margin-bottom:24px}.midia-albuns{gap:18px}.midia-album{border-radius:16px;box-shadow:3px 4px 0 rgba(0,0,0,.15)}.midia-fotos{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.midia-foto{aspect-ratio:1}.midia-link{width:100%}.midia-capa-vazia{min-height:145px}}
