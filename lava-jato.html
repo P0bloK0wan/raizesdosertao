@@ -259,16 +259,24 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
   document.getElementById("btn-cancelar-meu").addEventListener("click", async () => {
     if (!confirm("Cancelar seu atendimento no Lava Jato?")) return;
     let dados;
-    try { dados = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch (_) { return; }
-    if (!dados.id) return;
+    try { dados = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch (_) { dados = {}; }
+    if (!dados.id || !dados.data || !dados.tokenCancelamento) {
+      alert("Não encontrei os dados necessários para cancelar esta reserva neste navegador. Peça à liderança para verificar o cadastro antes de fazer outra reserva.");
+      return;
+    }
     const btn = document.getElementById("btn-cancelar-meu");
     btn.disabled = true;
     try {
       await cancelarRegistroLavaJato(dados.id, dados.data, dados.tokenCancelamento);
-      localStorage.removeItem(LS_KEY);
+      try { localStorage.removeItem(LS_KEY); } catch (storageError) {
+        console.warn("Não foi possível limpar o armazenamento local após o cancelamento confirmado:", storageError);
+      }
       blocoConfirmado.style.display = "none";
       blocoCadastro.style.display = "block";
       document.getElementById("form-cadastro").reset();
+      renderAgenda();
+      renderSelect();
+      blocoCadastro.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
       console.error("Falha ao cancelar reserva do lava-jato:", err);
       const codigo = err?.code || "";
