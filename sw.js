@@ -3,7 +3,6 @@
 
 const CACHE_NAME = "raizes-do-sertao-v68";
 const APP_SHELL = [
-  "./",
   "./index.html",
   "./historia.html",
   "./agenda.html",
@@ -11,11 +10,6 @@ const APP_SHELL = [
   "./participar.html",
   "./projetos.html",
   "./aventuras.html",
-  "./agenda.html",
-  "./unidades.html",
-  "./aventuras.html",
-  "./projetos.html",
-  "./participar.html",
   "./midia.html",
   "./campori.html",
   "./lava-jato.html",
@@ -29,7 +23,6 @@ const APP_SHELL = [
   "./manifest.json",
   "./assets/css/style.css",
   "./assets/css/nordeste.css",
-  "./assets/css/publico.css",
   "./assets/css/publico.css",
   "./assets/js/data.js",
   "./assets/js/store.js",
@@ -50,6 +43,7 @@ const APP_SHELL = [
   "./assets/img/unit_andorinha2.png",
   "./assets/img/unit_carcara.png",
   "./assets/img/unit_raposa.png",
+  "./calendario.html",
 ];
 
 self.addEventListener("install", (event) => {
