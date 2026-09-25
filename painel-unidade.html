@@ -252,6 +252,7 @@
 .painel-unidade #membros #btn-importar-membros{min-height:44px;white-space:normal;text-align:center}
 .painel-unidade #importacao-membros-status:not([hidden]){margin:12px 0;padding:12px;border:1px solid var(--border,#86563b);border-radius:11px}
 @media(max-width:480px){.painel-unidade #membros .block-head>button{width:100%}}
+.requisitos-seletor{display:grid;gap:10px;margin:18px 0;padding:18px;border:1px solid var(--border,#86563b);border-radius:16px;background:var(--card,#2b201a)}.requisitos-seletor label{font-weight:750}.requisitos-seletor select{width:100%;min-height:48px;padding:10px 14px;border:1px solid var(--border,#86563b);border-radius:11px;background:var(--input-bg,var(--card,#2b201a));color:var(--text,#f8edd9);font:inherit}.requisitos-seletor select:focus-visible{outline:3px solid var(--accent,#e34b22);outline-offset:2px}#lista-requisitos:empty{display:none}@media(max-width:480px){.requisitos-seletor{padding:14px}} 
 </style>
 </head>
 <body class="painel-unidade">
@@ -391,7 +392,12 @@
       <div class="block-head">
         <h2>Atividades / requisitos</h2>
       </div>
-      <p class="muted">Cada desbravador tem seu próprio histórico. Abra o nome dele e lance quantos registros quiser (Bíblia/Lição, Uniforme, Pontualidade, Participação, Comportamento ou outro), cada um com a data em que foi cumprido.</p>
+      <p class="muted">Selecione um desbravador para consultar o histórico e lançar registros (Bíblia/Lição, Uniforme, Pontualidade, Participação, Comportamento ou outro), cada um com a data em que foi cumprido.</p>
+      <div class="requisitos-seletor">
+        <label for="requisitos-membro-select">Selecionar desbravador</label>
+        <select id="requisitos-membro-select"><option value="">Selecione um desbravador…</option></select>
+        <p class="muted" id="requisitos-membro-resumo" aria-live="polite">Escolha um desbravador para ver e lançar seus requisitos.</p>
+      </div>
       <div id="lista-requisitos"></div>
       <div class="empty-state" id="requisitos-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar a lançar requisitos.</div>
     </section>
@@ -584,6 +590,6 @@
 })();
 </script>
 <script type="module" src="assets/js/main.js"></script>
-<script type="module" src="assets/js/painel-unidade.js?v=61"></script>
+<script type="module" src="assets/js/painel-unidade.js?v=62"></script>
 </body>
 </html>
