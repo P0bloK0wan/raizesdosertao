@@ -278,8 +278,31 @@ function iniciarPainel(unidadeId) {
   });
 
   const inputDataChamada = document.getElementById("pr-data");
-  inputDataChamada.value = hojeISO();
+  /* Datas locais: evita o deslocamento de um dia causado por UTC. */
+  function dataLocalISO(data) {
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, "0");
+    const dia = String(data.getDate()).padStart(2, "0");
+    return ano + "-" + mes + "-" + dia;
+  }
+  function ultimoDomingo(data = new Date()) {
+    const domingo = new Date(data.getFullYear(), data.getMonth(), data.getDate());
+    domingo.setDate(domingo.getDate() - domingo.getDay());
+    return domingo;
+  }
+  inputDataChamada.value = dataLocalISO(ultimoDomingo());
   inputDataChamada.addEventListener("change", renderChamadaAtual);
+  function navegarDomingo(direcao) {
+    const atual = inputDataChamada.value
+      ? new Date(inputDataChamada.value + "T12:00:00")
+      : ultimoDomingo();
+    const domingo = ultimoDomingo(atual);
+    domingo.setDate(domingo.getDate() + 7 * direcao);
+    inputDataChamada.value = dataLocalISO(domingo);
+    renderChamadaAtual();
+  }
+  document.getElementById("domingo-anterior").addEventListener("click", () => navegarDomingo(-1));
+  document.getElementById("domingo-proximo").addEventListener("click", () => navegarDomingo(1));
 
   function atualizarContagemChamada() {
     const checks = [...document.querySelectorAll("#lista-chamada input[data-presente]")];
