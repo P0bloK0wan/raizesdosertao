@@ -6,20 +6,27 @@ import { RS_CLUBE, RS_LINKS } from "./data.js";
 import { getTheme, setTheme } from "./store.js";
 
 /* ---------------- Cabeçalho e rodapé (injetados em toda página) ---------------- */
-const NAV_ITEMS = [
-  { href: "index.html", label: "🏠 Início" },
-  { href: "historia.html", label: "🌵 Nossa História" },
-  { href: "unidades.html", label: "🦅 Unidades" },
-  { href: "agenda.html", label: "📅 Agenda" },
-  { href: "aventuras.html", label: "🏕️ Aventuras" },
-  { href: "projetos.html", label: "🤝 Projetos" },
-  { href: "participar.html", label: "💚 Participar" },
-  { href: "midia.html", label: "📸 Mídia" },
-  { href: "campori.html", label: "💙 Campori DSA 2027" },
-  { href: "lava-jato.html", label: "🚗 Lava-Jato" },
-  { href: "redes.html", label: "📱 Nossas Redes" },
-  { href: "login.html", label: "🔐 Login" },
+const NAV_GROUPS = [
+  { titulo: "Conheça o clube", itens: [
+    { href: "index.html", label: "Início", emoji: "🏠" },
+    { href: "historia.html", label: "Nossa história", emoji: "🌵" },
+    { href: "unidades.html", label: "Nossas unidades", emoji: "🦅" },
+    { href: "participar.html", label: "Quero participar", emoji: "💚" }
+  ] },
+  { titulo: "Acompanhe", itens: [
+    { href: "agenda.html", label: "Agenda", emoji: "📅" },
+    { href: "aventuras.html", label: "Aventuras", emoji: "🏕️" },
+    { href: "projetos.html", label: "Projetos sociais", emoji: "🤝" },
+    { href: "midia.html", label: "Galeria de fotos", emoji: "📸" }
+  ] },
+  { titulo: "Apoie e conecte-se", itens: [
+    { href: "campori.html", label: "Campori DSA 2027", emoji: "💙" },
+    { href: "lava-jato.html", label: "Lava-jato", emoji: "🚗" },
+    { href: "redes.html", label: "Nossas redes", emoji: "📱" },
+    { href: "login.html", label: "Área da liderança", emoji: "🔐" }
+  ] }
 ];
+const NAV_ITEMS = NAV_GROUPS.flatMap(g => g.itens.map(it => ({ href: it.href, label: it.emoji + " " + it.label })));
 
 function paginaAtual() {
   const partes = window.location.pathname.split("/");
@@ -38,12 +45,13 @@ function montarCabecalho() {
           <img src="assets/img/logo.png" alt="Emblema Raízes do Sertão">
           <span>Raízes do Sertão<small>Clube de Desbravadores</small></span>
         </a>
-        <nav class="nav-links" data-nav-links>
-          ${NAV_ITEMS.map((it) => `<a href="${it.href}" class="${it.href === atual ? "active" : ""}">${it.label}</a>`).join("")}
+        <nav class="nav-links" data-nav-links id="menu-principal" aria-label="Menu principal" aria-hidden="true">
+          <div class="nav-menu-intro"><strong>Explore o Raízes</strong><span>Encontre o que você procura</span></div>
+          ${NAV_GROUPS.map((grupo) => `<section class="nav-menu-group" aria-label="${grupo.titulo}"><h2>${grupo.titulo}</h2><div class="nav-menu-grid">${grupo.itens.map((it) => `<a href="${it.href}" class="${it.href === atual ? "active" : ""}" ${it.href === atual ? 'aria-current="page"' : ""}><span class="nav-menu-emoji" aria-hidden="true">${it.emoji}</span><span>${it.label}</span><span class="nav-menu-arrow" aria-hidden="true">›</span></a>`).join("")}</div></section>`).join("")}
         </nav>
         <div class="header-actions">
           <button class="icon-btn" data-theme-toggle aria-label="Alternar tema claro/escuro"><span data-theme-icon>🌙</span></button>
-          <button class="nav-toggle" data-nav-toggle aria-label="Abrir menu" aria-expanded="false"><span></span></button>
+          <button class="nav-toggle" data-nav-toggle aria-label="Abrir menu" aria-controls="menu-principal" aria-expanded="false"><span></span></button>
         </div>
       </div>
     </header>`;
@@ -120,15 +128,28 @@ if (navToggle && navLinks) {
     navLinks.classList.add("open");
     navToggle.classList.add("open");
     navToggle.setAttribute("aria-expanded", "true");
+    navToggle.setAttribute("aria-label", "Fechar menu");
+    navLinks.setAttribute("aria-hidden", "false");
     document.body.classList.add("scroll-lock");
   };
   const fecharNav = () => {
     navLinks.classList.remove("open");
     navToggle.classList.remove("open");
     navToggle.setAttribute("aria-expanded", "false");
+    navToggle.setAttribute("aria-label", "Abrir menu");
+    navLinks.setAttribute("aria-hidden", "true");
     document.body.classList.remove("scroll-lock");
   };
   navToggle.addEventListener("click", () => (navLinks.classList.contains("open") ? fecharNav() : abrirNav()));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && navLinks.classList.contains("open")) {
+      fecharNav();
+      navToggle.focus();
+    }
+  });
+  document.addEventListener("click", (event) => {
+    if (navLinks.classList.contains("open") && !event.target.closest(".site-header")) fecharNav();
+  });
   navLinks.querySelectorAll("a").forEach((a) => a.addEventListener("click", fecharNav));
 }
 
