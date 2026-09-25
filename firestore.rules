@@ -41,7 +41,7 @@ service cloud.firestore {
     // Apenas eventos explicitamente publicados pela liderança ficam visíveis.
     // A agenda interna planejamentoClube continua restrita a contas autenticadas.
     match /eventosPublicos/{eventoId} {
-      allow read: if true;
+      allow read: if eLideranca() || resource.data.publicado == true;
       allow create, update: if eLideranca() &&
         request.resource.data.keys().hasOnly(['titulo','descricao','data','localPublico','publicado']) &&
         request.resource.data.titulo is string &&
