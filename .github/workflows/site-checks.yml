@@ -12,10 +12,6 @@ jobs:
           node-version: '22'
       - name: Verificar JavaScript
         run: |
-          node --check assets/js/main.js
-          node --check assets/js/agenda-publica.js
-          node --check assets/js/publicar-agenda.js
-          node --check assets/js/painel-unidade.js
-          node --check assets/js/painel-lideranca.js
+          for file in assets/js/*.js; do node --check "$file"; done
       - name: Executar testes de integridade
-        run: node --test tests/site.test.mjs
+        run: node --test tests/*.test.mjs
