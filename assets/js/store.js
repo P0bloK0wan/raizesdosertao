@@ -612,8 +612,8 @@ export function watchMidia(cb) {
     cb(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   });
 }
-export function addPastaMidia(nome, link) {
-  return addDoc(collection(db, "midia"), { nome, link, criadoEm: serverTimestamp() });
+export function addPastaMidia(nome, link, fotos = []) {
+  return addDoc(collection(db, "midia"), { nome, link, fotos, criadoEm: serverTimestamp() });
 }
 export function deletePastaMidia(pastaId) {
   return deleteDoc(doc(db, "midia", pastaId));
