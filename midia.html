@@ -30,29 +30,108 @@ let fotosAbertas = [];
 let indiceAberto = 0;
 let toqueInicial = null;
 let focoAnterior = null;
+let carregandoFoto = false;
+let trocaId = 0;
+let timeoutFoto = null;
+let fotoPendente = null;
+const fecharBtn = document.getElementById("midia-fechar");
+const atualizarBotoes = () => {
+  const varias = fotosAbertas.length > 1;
+  anterior.hidden = !varias;
+  proxima.hidden = !varias;
+  anterior.disabled = proxima.disabled = carregandoFoto || !varias;
+  lightbox.setAttribute("aria-busy", String(carregandoFoto));
+};
 document.getElementById("midia-fechar").addEventListener("click", fecharFoto);
 lightbox.addEventListener("click", e => { if (e.target === lightbox) fecharFoto(); });
-document.addEventListener("keydown", e => { if (lightbox.hidden) return; if (e.key === "Escape") fecharFoto(); if (e.key === "ArrowRight") navegar(1); if (e.key === "ArrowLeft") navegar(-1); });
+document.addEventListener("keydown", e => {
+  if (lightbox.hidden) return;
+  if (e.key === "Escape") fecharFoto();
+  if (e.key === "ArrowRight") { e.preventDefault(); navegar(1); }
+  if (e.key === "ArrowLeft") { e.preventDefault(); navegar(-1); }
+});
 anterior.addEventListener("click", () => navegar(-1));
 proxima.addEventListener("click", () => navegar(1));
 fotoAmpliada.addEventListener("touchstart", e => { toqueInicial = e.changedTouches[0]?.clientX ?? null; }, { passive: true });
-fotoAmpliada.addEventListener("touchend", e => { if (toqueInicial === null) return; const delta = e.changedTouches[0].clientX - toqueInicial; toqueInicial = null; if (Math.abs(delta) > 55) navegar(delta < 0 ? 1 : -1); }, { passive: true });
-function fecharFoto(){if(lightbox.hidden)return;lightbox.hidden = true;fotoAmpliada.removeAttribute("src");baixar.removeAttribute("href");document.body.style.overflow = "";focoAnterior?.focus();focoAnterior=null;}
-function mostrarFoto(){
-  const src=fotosAbertas[indiceAberto];
-  if(!src)return;
-  fotoAmpliada.classList.remove("midia-troca");
-  void fotoAmpliada.offsetWidth;
-  fotoAmpliada.src=src;
-  fotoAmpliada.alt="Foto "+(indiceAberto+1)+" de "+fotosAbertas.length;
-  fotoAmpliada.classList.add("midia-troca");
-  baixar.href=downloadOriginal(src);
-  baixar.textContent=src.includes("drive.google.com") ? "↗ Abrir foto no Drive" : "⬇ Baixar em resolução original";
-  const varias=fotosAbertas.length>1;
-  anterior.hidden=!varias;proxima.hidden=!varias;
+fotoAmpliada.addEventListener("touchend", e => {
+  if (toqueInicial === null) return;
+  const delta = e.changedTouches[0].clientX - toqueInicial;
+  toqueInicial = null;
+  if (Math.abs(delta) > 55) navegar(delta < 0 ? 1 : -1);
+}, { passive: true });
+function cancelarCarregamento(){
+  trocaId++;
+  clearTimeout(timeoutFoto);
+  timeoutFoto = null;
+  if(fotoPendente){fotoPendente.onload = fotoPendente.onerror = null;fotoPendente = null;}
+  carregandoFoto = false;
+  atualizarBotoes();
 }
-function navegar(passo){if(fotosAbertas.length<2)return;indiceAberto=(indiceAberto+passo+fotosAbertas.length)%fotosAbertas.length;mostrarFoto();}
-function abrirFoto(fotos,i,titulo,botao){fotosAbertas=fotos;indiceAberto=i;focoAnterior=botao;legenda.textContent=titulo;mostrarFoto();lightbox.hidden=false;document.body.style.overflow="hidden";document.getElementById("midia-fechar").focus();}
+function fecharFoto(){
+  if(lightbox.hidden)return;
+  cancelarCarregamento();
+  lightbox.hidden = true;
+  fotoAmpliada.removeAttribute("src");
+  baixar.removeAttribute("href");
+  document.body.style.overflow = "";
+  focoAnterior?.focus();
+  focoAnterior=null;
+}
+function mostrarFoto(){
+  const src = fotosAbertas[indiceAberto];
+  if(!src)return;
+  const id = ++trocaId;
+  carregandoFoto = true;
+  atualizarBotoes();
+  fotoAmpliada.classList.add("midia-carregando");
+  fotoAmpliada.classList.remove("midia-troca");
+  const loader = new Image();
+  fotoPendente = loader;
+  let terminou = false;
+  const concluir = (ok) => {
+    if(terminou || id !== trocaId || lightbox.hidden)return;
+    terminou = true;
+    clearTimeout(timeoutFoto);
+    timeoutFoto = null;
+    fotoPendente = null;
+    if(ok){
+      fotoAmpliada.src = src;
+      fotoAmpliada.alt = "Foto " + (indiceAberto+1) + " de " + fotosAbertas.length;
+      fotoAmpliada.classList.remove("midia-carregando");
+      void fotoAmpliada.offsetWidth;
+      fotoAmpliada.classList.add("midia-troca");
+      baixar.href = downloadOriginal(src);
+      baixar.textContent = src.includes("drive.google.com") ? "↗ Abrir foto no Drive" : "⬇ Baixar em resolução original";
+    } else {
+      fotoAmpliada.classList.remove("midia-carregando");
+      legenda.textContent = "Não foi possível carregar esta foto. Tente novamente.";
+    }
+    carregandoFoto = false;
+    atualizarBotoes();
+  };
+  loader.onload = () => concluir(true);
+  loader.onerror = () => concluir(false);
+  timeoutFoto = setTimeout(() => concluir(false), 12000);
+  loader.src = src;
+  if(loader.complete && loader.naturalWidth)concluir(true);
+}
+function navegar(passo){
+  // Não acumular toques: cada foto precisa terminar de carregar antes de outra navegação.
+  if(carregandoFoto || fotosAbertas.length<2 || lightbox.hidden)return;
+  indiceAberto = (indiceAberto+passo+fotosAbertas.length)%fotosAbertas.length;
+  mostrarFoto();
+}
+function abrirFoto(fotos,i,titulo,botao){
+  cancelarCarregamento();
+  fotosAbertas = fotos;
+  indiceAberto = i;
+  focoAnterior = botao;
+  legenda.textContent = titulo;
+  lightbox.hidden = false;
+  document.body.style.overflow = "hidden";
+  mostrarFoto();
+  fecharBtn.focus();
+}
 function urlFoto(link) {
   try {
     const url = new URL(link);
