@@ -55,18 +55,18 @@
       <h2>Garanta sua lavagem 🚗</h2>
       <p class="lj-intro">Reserve sua vaga por <strong>R$ 50,00</strong>. Faça sua reserva agora e pague no dia da lavagem.</p>
       <div class="lj-progress" aria-label="Etapas do agendamento"><span class="lj-progress-on">1 · Seus dados</span><span>2 · Reserva</span><span>3 · Confirmado</span></div>
-      <div class="alert alert-error" id="erro"></div>
+      <div class="alert alert-error" id="erro" role="alert" aria-live="polite"></div>
 
       <form id="form-cadastro">
         <div class="field">
           <label>Domingo</label>
           <select id="lj-domingo" required></select>
         </div>
-        <div class="field"><label>Seu nome</label><input type="text" id="lj-nome" required></div>
-        <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="lj-telefone" placeholder="(87) 9XXXX-XXXX" required></div>
-        <div class="field"><label>Placa do carro</label><input type="text" id="lj-placa" placeholder="ABC-1D23" required style="text-transform:uppercase;"></div>
-        <div class="field"><label>Modelo do carro</label><input type="text" id="lj-modelo" required></div>
-        <div class="field"><label>Cor do carro</label><input type="text" id="lj-cor" required></div>
+        <div class="field"><label>Seu nome</label><input type="text" id="lj-nome" autocomplete="name" maxlength="80" required></div>
+        <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="lj-telefone" autocomplete="tel" inputmode="tel" maxlength="24" placeholder="(87) 9XXXX-XXXX" required></div>
+        <div class="field"><label>Placa do carro</label><input type="text" id="lj-placa" autocapitalize="characters" maxlength="8" placeholder="ABC-1D23" required style="text-transform:uppercase;"></div>
+        <div class="field"><label>Modelo do carro</label><input type="text" id="lj-modelo" maxlength="60" required></div>
+        <div class="field"><label>Cor do carro</label><input type="text" id="lj-cor" maxlength="40" required></div>
         <div class="lj-summary"><span>Valor da lavagem</span><strong>R$ 50,00</strong></div><button class="btn btn-primary btn-block" type="submit">Confirmar minha reserva →</button>
       </form>
       <p class="form-note">O pagamento de R$ 50,00 é feito no dia da lavagem.</p>
@@ -88,7 +88,7 @@
 <script type="module">
   import { criarRegistroLavaJato, cancelarRegistroLavaJato, watchDomingos } from "./assets/js/store.js";
 import {
-  rsDomingoDaSemana,
+  rsProximosDomingos,
   rsAgendamentoDomingoAberto,
   RS_LAVAJATO_VAGAS_POR_DOMINGO
 } from "./assets/js/data.js";
@@ -100,9 +100,7 @@ import {
   const selectDomingo = document.getElementById("lj-domingo");
   const agendaGrid = document.getElementById("agenda-grid");
 
-const domingos = rsAgendamentoDomingoAberto("22:00")
-  ? [rsDomingoDaSemana()]
-  : [];  
+const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamentoDomingoAberto("22:00"));  
   let porData = {};
 
   function fmtDataLonga(iso) {
@@ -152,14 +150,17 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
   }
 
   function renderAgenda() {
-    agendaGrid.innerHTML = domingos.map((iso) => {
+    agendaGrid.replaceChildren();
+    domingos.forEach((iso) => {
       const s = statusDoDia(iso);
-      return `<div class="agenda-dia ${s.classe}">
-        <span class="ag-data">${fmtDataCurta(iso)}</span>
-        <span class="ag-status">${s.rotulo}</span>
-        ${s.fechado && s.motivo ? `<span class="ag-motivo">${s.motivo}</span>` : ""}
-      </div>`;
-    }).join("");
+      const dia = document.createElement("div");
+      dia.className = `agenda-dia ${s.classe}`;
+      const data = document.createElement("span"); data.className = "ag-data"; data.textContent = fmtDataCurta(iso);
+      const status = document.createElement("span"); status.className = "ag-status"; status.textContent = s.rotulo;
+      dia.append(data, status);
+      if (s.fechado && s.motivo) { const motivo = document.createElement("span"); motivo.className = "ag-motivo"; motivo.textContent = s.motivo; dia.append(motivo); }
+      agendaGrid.append(dia);
+    });
   }
 
   function renderSelect() {
@@ -170,7 +171,7 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
     return;
     }
     const atual = selectDomingo.value;
-    selectDomingo.innerHTML = domingos.map((iso) => {
+    selectDomingo.innerHTML = `<option value="">Selecione um domingo</option>` + domingos.map((iso) => {
       const s = statusDoDia(iso);
       const disabled = s.classe !== "aberto";
       return `<option value="${iso}" ${disabled ? "disabled" : ""}>${fmtDataLonga(iso)} — ${s.rotulo}</option>`;
@@ -178,6 +179,8 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
     if (atual && [...selectDomingo.options].some((o) => o.value === atual && !o.disabled)) {
       selectDomingo.value = atual;
     }
+    const disponiveis = [...selectDomingo.options].some(o => o.value && !o.disabled);
+    document.querySelector("#form-cadastro button[type=submit]").disabled = !disponiveis;
   }
 
   watchDomingos((dados) => {
@@ -195,41 +198,53 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
     document.getElementById("conf-data").textContent = fmtDataLonga(dados.data);
   }
 
-  const salvo = localStorage.getItem(LS_KEY);
-  if (salvo) {
-    try { mostrarConfirmado(JSON.parse(salvo)); } catch (e) { localStorage.removeItem(LS_KEY); }
-  }
+  try {
+    const salvo = localStorage.getItem(LS_KEY);
+    if (salvo) {
+      const dados = JSON.parse(salvo);
+      if (dados.id && dados.tokenCancelamento && dados.data && dados.nome) mostrarConfirmado(dados);
+      else localStorage.removeItem(LS_KEY);
+    }
+  } catch (e) { try { localStorage.removeItem(LS_KEY); } catch (_) {} }
 
   document.getElementById("form-cadastro").addEventListener("submit", async (e) => {
     e.preventDefault();
     erro.classList.remove("show");
     const btn = e.target.querySelector("button[type=submit]");
+    if (btn.disabled) return;
     btn.disabled = true;
+    btn.textContent = "Registrando sua reserva…";
     const dados = {
       data: selectDomingo.value,
       nome: document.getElementById("lj-nome").value.trim(),
       telefone: document.getElementById("lj-telefone").value.trim(),
-      placa: document.getElementById("lj-placa").value.trim().toUpperCase(),
+      placa: document.getElementById("lj-placa").value.trim().toUpperCase().replace(/[^A-Z0-9]/g, ""),
       modelo: document.getElementById("lj-modelo").value.trim(),
       cor: document.getElementById("lj-cor").value.trim(),
     };
     try {
+      if (!domingos.includes(dados.data) || statusDoDia(dados.data).classe !== "aberto") throw new Error("Escolha um domingo com vagas disponíveis.");
+      if (!/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(dados.placa)) throw new Error("Confira a placa: use o formato ABC1234 ou ABC1D23.");
+      if (dados.telefone.replace(/\D/g, "").length < 10) throw new Error("Informe um WhatsApp com DDD.");
       const ref = await criarRegistroLavaJato(dados);
-      localStorage.setItem(LS_KEY, JSON.stringify({ ...dados, id: ref.id, tokenCancelamento: ref.tokenCancelamento }));
+      try { localStorage.setItem(LS_KEY, JSON.stringify({ ...dados, id: ref.id, tokenCancelamento: ref.tokenCancelamento })); } catch (_) { /* Reserva salva mesmo se o armazenamento do navegador estiver bloqueado. */ }
       mostrarConfirmado({ ...dados, id: ref.id, tokenCancelamento: ref.tokenCancelamento });
     } catch (err) {
-      erro.textContent = err.message && err.message.includes("domingo")
+      erro.textContent = err.message && /domingo|placa|WhatsApp|vaga/i.test(err.message)
         ? err.message
-        : "Não deu pra cadastrar agora. Tente de novo em instantes.";
+        : "Não foi possível confirmar sua reserva. Verifique sua conexão e tente novamente.";
       erro.classList.add("show");
       btn.disabled = false;
-    }
+    } finally { btn.textContent = "Confirmar minha reserva →"; }
   });
 
   document.getElementById("btn-cancelar-meu").addEventListener("click", async () => {
     if (!confirm("Cancelar seu atendimento no Lava Jato?")) return;
-    const dados = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+    let dados;
+    try { dados = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch (_) { return; }
     if (!dados.id) return;
+    const btn = document.getElementById("btn-cancelar-meu");
+    btn.disabled = true;
     try {
       await cancelarRegistroLavaJato(dados.id, dados.data, dados.tokenCancelamento);
       localStorage.removeItem(LS_KEY);
@@ -238,7 +253,7 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
       document.getElementById("form-cadastro").reset();
     } catch (err) {
       alert("Não deu pra cancelar agora. Tente de novo em instantes.");
-    }
+    } finally { btn.disabled = false; }
   });
 </script>
 <script type="module" src="assets/js/main.js"></script>
