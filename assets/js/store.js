@@ -562,32 +562,24 @@ export async function criarRegistroLavaJato(dados) {
 export async function atualizarPagamentoLavaJato(registroId, pago) {
   await updateDoc(doc(db, 'lavajato', registroId), { pagamentoStatus: pago ? 'pago' : 'pendente', pagoEm: pago ? serverTimestamp() : null });
 }
+/* Cancelamento público: lê apenas a agenda pública. O documento privado
+   recebe uma prova de posse validada pelas regras, na mesma transação. */
 export async function cancelarRegistroLavaJato(registroId, data, tokenCancelamento) {
-  if (!tokenCancelamento) throw new Error("Código de cancelamento ausente.");
+  if (!registroId || !/^\\d{4}-\\d{2}-\\d{2}$/.test(data || "") || !tokenCancelamento) {
+    throw new Error("Dados de cancelamento incompletos.");
+  }
   const registroRef = doc(db, "lavajato", registroId);
   const domingoRef = doc(db, "lavajato_domingos", data);
   await runTransaction(db, async (tx) => {
-    const registroSnap = await tx.get(registroRef);
-    if (!registroSnap.exists()) throw new Error("Atendimento não encontrado.");
-    const registro = registroSnap.data();
-    if (registro.cancelado) throw new Error("Esse atendimento já foi cancelado.");
-    if (registro.tokenCancelamento !== tokenCancelamento) throw new Error("Código de cancelamento inválido.");
-    if (registro.data !== data) throw new Error("Data do atendimento inválida.");
-
     const domingoSnap = await tx.get(domingoRef);
-    if (domingoSnap.exists()) {
-      const atual = domingoSnap.data();
-      tx.set(domingoRef, {
-        fechado: atual.fechado || false,
-        motivo: atual.motivo || "",
-        vagasTotal: atual.vagasTotal || RS_LAVAJATO_VAGAS_POR_DOMINGO,
-        vagasOcupadas: Math.max(0, (atual.vagasOcupadas || 0) - 1),
-        vagasFechadas: atual.vagasFechadas || 0,
-      }, { merge: true });
-    }
+    if (!domingoSnap.exists()) throw new Error("Agenda não encontrada. Contate a liderança.");
+    const atual = domingoSnap.data();
+    if ((atual.vagasOcupadas || 0) < 1) throw new Error("Esta reserva já pode ter sido cancelada. Contate a liderança.");
+    tx.update(domingoRef, { vagasOcupadas: atual.vagasOcupadas - 1 });
     tx.update(registroRef, {
       cancelado: true,
       canceladoEm: serverTimestamp(),
+      cancelamentoProva: tokenCancelamento,
     });
   });
 }
