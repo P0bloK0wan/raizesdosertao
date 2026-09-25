@@ -468,3 +468,7 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 .midia-pasta-drive{min-height:175px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px;border:2px dashed var(--border);border-radius:14px;background:linear-gradient(135deg,rgba(220,110,40,.13),rgba(220,170,80,.06));text-align:center;padding:22px}
 .midia-pasta-drive span{font-size:4rem}.midia-pasta-drive p{margin:0;font-weight:700}
 @media(max-width:700px){.midia-admin-acoes{width:100%}.midia-admin-acoes .btn,.midia-admin-acoes .danger{flex:1;min-height:44px}}
+
+/* Download em resolução original na visualização ampliada. */
+.midia-lightbox .midia-download{margin-top:8px;max-width:100%;text-align:center;flex-shrink:0}
+@media(max-width:700px){.midia-lightbox .midia-download{width:100%;margin-top:12px}.midia-lightbox img{max-height:67vh}}
