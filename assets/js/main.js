@@ -93,6 +93,17 @@ function montarRodape() {
 
 montarCabecalho();
 montarRodape();
+if(document.querySelector("[data-site-header]")){
+ const tools=document.createElement("div");tools.className="rs-public-tools";tools.setAttribute("aria-label","Acessibilidade e navegação");tools.innerHTML='<button type="button" id="rs-font-minus" aria-label="Diminuir fonte">A−</button><button type="button" id="rs-font-plus" aria-label="Aumentar fonte">A+</button><button type="button" id="rs-contrast" aria-pressed="false">◐ Contraste</button><button type="button" id="rs-top" aria-label="Voltar ao topo">↑</button>';document.body.append(tools);
+ let font=Number(localStorage.getItem("rs_font_scale")||1);const applyFont=()=>document.documentElement.style.setProperty("--rs-font-scale",String(font));applyFont();
+ tools.querySelector("#rs-font-minus").onclick=()=>{font=Math.max(.9,Math.round((font-.1)*10)/10);localStorage.setItem("rs_font_scale",font);applyFont()};
+ tools.querySelector("#rs-font-plus").onclick=()=>{font=Math.min(1.4,Math.round((font+.1)*10)/10);localStorage.setItem("rs_font_scale",font);applyFont()};
+ const contrast=tools.querySelector("#rs-contrast");const applyContrast=()=>{const on=localStorage.getItem("rs_contrast")==="1";document.documentElement.classList.toggle("rs-high-contrast",on);contrast.setAttribute("aria-pressed",String(on))};applyContrast();contrast.onclick=()=>{localStorage.setItem("rs_contrast",localStorage.getItem("rs_contrast")==="1"?"0":"1");applyContrast()};
+ tools.querySelector("#rs-top").onclick=()=>window.scrollTo({top:0,behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth"});
+ const bottom=document.createElement("nav");bottom.className="rs-bottom-nav";bottom.setAttribute("aria-label","Acesso rápido");bottom.innerHTML='<a href="index.html">⌂<span>Início</span></a><a href="participar.html">♡<span>Participar</span></a><a href="midia.html">▣<span>Galeria</span></a><a href="lava-jato.html">🚗<span>Lava-jato</span></a>';document.body.append(bottom);
+ window.addEventListener("offline",()=>mostrarToast("Você está sem internet. Algumas funções precisam de conexão."));window.addEventListener("online",()=>mostrarToast("Conexão restabelecida!"));
+}
+
 
 /* PWA: registra o service worker (funciona offline / instalável) */
 if ("serviceWorker" in navigator) {
@@ -181,7 +192,7 @@ if (sidebar && sidebarToggle && sidebarOverlay) {
 /* "Aparecer ao rolar" — elementos com [data-reveal] ganham .in-view quando
    entram na tela (ex.: dispara o desenho de uma seta em .scribble-arrow). */
 const elementosRevelar = document.querySelectorAll("[data-reveal]");
-if (elementosRevelar.length) {
+if (elementosRevelar.length && "IntersectionObserver" in window) {
   const observador = new IntersectionObserver(
     (entradas) => {
       entradas.forEach((entrada) => {
@@ -194,7 +205,7 @@ if (elementosRevelar.length) {
     { threshold: 0.3 }
   );
   elementosRevelar.forEach((el) => observador.observe(el));
-}
+} else { elementosRevelar.forEach(el=>el.classList.add("in-view")); }
 
 /* Ano no rodapé */
 document.querySelectorAll("[data-ano]").forEach((el) => (el.textContent = new Date().getFullYear()));
