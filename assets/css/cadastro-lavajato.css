@@ -14,3 +14,32 @@
 #lj-local-aviso{line-height:1.6;border-left:4px solid #55764d;padding:10px 13px;background:rgba(85,118,77,.1);border-radius:8px}
 @media(max-width:480px){#form-cadastro{grid-template-columns:minmax(0,1fr)}#form-cadastro .field{grid-column:1/-1}#bloco-cadastro{padding:20px}#form-cadastro input,#form-cadastro select{font-size:16px}}
 @media(prefers-reduced-motion:no-preference){#bloco-cadastro{animation:ljEntrada .35s ease-out}@keyframes ljEntrada{from{opacity:.5;transform:translateY(8px)}to{opacity:1;transform:none}}}
+
+/* v2: escolha de pagamento e comprovante, mobile-first */
+.lj-intro{line-height:1.65;color:var(--text-muted,var(--text,#514737));margin:0 0 22px}
+.lj-progress{display:flex;gap:7px;margin:0 0 23px;flex-wrap:wrap}
+.lj-progress span{flex:1;min-width:90px;text-align:center;padding:9px 5px;border-radius:9px;background:var(--bg-elevated,rgba(125,105,71,.09));border:1px solid var(--border,#c5b5a2);font-size:.75rem;font-weight:700}
+.lj-progress .lj-progress-on{background:rgba(85,118,77,.16);border-color:#55764d;color:var(--text,#263722)}
+#form-cadastro .lj-payment-choice{grid-column:1/-1;border:0;padding:0;margin:6px 0 0;min-width:0}
+.lj-payment-choice legend{font-weight:800;font-size:1.05rem;margin-bottom:12px}
+.lj-payment-options{display:grid;gap:12px}
+.lj-payment-option{position:relative;display:flex!important;align-items:center;gap:12px;padding:15px!important;border:2px solid var(--border,#c5b5a2);border-radius:15px;cursor:pointer;background:var(--bg-elevated,rgba(239,221,187,.14));margin:0!important;transition:border-color .15s,background .15s}
+.lj-payment-option:has(input:checked){border-color:#55764d;background:rgba(85,118,77,.12)}
+.lj-payment-option:focus-within{outline:3px solid #e9ac47;outline-offset:3px}
+.lj-payment-option input{width:20px!important;min-height:20px!important;flex:none;accent-color:#55764d;margin:0}
+.lj-payment-option>span:nth-of-type(2){display:grid;gap:4px;flex:1;min-width:0}
+.lj-payment-option small{display:block;font-weight:400;font-size:.82rem;line-height:1.4;color:var(--text-muted,var(--text,#514737))}
+.lj-payment-icon{font-size:1.4rem;width:30px;text-align:center}
+.lj-choice-check{color:#55764d;opacity:0;font-weight:900}
+.lj-payment-option:has(input:checked) .lj-choice-check{opacity:1}
+#form-cadastro .lj-summary{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:16px;border-radius:13px;background:rgba(85,118,77,.12);gap:12px}
+.lj-summary strong{font-size:1.45rem;color:var(--text,#2e4d2a)}
+.lj-reservation-pill{display:inline-block;margin:8px auto 18px;padding:8px 14px;border-radius:99px;background:rgba(85,118,77,.15);color:var(--text,#2e4d2a);font-weight:800}
+.lj-payment-panel{text-align:left;margin:22px 0;padding:clamp(16px,4vw,25px);border:1px solid var(--border,#b9c7b7);border-radius:18px;background:var(--bg-elevated,rgba(239,221,187,.12))}
+.lj-payment-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.lj-payment-header h3{font-size:1.8rem;margin:4px 0 0}
+.lj-pix-badge{border-radius:99px;padding:7px 12px;background:rgba(85,118,77,.15);font-weight:800;color:var(--text,#2e4d2a)}
+#lj-pix-status{line-height:1.5}
+#lj-pix-form input{box-sizing:border-box;min-height:48px;border-radius:11px;padding:11px;font-size:16px;border:1px solid var(--border,#b9c7b7);background:var(--bg-elevated,#fff);color:var(--text,#292018)}
+#lj-pix-form button,#lj-pix-qr button{min-height:50px;border-radius:12px}
+@media(max-width:420px){.lj-progress span{font-size:.68rem;min-width:0}.lj-payment-option{padding:12px!important}.lj-payment-icon{font-size:1.15rem;width:24px}}
