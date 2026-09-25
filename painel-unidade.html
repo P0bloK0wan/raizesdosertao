@@ -79,6 +79,10 @@
 @media(max-width:700px){.painel-unidade .app-main{padding-inline:12px}.painel-unidade #unidade-inicio .unidade-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}.painel-unidade #unidade-inicio .unidade-menu-card{min-height:144px!important;padding:14px!important}.painel-unidade #unidade-inicio .unidade-menu-card:last-child{min-height:80px!important}.painel-unidade #unidade-inicio .unidade-atalhos{grid-template-columns:repeat(2,minmax(0,1fr))}.painel-unidade #unidade-inicio .unidade-atalhos a:first-child{grid-column:1/-1}.painel-unidade .unidade-membros-grid,.painel-unidade #presenca #lista-chamada,.painel-unidade #materiais .unidade-compras-lista{grid-template-columns:1fr!important}.painel-unidade .unidade-perfil-dados{grid-template-columns:1fr}.painel-unidade #unidade-subnav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.painel-unidade #unidade-subnav a{min-width:0}.painel-unidade .app-main>.panel-block:not([hidden]){padding:16px}.painel-unidade #presenca .unidade-chamada-toolbar{padding:13px}}
 @media(max-width:400px){.painel-unidade #unidade-inicio .unidade-home-stats{gap:7px}.painel-unidade .unidade-home-stat{padding:12px 9px}.painel-unidade #unidade-inicio .unidade-menu-card strong{font-size:.91rem}.painel-unidade #unidade-inicio .unidade-menu-card>span:nth-of-type(2){font-size:.75rem}.painel-unidade #form-membro{grid-template-columns:1fr}.painel-unidade .unidade-perfil-acoes{grid-template-columns:1fr}.painel-unidade #presenca .unidade-chamada-card{padding:10px}}
 @media(prefers-reduced-motion:reduce){.painel-unidade #unidade-inicio .unidade-menu-card{transition:none!important}}
+
+/* Visibilidade obrigatória independente dos estilos externos em cache. */
+#unidade-inicio[hidden],#unidade-subnav[hidden],#unidade-resumo-toggle[hidden],#unidade-resumo[hidden],.unidade-voltar[hidden],.painel-unidade .app-main>.panel-block[hidden],#cards-membros[hidden],#perfil-membro[hidden]{display:none!important}
+#unidade-resumo-toggle[aria-expanded="false"]+#unidade-resumo{display:none!important}
 </style>
 </head>
 <body class="painel-unidade">
