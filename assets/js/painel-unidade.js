@@ -191,6 +191,9 @@ function iniciarPainel(unidadeId) {
       avisarLideranca('excluiu o desbravador "' + (m.nome || m.id) + '".');
       mostrarToast("Desbravador removido.");
     });
+    const requisitos = document.createElement("button"); requisitos.type="button"; requisitos.className="btn btn-outline btn-sm"; requisitos.textContent="📚 Ver requisitos"; requisitos.addEventListener("click",()=>{location.hash="topicos";});
+    const especialidades = document.createElement("button"); especialidades.type="button"; especialidades.className="btn btn-outline btn-sm"; especialidades.textContent="🎖️ Ver especialidades"; especialidades.addEventListener("click",()=>{location.hash="especialidades";});
+    acoes.prepend(requisitos,especialidades);
     acoes.append(compras,excluir); perfil.append(voltar,cab,dados,acoes);
   }
 
@@ -617,6 +620,7 @@ function iniciarPainel(unidadeId) {
     const wrap = document.getElementById("compras-resumo");
     const todos = estado.membros.flatMap(m => (fanOutMateriais.dados[m.id] || []).map(item => ({m,item})));
     const filtrados = todos.filter(({item}) => filtroCompras === "todos" || (filtroCompras === "comprado" ? item.status === "comprado" : item.status !== "comprado"));
+    document.getElementById("home-compras").textContent = todos.filter(({item}) => item.status !== "comprado").length;
     document.getElementById("compras-contagem").textContent = filtrados.length + (filtrados.length === 1 ? " item" : " itens") + " · " + todos.filter(({item}) => item.status !== "comprado").length + " pendentes";
     wrap.replaceChildren();
     if (!filtrados.length) {
@@ -900,8 +904,10 @@ function iniciarPainel(unidadeId) {
   /* ---------------- Estatísticas ---------------- */
   function renderStats() {
     document.getElementById("s-membros").textContent = estado.membros.length;
+    document.getElementById("home-membros").textContent = estado.membros.length;
     const totalRegistros = Object.values(fanOutRegistros.dados).reduce((acc, regs) => acc + regs.length, 0);
     document.getElementById("s-topicos").textContent = totalRegistros;
+    document.getElementById("home-registros").textContent = totalRegistros;
     document.getElementById("s-planejamentos").textContent = estado.planejamentos.length;
     const emAndamento = Object.values(fanOutEspecialidades.dados).flat().filter((e) => e.status === "andamento").length;
     document.getElementById("s-especialidades").textContent = emAndamento;
