@@ -559,28 +559,26 @@ export async function criarRegistroLavaJato(dados) {
 
   return { id: novoRegistroRef.id, tokenCancelamento };
 }
-export async function atualizarPagamentoLavaJato(registroId, pago) {
-  await updateDoc(doc(db, 'lavajato', registroId), { pagamentoStatus: pago ? 'pago' : 'pendente', pagoEm: pago ? serverTimestamp() : null });
-}
-/* Cancelamento público: lê apenas a agenda pública. O documento privado
-   recebe uma prova de posse validada pelas regras, na mesma transação. */
+/* Cancelamento público sem leitura dos dados pessoais do cliente.
+   A transação só lê a agenda pública; as regras validam o token e
+   exigem que a vaga seja liberada no mesmo commit. */
 export async function cancelarRegistroLavaJato(registroId, data, tokenCancelamento) {
-  if (!registroId || !/^\d{4}-\d{2}-\d{2}$/.test(data || "") || !tokenCancelamento) {
-    throw new Error("Dados de cancelamento incompletos.");
+  if (!registroId || !/^\\d{4}-\\d{2}-\\d{2}$/.test(data || "") || !tokenCancelamento) {
+    throw new Error("Dados de cancelamento incompletos. Contate a liderança.");
   }
   const registroRef = doc(db, "lavajato", registroId);
   const domingoRef = doc(db, "lavajato_domingos", data);
   await runTransaction(db, async (tx) => {
     const domingoSnap = await tx.get(domingoRef);
     if (!domingoSnap.exists()) throw new Error("Agenda não encontrada. Contate a liderança.");
-    const atual = domingoSnap.data();
-    if ((atual.vagasOcupadas || 0) < 1) throw new Error("Esta reserva já pode ter sido cancelada. Contate a liderança.");
-    tx.update(domingoRef, { vagasOcupadas: atual.vagasOcupadas - 1 });
+    const ocupadas = domingoSnap.data().vagasOcupadas || 0;
+    if (ocupadas < 1) throw new Error("Não há vaga ocupada para liberar. Contate a liderança.");
     tx.update(registroRef, {
       cancelado: true,
       canceladoEm: serverTimestamp(),
       cancelamentoProva: tokenCancelamento,
     });
+    tx.update(domingoRef, { vagasOcupadas: ocupadas - 1 });
   });
 }
 export async function deleteRegistroLavaJato(registroId, data) {
