@@ -19,7 +19,5 @@ test("álbuns aceitam vídeos sem apagar fotos existentes",()=>{const store=read
 
 test("galeria: prévia e botão de reprodução acessível",()=>{const s=read("midia.html");assert.match(s,/midia-video-assistir/);assert.match(s,/baixarVideo/);assert.match(s,/pararVideos/);assert.match(s,/IntersectionObserver/)});
 test("acréscimos de fotos e vídeos são atômicos",()=>{const s=read("assets/js/store.js");const p=read("assets/js/painel-lideranca.js");assert.match(s,/arrayUnion/);assert.match(p,/acrescentarFotosMidia/);assert.match(p,/acrescentarVideosMidia/)});
-test("painéis usam CSS atual",()=>{for(const p of ["painel-lideranca.html","painel-unidade.html"])assert.match(read(p),/nordeste\\.css\\?v=85/)});
+test("painéis usam CSS atual",()=>{for(const p of ["painel-lideranca.html","painel-unidade.html"])assert.ok(read(p).includes("nordeste.css?v=85"),p)});
 test("módulos JavaScript passam na verificação de sintaxe",()=>{for(const p of readdirSync(new URL("../assets/js/",import.meta.url)).filter(x=>x.endsWith(".js"))){const result=spawnSync(process.execPath,["--check",new URL("../assets/js/"+p,import.meta.url).pathname],{encoding:"utf8"});assert.equal(result.status,0,p+": "+result.stderr)}});
-function requireSyntaxCheck(){return {spawnSync:globalThis.__unusedSpawnSync||getSpawnSync()};}
-function getSpawnSync(){return spawnSyncImported;}
