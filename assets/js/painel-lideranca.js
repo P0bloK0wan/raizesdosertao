@@ -25,7 +25,7 @@ fecharVagaNormal, reabrirVagaNormal,
   watchIdentidadeUnidade, salvarIdentidadeUnidade, watchConselheiros,
   gerarDesbloqueioUnidade,
   addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
-  watchMidia, addPastaMidia, renomearPastaMidia, adicionarFotosMidia, adicionarVideosMidia, deletePastaMidia,
+  watchMidia, addPastaMidia, renomearPastaMidia, adicionarFotosMidia, adicionarVideosMidia, acrescentarFotosMidia, acrescentarVideosMidia, deletePastaMidia,
   watchCampori, setCamporiData,
   watchAvisos, addAviso, updateAviso, deleteAviso,
   exportarBackup,
@@ -1380,8 +1380,8 @@ if (btnReabrirVaga) {
           adicionar.disabled = true;
           try {
             const enviados=await enviarArquivos(arquivos,status);
-            if(enviados.fotos.length)await adicionarFotosMidia(album.id,[...(album.fotos||[]),...enviados.fotos]);
-            if(enviados.videos.length)await adicionarVideosMidia(album.id,[...(album.videos||[]),...enviados.videos]);
+            if(enviados.fotos.length)await acrescentarFotosMidia(album.id,enviados.fotos);
+            if(enviados.videos.length)await acrescentarVideosMidia(album.id,enviados.videos);
             mostrarToast("Arquivos adicionados!");
           } catch (e) { alert(e.message || "Não foi possível enviar as fotos."); }
           finally { adicionar.disabled = false; status.textContent = ""; input.value = ""; }
