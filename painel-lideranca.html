@@ -318,9 +318,10 @@
     <section class="panel-block" id="midia">
       <div class="block-head">
         <h2>Mídia</h2>
-        <button type="button" class="btn btn-primary btn-sm" id="btn-nova-pasta" onclick="document.getElementById('modal-pasta').classList.add('show')">+ Novo álbum</button>
+        <button type="button" class="btn btn-primary btn-sm" id="btn-nova-pasta">+ Novo álbum</button>
       </div>
       <p class="muted">Publique fotos e vídeos no mesmo álbum, ou adicione uma pasta externa do Google Drive.</p>
+      <p id="midia-erro" class="alert alert-error" role="alert" style="display:none;"></p>
       <div id="lista-midia"></div>
       <div class="empty-state" id="midia-vazio" style="display:none;">Nenhum álbum publicado ainda.</div>
     </section>
