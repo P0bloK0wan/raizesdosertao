@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css?v=57">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=58">
 <style>
 /* Painel da Unidade v49: identidade visual unificada e responsiva para todas as unidades. */
 .painel-unidade{--unit-accent:#dc6934;--unit-cream:#fff0d4;--unit-outline:#86563b;--unit-panel:#2a1c16;--unit-soft:#35231b}
@@ -209,6 +209,34 @@
 .painel-unidade #presenca #btn-salvar-presenca{display:block!important;box-sizing:border-box!important;width:100%!important;min-height:49px!important;margin:18px 0!important;border-radius:11px!important;box-shadow:none!important}
 @media(max-width:450px){.painel-unidade #topicos .month-acc>.unidade-acc-conteudo,.painel-unidade #materiais .month-acc>.unidade-acc-conteudo{padding:10px!important}.painel-unidade #topicos .registro-add-form,.painel-unidade #materiais .registro-add-form{padding:13px!important}.painel-unidade #topicos .month-acc>summary,.painel-unidade #materiais .month-acc>summary{padding:13px!important}.painel-unidade #presenca .unidade-data-domingo{grid-template-columns:40px minmax(0,1fr) 40px!important;gap:5px!important}.painel-unidade #presenca .unidade-data-domingo>button{width:40px!important}}
 
+
+/* v58: frequência individual — calendário adaptável, sem registrar faltas em dias sem chamada. */
+.painel-unidade #frequencia{min-width:0!important}
+.painel-unidade #frequencia .unidade-freq-toolbar{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin:20px 0}
+.painel-unidade #frequencia .unidade-freq-toolbar .field{display:grid;gap:7px;min-width:0}
+.painel-unidade #frequencia #freq-membro{box-sizing:border-box;width:100%;min-height:48px;border-radius:11px;padding:9px 12px;font:inherit}
+.painel-unidade #frequencia .unidade-freq-mes{display:grid;grid-template-columns:45px minmax(0,1fr) 45px;align-items:center;gap:10px;padding:10px;border:1px solid var(--border,#79513f);border-radius:14px}
+.painel-unidade #frequencia .unidade-freq-mes h3{margin:0;text-align:center;font-size:1.05rem}
+.painel-unidade #frequencia .unidade-freq-mes button{width:45px;min-height:44px;border:1px solid var(--border,#79513f);border-radius:10px;background:transparent;color:var(--text,#fff0d4);font:inherit;cursor:pointer}
+.painel-unidade #frequencia .unidade-freq-resumo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0}
+.painel-unidade #frequencia .unidade-freq-resumo>div{min-width:0;text-align:center;border:1px solid var(--border,#79513f);border-radius:12px;padding:13px 6px;background:var(--bg-elevated,#302019)}
+.painel-unidade #frequencia .unidade-freq-resumo strong{display:block;font-size:1.4rem;color:var(--text,#fff0d4)}
+.painel-unidade #frequencia .unidade-freq-resumo span{display:block;font-size:.77rem;color:var(--text-muted,#cdb5a2)}
+.painel-unidade #frequencia .unidade-freq-calendario{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;min-width:0;padding:12px;border:1px solid var(--border,#79513f);border-radius:14px;background:var(--bg-elevated,#302019)}
+.painel-unidade #frequencia .unidade-freq-dia-semana{text-align:center;font-size:.73rem;font-weight:800;padding:6px 0;color:var(--text-muted,#cdb5a2)}
+.painel-unidade #frequencia .unidade-freq-dia{display:grid;place-items:center;box-sizing:border-box;min-width:0;min-height:43px;padding:4px;border:1px solid transparent;border-radius:9px;background:var(--bg,#241a16);color:var(--text,#fff0d4);font:inherit;font-size:.88rem;cursor:pointer}
+.painel-unidade #frequencia .unidade-freq-dia:disabled{cursor:default;opacity:.6}
+.painel-unidade #frequencia .unidade-freq-dia.freq-presente{background:#277a4b;color:white}
+.painel-unidade #frequencia .unidade-freq-dia.freq-ausente{background:#a23e37;color:white}
+.painel-unidade #frequencia .unidade-freq-dia.freq-sem{border-color:#b78b39}
+.painel-unidade #frequencia .unidade-freq-dia[aria-pressed=true]{outline:3px solid #d6a43c;outline-offset:1px}
+.painel-unidade #frequencia .unidade-freq-legenda{display:flex;flex-wrap:wrap;gap:13px;margin:14px 0;font-size:.8rem}
+.painel-unidade #frequencia .unidade-freq-legenda span{display:inline-flex;align-items:center;gap:6px}
+.painel-unidade #frequencia .unidade-freq-legenda i{width:12px;height:12px;border-radius:4px;background:#b78b39}
+.painel-unidade #frequencia .unidade-freq-legenda i.freq-presente{background:#277a4b}
+.painel-unidade #frequencia .unidade-freq-legenda i.freq-ausente{background:#a23e37}
+.painel-unidade #frequencia #freq-detalhe{border:1px solid var(--border,#79513f);border-radius:11px;padding:13px;font-size:.85rem}
+@media(max-width:420px){.painel-unidade #frequencia .unidade-freq-calendario{gap:3px;padding:7px}.painel-unidade #frequencia .unidade-freq-dia{min-height:37px;font-size:.8rem}.painel-unidade #frequencia .unidade-freq-resumo strong{font-size:1.15rem}}
 </style>
 </head>
 <body class="painel-unidade">
@@ -266,6 +294,7 @@
 
     <section id="unidade-inicio" aria-label="Início do painel"><header class="unidade-boas-vindas"><span class="eyebrow">🌵 Minha Unidade</span><h2>Olá, conselheiro!</h2><p>O que vamos fazer hoje?</p></header><div class="unidade-home-stats" aria-label="Resumo da unidade"><div class="unidade-home-stat"><b id="home-membros">0</b><span>👥 Desbravadores</span></div><div class="unidade-home-stat"><b id="home-compras">0</b><span>🛒 Compras pendentes</span></div><div class="unidade-home-stat"><b id="home-registros">0</b><span>📚 Registros</span></div></div><div class="unidade-atalhos" aria-label="Ações rápidas"><a href="#presenca">✓ Fazer chamada</a><a href="#membros">👥 Minha equipe</a><a href="#materiais">🛒 Ver compras</a></div><nav class="unidade-menu-grid" aria-label="Áreas da unidade"><a class="unidade-menu-card" href="#membros"><span class="unidade-menu-icon" aria-hidden="true">👥</span><strong>Minha equipe</strong><span>Desbravadores e conselheiros</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
 <a class="unidade-menu-card" href="#presenca"><span class="unidade-menu-icon" aria-hidden="true">✅</span><strong>Fazer chamada</strong><span>Presença e histórico</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="unidade-menu-card" href="#frequencia"><span class="unidade-menu-icon" aria-hidden="true">📅</span><strong>Frequência</strong><span>Calendário de presenças</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
 <a class="unidade-menu-card" href="#topicos"><span class="unidade-menu-icon" aria-hidden="true">📚</span><strong>Desenvolvimento</strong><span>Atividades e especialidades</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
 <a class="unidade-menu-card" href="#materiais"><span class="unidade-menu-icon" aria-hidden="true">🛒</span><strong>Compras</strong><span>O que falta comprar</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
 <a class="unidade-menu-card" href="#planejamento"><span class="unidade-menu-icon" aria-hidden="true">📅</span><strong>Planejamento</strong><span>Propostas e calendário</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
@@ -310,7 +339,20 @@
       <div class="empty-state" id="conselheiros-vazio" style="display:none;">Nenhum conselheiro cadastrado ainda.</div>
     </section>
 
-    <section class="panel-block" id="presenca" hidden>
+    <section class="panel-block" id="frequencia" hidden>
+<div class="block-head"><h2>📅 Frequência da unidade</h2></div>
+<p class="muted">Calendário individual conectado às chamadas já salvas. Dias sem chamada não são considerados faltas.</p>
+<div class="unidade-freq-toolbar">
+<label class="field" for="freq-membro"><span>Desbravador</span><select id="freq-membro"><option value="">Selecione um desbravador</option></select></label>
+<div class="unidade-freq-mes"><button type="button" id="freq-anterior" aria-label="Mês anterior">←</button><h3 id="freq-mes" aria-live="polite"></h3><button type="button" id="freq-proximo" aria-label="Próximo mês">→</button></div>
+</div>
+<div class="unidade-freq-resumo" id="freq-resumo" role="status"></div>
+<div class="unidade-freq-calendario" id="freq-calendario" aria-label="Calendário de frequência"></div>
+<div class="unidade-freq-legenda"><span><i class="freq-presente"></i> Presente</span><span><i class="freq-ausente"></i> Ausente</span><span><i class="freq-sem"></i> Sem chamada</span></div>
+<p id="freq-detalhe" class="muted" aria-live="polite">Escolha um desbravador para consultar sua frequência.</p>
+</section>
+
+<section class="panel-block" id="presenca" hidden>
       <div class="block-head">
         <h2>Presença</h2>
       </div>
@@ -494,9 +536,9 @@
 <script>
 /* Navegação sem desmontar os formulários ou alterar os dados no Firebase. */
 (function(){
- const grupos=[{"id":"equipe","title":"Minha equipe","ids":["membros","conselheiros"]},{"id":"chamada","title":"Fazer chamada","ids":["presenca"]},{"id":"desenvolvimento","title":"Desenvolvimento","ids":["topicos","especialidades"]},{"id":"compras","title":"Compras","ids":["materiais"]},{"id":"agenda","title":"Planejamento","ids":["planejamento","planejamento-clube"]},{"id":"comunicados","title":"Comunicados","ids":["mural-avisos","placar-acampamento"]},{"id":"configuracoes","title":"Configurações","ids":["config"]}];
+ const grupos=[{"id":"equipe","title":"Minha equipe","ids":["membros","conselheiros"]},{"id":"chamada","title":"Fazer chamada","ids":["presenca"]},{"id":"frequencia","title":"Frequência","ids":["frequencia"]},{"id":"desenvolvimento","title":"Desenvolvimento","ids":["topicos","especialidades"]},{"id":"compras","title":"Compras","ids":["materiais"]},{"id":"agenda","title":"Planejamento","ids":["planejamento","planejamento-clube"]},{"id":"comunicados","title":"Comunicados","ids":["mural-avisos","placar-acampamento"]},{"id":"configuracoes","title":"Configurações","ids":["config"]}];
  const rotas=new Map(grupos.flatMap(g=>g.ids.map(id=>[id,g])));
- const rotulos={"membros":"Desbravadores","conselheiros":"Conselheiros","presenca":"Presença","topicos":"Atividades e requisitos","especialidades":"Especialidades","materiais":"O que falta comprar","planejamento":"Propostas da unidade","planejamento-clube":"Calendário do clube","mural-avisos":"Mural de avisos","placar-acampamento":"Placar do acampamento","config":"Configurações"};
+ const rotulos={"membros":"Desbravadores","conselheiros":"Conselheiros","presenca":"Presença","frequencia":"Calendário","topicos":"Atividades e requisitos","especialidades":"Especialidades","materiais":"O que falta comprar","planejamento":"Propostas da unidade","planejamento-clube":"Calendário do clube","mural-avisos":"Mural de avisos","placar-acampamento":"Placar do acampamento","config":"Configurações"};
  const inicio=document.getElementById("unidade-inicio");
  const resumo=document.getElementById("unidade-resumo");
  const toggle=document.getElementById("unidade-resumo-toggle");
@@ -539,6 +581,6 @@
 })();
 </script>
 <script type="module" src="assets/js/main.js"></script>
-<script type="module" src="assets/js/painel-unidade.js?v=57"></script>
+<script type="module" src="assets/js/painel-unidade.js?v=58"></script>
 </body>
 </html>
