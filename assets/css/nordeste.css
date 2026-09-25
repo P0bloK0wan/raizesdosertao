@@ -624,3 +624,8 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 .midia-arquivo-item button{flex-shrink:0;min-height:44px;}
 .midia-arquivo-grande{border-color:#df6345;background:rgba(223,99,69,.12);}
 @media(max-width:390px){.midia-arquivo-item{flex-wrap:wrap;}.midia-arquivo-item button{margin-left:auto;}}
+
+/* v83: prévias de vídeo e download na qualidade do arquivo enviado. */
+.midia-video-card{position:relative;}
+.midia-video-baixar{position:absolute;right:10px;top:10px;z-index:2;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 12px;border-radius:11px;background:rgba(15,15,15,.88);color:#fff!important;text-decoration:none!important;font-size:.84rem;font-weight:800;}
+.midia-video-baixar:focus-visible{outline:3px solid #f3a833;outline-offset:2px;}
