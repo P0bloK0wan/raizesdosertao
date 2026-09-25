@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css?v=47">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=48">
 <style>
 /* Estilos essenciais da central da unidade, independentes do CSS em cache. */
 #unidade-inicio[hidden],#unidade-resumo-toggle[hidden],.unidade-voltar[hidden],.app-main>.panel-block[hidden],.app-main>.stat-row[hidden]{display:none!important}
@@ -102,7 +102,15 @@
 @media(max-width:750px){#presenca #lista-chamada,#materiais .unidade-compras-lista{grid-template-columns:1fr}}
 @media(max-width:450px){#presenca .unidade-chamada-toolbar{align-items:stretch}#presenca .unidade-chamada-toolbar .field{width:100%}#presenca .unidade-chamada-card{padding:11px;gap:9px}#presenca .unidade-chamada-card .unidade-membro-avatar{width:35px;height:35px}#presenca .unidade-chamada-status{font-size:.7rem}#materiais .unidade-compra-item{padding:13px}}
 </style>
-</head>
+<style>
+/* Navegação rápida por domingos; calendário livre para reuniões extraordinárias. */
+#presenca .unidade-chamada-toolbar .field{min-width:min(100%,315px);max-width:100%}
+#presenca .unidade-data-domingo{display:flex;align-items:center;gap:8px;width:100%}
+#presenca .unidade-data-domingo input{min-width:0;flex:1;max-width:100%;min-height:44px}
+#presenca .unidade-data-domingo button{min-width:44px;min-height:44px;flex:none;padding:8px}
+#presenca #ajuda-data-chamada{display:block;margin-top:8px;line-height:1.4}
+@media(max-width:450px){#presenca .unidade-data-domingo{gap:5px}}
+</style></head>
 <body class="painel-unidade">
 
 <div class="mobile-topbar">
@@ -207,7 +215,7 @@
         <h2>Presença</h2>
       </div>
       <p class="muted">Marque os presentes e salve a chamada. Se já houver registro nesta data, ele será atualizado.</p>
-      <div class="unidade-chamada-toolbar"><div class="field"><label for="pr-data">Data da reunião</label><input type="date" id="pr-data"></div><div class="unidade-chamada-resumo"><strong id="chamada-contagem" aria-live="polite">0 presentes</strong><div class="unidade-chamada-acoes"><button type="button" class="btn btn-outline btn-sm" id="btn-marcar-todos">Marcar todos</button><button type="button" class="btn btn-outline btn-sm" id="btn-limpar-chamada">Limpar</button></div></div></div>
+      <div class="unidade-chamada-toolbar"><div class="field"><label for="pr-data">Domingo da reunião</label><div class="unidade-data-domingo"><button type="button" id="domingo-anterior" class="btn btn-outline btn-sm" aria-label="Domingo anterior">←</button><input type="date" id="pr-data" aria-describedby="ajuda-data-chamada"><button type="button" id="domingo-proximo" class="btn btn-outline btn-sm" aria-label="Próximo domingo">→</button></div><small id="ajuda-data-chamada" class="muted">Selecionamos automaticamente o último domingo. Você pode escolher outro dia no calendário.</small></div><div class="unidade-chamada-resumo"><strong id="chamada-contagem" aria-live="polite">0 presentes</strong><div class="unidade-chamada-acoes"><button type="button" class="btn btn-outline btn-sm" id="btn-marcar-todos">Marcar todos</button><button type="button" class="btn btn-outline btn-sm" id="btn-limpar-chamada">Limpar</button></div></div></div>
       <div id="lista-chamada"></div>
       <div class="empty-state" id="chamada-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra fazer a chamada.</div>
       <button type="button" class="btn btn-primary btn-sm" id="btn-salvar-presenca" style="margin-top:14px;">Salvar chamada</button>
