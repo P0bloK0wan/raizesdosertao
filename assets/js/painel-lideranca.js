@@ -1316,7 +1316,8 @@ if (btnReabrirVaga) {
     e.preventDefault();
     await addPastaMidia(
       document.getElementById("pa-nome").value.trim(),
-      document.getElementById("pa-link").value.trim()
+      document.getElementById("pa-link").value.trim(),
+      document.getElementById("pa-fotos").value.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
     );
     modalPasta.classList.remove("show");
     e.target.reset();
