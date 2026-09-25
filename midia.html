@@ -1,98 +1,85 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mídia — Raízes do Sertão</title>
-<meta name="theme-color" content="#E97305">
-<link rel="icon" href="assets/img/logo.png">
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mídia — Raízes do Sertão</title><meta name="theme-color" content="#E97305">
+<link rel="icon" href="assets/img/logo.png"><link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="assets/css/style.css"><link rel="stylesheet" href="assets/css/nordeste.css">
 </head>
 <body>
 <div data-site-header></div>
-<section class="section">
-  <div class="container">
-    <div class="section-head">
-      <span class="eyebrow">Registros</span>
-      <h1>Mídia</h1>
-      <p>Veja as fotos dos nossos eventos aqui mesmo. Para baixar os arquivos originais, abra a pasta no Drive.</p>
-    </div>
-    <div id="midia-pastas" class="midia-galerias" aria-live="polite"></div>
-  </div>
-</section>
+<main class="section midia-page"><div class="container">
+  <div class="section-head midia-heading"><span class="eyebrow">Nossos momentos</span><h1>Galeria de fotos</h1><p>Um pedacinho da nossa história em cada registro. 🌵</p></div>
+  <div id="midia-pastas" class="midia-albuns" aria-live="polite"></div>
+</div></main>
+<div class="midia-lightbox" id="midia-lightbox" hidden role="dialog" aria-modal="true" aria-label="Visualizar foto">
+  <button type="button" class="midia-fechar" id="midia-fechar" aria-label="Fechar foto">×</button>
+  <img id="midia-foto-ampliada" alt=""><p id="midia-legenda"></p>
+</div>
 <div data-site-footer></div>
 <script type="module">
-  import { watchMidia } from "./assets/js/store.js";
-  const wrap = document.getElementById("midia-pastas");
-
-  // Aceita os dois formatos usuais de links públicos para pastas do Drive.
-  function idPasta(link) {
-    try {
-      const url = new URL(link);
-      if (!["drive.google.com", "www.drive.google.com"].includes(url.hostname)) return null;
-      const match = url.pathname.match(/\/folders\/([\w-]+)/);
-      const id = match ? match[1] : url.searchParams.get("id");
-      return id && /^[\w-]+$/.test(id) ? id : null;
-    } catch {
-      return null;
+import { watchMidia } from "./assets/js/store.js";
+const wrap = document.getElementById("midia-pastas");
+const lightbox = document.getElementById("midia-lightbox");
+const fotoAmpliada = document.getElementById("midia-foto-ampliada");
+const legenda = document.getElementById("midia-legenda");
+document.getElementById("midia-fechar").addEventListener("click", fecharFoto);
+lightbox.addEventListener("click", e => { if (e.target === lightbox) fecharFoto(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") fecharFoto(); });
+function fecharFoto(){lightbox.hidden = true;fotoAmpliada.removeAttribute("src");document.body.style.overflow = "";}
+function idPasta(link) {
+  try {
+    const url = new URL(link);
+    if (!["drive.google.com","www.drive.google.com"].includes(url.hostname)) return null;
+    const id = url.pathname.match(/\/folders\/([\w-]+)/)?.[1] || url.searchParams.get("id");
+    return id && /^[\w-]+$/.test(id) ? id : null;
+  } catch { return null; }
+}
+function urlFoto(link) {
+  try {
+    const url = new URL(link);
+    if (url.protocol !== "https:") return null;
+    if (["drive.google.com","www.drive.google.com"].includes(url.hostname)) {
+      const id = url.pathname.match(/\/file\/d\/([\w-]+)/)?.[1] || url.searchParams.get("id");
+      return id && /^[\w-]+$/.test(id) ? "https://drive.google.com/thumbnail?id=" + encodeURIComponent(id) + "&sz=w1600" : null;
     }
+    if (url.hostname === "res.cloudinary.com" || url.hostname.endsWith(".res.cloudinary.com")) return url.href;
+    return null;
+  } catch { return null; }
+}
+function render(pastas) {
+  wrap.replaceChildren();
+  if (!pastas.length) {
+    const empty = document.createElement("div");empty.className="empty-state";empty.textContent="Os álbuns ainda estão sendo preparados. Volte em breve!";wrap.append(empty);return;
   }
-
-  function mostrarPastas(pastas) {
-    wrap.replaceChildren();
-    if (!pastas.length) {
-      const vazio = document.createElement("div");
-      vazio.className = "empty-state";
-      vazio.textContent = "Ainda não há pastas publicadas. A diretoria pode adicionar pelo painel da liderança.";
-      wrap.append(vazio);
-      return;
+  for (const pasta of pastas) {
+    const id = idPasta(pasta.link);
+    const fotos = (Array.isArray(pasta.fotos) ? pasta.fotos : []).map(urlFoto).filter(Boolean);
+    const card = document.createElement("article");card.className="midia-album";
+    const head = document.createElement("div");head.className="midia-album-head";
+    const title = document.createElement("h2");title.textContent=pasta.nome || "Nosso álbum";
+    const tag = document.createElement("span");tag.className="midia-album-tag";tag.textContent=fotos.length ? fotos.length+" fotos" : "Álbum";
+    head.append(title,tag);card.append(head);
+    if (fotos.length) {
+      const grid = document.createElement("div");grid.className="midia-fotos";
+      fotos.forEach((src,i) => {
+        const btn=document.createElement("button");btn.type="button";btn.className="midia-foto";btn.setAttribute("aria-label","Ampliar foto "+(i+1)+" de "+title.textContent);
+        const img=document.createElement("img");img.src=src;img.alt=title.textContent+" — foto "+(i+1);img.loading="lazy";img.decoding="async";
+        btn.append(img);btn.addEventListener("click",()=>{fotoAmpliada.src=src;fotoAmpliada.alt=img.alt;legenda.textContent=title.textContent;lightbox.hidden=false;document.body.style.overflow="hidden";});grid.append(btn);
+      });card.append(grid);
+    } else {
+      const capa=document.createElement("div");capa.className="midia-capa-vazia";
+      const simbolo=document.createElement("span");simbolo.textContent="📷";simbolo.setAttribute("aria-hidden","true");
+      const txt=document.createElement("p");txt.textContent="As fotos deste álbum estão disponíveis no Drive.";
+      capa.append(simbolo,txt);card.append(capa);
     }
-
-    for (const pasta of pastas) {
-      const bloco = document.createElement("section");
-      bloco.className = "pasta-bloco midia-galeria";
-      const cabecalho = document.createElement("div");
-      cabecalho.className = "pasta-cabecalho";
-      const titulo = document.createElement("h3");
-      titulo.textContent = "📸 " + (pasta.nome || "Álbum");
-      cabecalho.append(titulo);
-
-      const id = idPasta(pasta.link);
-      if (id) {
-        const link = document.createElement("a");
-        link.className = "btn btn-outline btn-sm";
-        link.href = "https://drive.google.com/drive/folders/" + encodeURIComponent(id);
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = "Ver originais no Drive ↗";
-        cabecalho.append(link);
-
-        const frame = document.createElement("iframe");
-        frame.className = "midia-drive-frame";
-        frame.title = "Fotos do álbum " + (pasta.nome || "do clube");
-        frame.loading = "lazy";
-        frame.referrerPolicy = "no-referrer-when-downgrade";
-        frame.src = "https://drive.google.com/embeddedfolderview?id=" + encodeURIComponent(id) + "#grid";
-        bloco.append(cabecalho, frame);
-
-        const aviso = document.createElement("p");
-        aviso.className = "muted midia-ajuda";
-        aviso.textContent = "Se as fotos não aparecerem, a pasta precisa estar compartilhada como “Qualquer pessoa com o link — Leitor”.";
-        bloco.append(aviso);
-      } else {
-        const aviso = document.createElement("p");
-        aviso.className = "muted";
-        aviso.textContent = "Este álbum precisa de um link válido de pasta do Google Drive para exibir as fotos aqui.";
-        bloco.append(cabecalho, aviso);
-      }
-      wrap.append(bloco);
+    if (id) {
+      const link=document.createElement("a");link.className="midia-link";link.href="https://drive.google.com/drive/folders/"+encodeURIComponent(id);link.target="_blank";link.rel="noopener noreferrer";link.textContent="Ver álbum completo ↗";card.append(link);
     }
+    wrap.append(card);
   }
-
-  watchMidia(mostrarPastas);
+}
+watchMidia(render);
 </script>
 <script type="module" src="assets/js/main.js"></script>
-</body>
-</html>
+</body></html>
