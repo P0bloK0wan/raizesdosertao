@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css?v=46">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=47">
 <style>
 /* Estilos essenciais da central da unidade, independentes do CSS em cache. */
 #unidade-inicio[hidden],#unidade-resumo-toggle[hidden],.unidade-voltar[hidden],.app-main>.panel-block[hidden],.app-main>.stat-row[hidden]{display:none!important}
@@ -71,6 +71,36 @@
 @media(max-width:650px){#unidade-inicio .unidade-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}#unidade-inicio .unidade-menu-card{min-height:146px!important;padding:14px!important}#unidade-inicio .unidade-atalhos{display:grid;grid-template-columns:1fr 1fr;gap:9px}#unidade-inicio .unidade-atalhos a:first-child{grid-column:1/-1}#unidade-subnav{padding:4px}#unidade-subnav a{min-width:0} .painel-unidade .app-main>.panel-block:not([hidden]){padding:16px}}
 @media(max-width:360px){#unidade-inicio .unidade-menu-grid{grid-template-columns:1fr!important}}
 @media(prefers-reduced-motion:reduce){#unidade-inicio .unidade-menu-card{transition:none!important}}
+</style>
+<style>
+/* v47: chamada e compras com apresentação limpa, sem alterar campos antigos. */
+#presenca .unidade-chamada-toolbar{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:16px;margin:16px 0 18px;background:var(--bg-elevated,#32221a);border:1px solid var(--border,#9b6348);border-radius:16px}
+#presenca .unidade-chamada-toolbar .field{margin:0;min-width:180px}
+#presenca .unidade-chamada-resumo{display:grid;gap:10px}
+#presenca .unidade-chamada-acoes{display:flex;gap:8px;flex-wrap:wrap}
+#presenca #lista-chamada{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+#presenca .unidade-chamada-card{display:flex;align-items:center;gap:12px;min-height:76px;padding:12px 14px;border:1px solid var(--border,#9b6348);border-radius:14px;background:var(--bg-elevated,#32221a);color:var(--text,#fff2d9);cursor:pointer}
+#presenca .unidade-chamada-card.is-present{border-color:var(--orange,#d16b28)}
+#presenca .unidade-chamada-card .unidade-membro-avatar{width:40px;height:40px;font-size:1rem}
+#presenca .unidade-chamada-nome{font-weight:750;min-width:0;overflow-wrap:anywhere;flex:1}
+#presenca .unidade-chamada-card input{width:22px;height:22px;flex:none;accent-color:var(--orange,#d16b28)}
+#presenca .unidade-chamada-status{font-size:.78rem;font-weight:700;color:var(--text-muted,#cbbcaf)}
+#presenca .unidade-chamada-card.is-present .unidade-chamada-status{color:var(--orange,#e97305)}
+#presenca #btn-salvar-presenca{min-height:48px;margin-top:20px!important;padding-inline:26px}
+#presenca .unidade-historico{margin-top:28px;border:1px solid var(--border,#9b6348);border-radius:14px;overflow:hidden}
+#presenca .unidade-historico>summary{padding:17px;font-weight:800;cursor:pointer;background:var(--bg-elevated,#32221a)}
+#presenca .unidade-historico-corpo{padding:14px}
+#materiais .unidade-compras-cabecalho{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0}
+#materiais .unidade-compra-filtros{margin:0;display:flex;gap:7px;flex-wrap:wrap}
+#materiais #compras-contagem{margin:0}
+#materiais .unidade-compras-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#materiais .unidade-compra-item{min-height:90px;padding:17px;border-radius:15px}
+#materiais .unidade-compra-item strong{font-size:1.04rem}
+#materiais .unidade-compras-gerenciar{border:1px solid var(--border,#9b6348);border-radius:14px;padding:0;margin-top:26px;overflow:hidden}
+#materiais .unidade-compras-gerenciar>summary{padding:17px;background:var(--bg-elevated,#32221a)}
+#materiais .unidade-compras-gerenciar>#lista-materiais{padding:12px}
+@media(max-width:750px){#presenca #lista-chamada,#materiais .unidade-compras-lista{grid-template-columns:1fr}}
+@media(max-width:450px){#presenca .unidade-chamada-toolbar{align-items:stretch}#presenca .unidade-chamada-toolbar .field{width:100%}#presenca .unidade-chamada-card{padding:11px;gap:9px}#presenca .unidade-chamada-card .unidade-membro-avatar{width:35px;height:35px}#presenca .unidade-chamada-status{font-size:.7rem}#materiais .unidade-compra-item{padding:13px}}
 </style>
 </head>
 <body class="painel-unidade">
@@ -176,20 +206,20 @@
       <div class="block-head">
         <h2>Presença</h2>
       </div>
-      <p class="muted">Escolha a data da reunião, marque quem esteve presente e salve. Se já existir uma chamada nesse dia, ela é atualizada — não duplica.</p>
-      <div class="field" style="max-width:220px;"><label>Data da reunião</label><input type="date" id="pr-data"></div>
+      <p class="muted">Marque os presentes e salve a chamada. Se já houver registro nesta data, ele será atualizado.</p>
+      <div class="unidade-chamada-toolbar"><div class="field"><label for="pr-data">Data da reunião</label><input type="date" id="pr-data"></div><div class="unidade-chamada-resumo"><strong id="chamada-contagem" aria-live="polite">0 presentes</strong><div class="unidade-chamada-acoes"><button type="button" class="btn btn-outline btn-sm" id="btn-marcar-todos">Marcar todos</button><button type="button" class="btn btn-outline btn-sm" id="btn-limpar-chamada">Limpar</button></div></div></div>
       <div id="lista-chamada"></div>
       <div class="empty-state" id="chamada-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra fazer a chamada.</div>
       <button type="button" class="btn btn-primary btn-sm" id="btn-salvar-presenca" style="margin-top:14px;">Salvar chamada</button>
 
-      <h3 style="margin-top:30px; font-size:1rem;">Histórico de chamadas</h3>
+      <details class="unidade-historico"><summary>📅 Histórico de chamadas</summary><div class="unidade-historico-corpo">
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr><th>Data</th><th>Presentes</th><th>Ações</th></tr></thead>
           <tbody id="tbody-presencas"></tbody>
         </table>
       </div>
-      <div class="empty-state" id="presencas-vazio" style="display:none;">Nenhuma chamada registrada ainda.</div>
+      <div class="empty-state" id="presencas-vazio" style="display:none;">Nenhuma chamada registrada ainda.</div></div></details>
     </section>
 
     <section class="panel-block" id="topicos">
@@ -214,8 +244,8 @@
       <div class="block-head">
         <h2>O que falta comprar</h2>
       </div>
-      <p class="muted">Liste os materiais que cada desbravador precisa comprar pras atividades ou especialidades, e marque como comprado quando resolver.</p>
-      <div class="unidade-compra-filtros" role="group" aria-label="Filtrar compras"><button type="button" class="btn btn-primary btn-sm" data-filtro-compras="pendente" aria-pressed="true">Pendentes</button><button type="button" class="btn btn-outline btn-sm" data-filtro-compras="comprado" aria-pressed="false">Comprados</button><button type="button" class="btn btn-outline btn-sm" data-filtro-compras="todos" aria-pressed="false">Todos</button></div><p id="compras-contagem" class="muted" role="status"></p><div id="compras-resumo" class="unidade-compras-lista"></div><details class="unidade-compras-gerenciar"><summary>＋ Adicionar ou gerenciar materiais por desbravador</summary><div id="lista-materiais"></div></details>
+      <p class="muted">Tudo o que a unidade precisa comprar, numa lista só.</p>
+      <div class="unidade-compras-cabecalho"><div class="unidade-compra-filtros" role="group" aria-label="Filtrar compras"><button type="button" class="btn btn-primary btn-sm" data-filtro-compras="pendente" aria-pressed="true">Pendentes</button><button type="button" class="btn btn-outline btn-sm" data-filtro-compras="comprado" aria-pressed="false">Comprados</button><button type="button" class="btn btn-outline btn-sm" data-filtro-compras="todos" aria-pressed="false">Todos</button></div><p id="compras-contagem" class="muted" role="status"></p></div><div id="compras-resumo" class="unidade-compras-lista"></div><details class="unidade-compras-gerenciar"><summary>＋ Adicionar ou gerenciar materiais</summary><div id="lista-materiais"></div></details>
       <div class="empty-state" id="materiais-vazio" style="display:none;">Cadastre um desbravador em "Meus desbravadores" pra começar.</div>
     </section>
 
