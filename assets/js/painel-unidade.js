@@ -520,7 +520,15 @@ function iniciarPainel(unidadeId) {
     const vazio = document.getElementById("requisitos-vazio");
     vazio.style.display = estado.membros.length ? "none" : "block";
 
-    wrap.innerHTML = estado.membros
+    const seletor=document.getElementById("requisitos-membro-select");
+    const resumo=document.getElementById("requisitos-membro-resumo");
+    const selecionado=seletor.value;
+    const ordenados=[...estado.membros].sort((a,b)=>a.nome.localeCompare(b.nome,"pt-BR"));
+    seletor.replaceChildren(new Option("Selecione um desbravador…",""),...ordenados.map(m=>new Option(m.nome,m.id)));
+    seletor.value=ordenados.some(m=>m.id===selecionado)?selecionado:"";
+    const membroAtual=ordenados.find(m=>m.id===seletor.value);
+    resumo.textContent=membroAtual?(fanOutRegistros.dados[membroAtual.id]||[]).length+" registro(s) de "+membroAtual.nome+".":"Escolha um desbravador para ver e lançar seus requisitos.";
+    wrap.innerHTML = (membroAtual?[membroAtual]:[])
       .map((m) => {
         const regs = fanOutRegistros.dados[m.id] || [];
         const linhas = regs
@@ -533,7 +541,7 @@ function iniciarPainel(unidadeId) {
           )
           .join("");
         return `
-        <details class="month-acc" data-membro-acc="${m.id}"${abertosRequisitos.has(m.id) ? " open" : ""}>
+        <details class="month-acc" data-membro-acc="${m.id}"${" open"}>
           <summary>${m.nome} <span class="muted" style="font-weight:600; font-size:.8rem;">(${regs.length} registro(s))</span></summary>
           <div class="unidade-acc-conteudo">
             <ul class="registro-list">${linhas || "<li class='muted' style='border:none;'>Nenhum registro lançado ainda.</li>"}</ul>
@@ -560,6 +568,7 @@ function iniciarPainel(unidadeId) {
       })
       .join("");
 
+    seletor.onchange=()=>renderRequisitos();
     wrap.querySelectorAll("[data-membro-acc]").forEach((det) =>
       det.addEventListener("toggle", () => {
         if (det.open) abertosRequisitos.add(det.dataset.membroAcc);
