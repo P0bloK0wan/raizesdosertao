@@ -8,16 +8,16 @@ import { getTheme, setTheme } from "./store.js";
 /* ---------------- Cabeçalho e rodapé (injetados em toda página) ---------------- */
 const NAV_ITEMS = [
   { href: "index.html", label: "🏠 Início" },
-  { href: "historia.html", label: "🌵 História" },
+  { href: "historia.html", label: "🌵 Nossa História" },
   { href: "unidades.html", label: "🦅 Unidades" },
   { href: "agenda.html", label: "📅 Agenda" },
   { href: "aventuras.html", label: "🏕️ Aventuras" },
   { href: "projetos.html", label: "🤝 Projetos" },
-  { href: "participar.html", label: "✨ Participar" },
+  { href: "participar.html", label: "💚 Participar" },
   { href: "midia.html", label: "📸 Mídia" },
-  { href: "campori.html", label: "💙 Campori" },
-  { href: "lava-jato.html", label: "🚗 Lava-jato" },
-  { href: "redes.html", label: "📱 Redes" },
+  { href: "campori.html", label: "💙 Campori DSA 2027" },
+  { href: "lava-jato.html", label: "🚗 Lava-Jato" },
+  { href: "redes.html", label: "📱 Nossas Redes" },
   { href: "login.html", label: "🔐 Login" },
 ];
 
