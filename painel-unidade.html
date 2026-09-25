@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css?v=56">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=57">
 <style>
 /* Painel da Unidade v49: identidade visual unificada e responsiva para todas as unidades. */
 .painel-unidade{--unit-accent:#dc6934;--unit-cream:#fff0d4;--unit-outline:#86563b;--unit-panel:#2a1c16;--unit-soft:#35231b}
@@ -164,44 +164,51 @@
 .painel-unidade #membros .unidade-perfil-dado{height:auto!important;max-height:none!important;overflow:visible!important}
 .painel-unidade #membros .unidade-perfil-dado>small,.painel-unidade #membros .unidade-perfil-dado>strong{position:static!important;float:none!important;max-width:100%!important;white-space:normal!important}
 
-/* v56: telas operacionais: compras, chamada e requisitos no Safari móvel. */
-.painel-unidade #presenca,.painel-unidade #materiais,.painel-unidade #topicos,.painel-unidade #especialidades{min-width:0!important;max-width:100%!important;overflow-wrap:anywhere!important}
-.painel-unidade #presenca .unidade-chamada-toolbar{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:18px!important;margin:18px 0!important}
-.painel-unidade #presenca .unidade-chamada-toolbar>.field{min-width:0!important;width:100%!important;margin:0!important}
-.painel-unidade #presenca .unidade-data-domingo{display:grid!important;grid-template-columns:46px minmax(0,1fr) 46px!important;align-items:stretch!important;gap:8px!important;width:100%!important;min-width:0!important;margin:9px 0!important}
-.painel-unidade #presenca .unidade-data-domingo>button{box-sizing:border-box!important;display:grid!important;place-items:center!important;width:46px!important;min-width:0!important;min-height:48px!important;margin:0!important;padding:0!important;border-radius:11px!important}
-.painel-unidade #presenca #pr-data{box-sizing:border-box!important;display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;min-height:48px!important;margin:0!important;padding:8px!important;font:inherit!important;font-size:clamp(.78rem,3vw,1rem)!important;text-align:center!important;border-radius:11px!important}
-.painel-unidade #presenca #ajuda-data-chamada{display:block!important;margin:7px 0!important;font-size:.8rem!important;line-height:1.5!important}
-.painel-unidade #presenca .unidade-chamada-resumo{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:11px!important;min-width:0!important}
-.painel-unidade #presenca .unidade-chamada-acoes{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
-.painel-unidade #presenca .unidade-chamada-acoes>button{box-sizing:border-box!important;min-width:0!important;width:100%!important;min-height:44px!important;margin:0!important;padding:9px!important;font-size:.82rem!important;border-radius:10px!important}
-.painel-unidade #presenca #lista-chamada{display:grid!important;gap:10px!important;min-width:0!important}
-.painel-unidade #presenca #lista-chamada>label,.painel-unidade #presenca #lista-chamada>.unidade-chamada-linha{box-sizing:border-box!important;display:flex!important;align-items:center!important;gap:12px!important;width:100%!important;min-width:0!important;margin:0!important;padding:13px!important;border:1px solid var(--border,#87573f)!important;border-radius:12px!important;background:var(--bg-elevated,#302019)!important}
-.painel-unidade #presenca #lista-chamada input[type="checkbox"]{flex:none!important;width:21px!important;height:21px!important;margin:0!important}
-.painel-unidade #presenca #lista-chamada .unidade-membro-avatar{flex:none!important}
-.painel-unidade #presenca #lista-chamada .unidade-chamada-nome{min-width:0!important;flex:1!important;font-size:.95rem!important;line-height:1.4!important;overflow-wrap:anywhere!important}
-.painel-unidade #presenca #btn-salvar-presenca{display:block!important;width:100%!important;min-height:48px!important;margin:18px 0!important;border-radius:11px!important}
-.painel-unidade #materiais .unidade-compras-cabecalho{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:9px!important;margin:17px 0!important}
-.painel-unidade #materiais .unidade-compra-filtros{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;width:100%!important;min-width:0!important}
-.painel-unidade #materiais .unidade-compra-filtros>button{box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:45px!important;margin:0!important;padding:8px 5px!important;font-size:clamp(.68rem,2.5vw,.88rem)!important;line-height:1.25!important;border-radius:10px!important;box-shadow:none!important}
+/* v57 — nova linguagem visual das telas operacionais: superfícies leves, ritmo consistente e ações legíveis. */
+.painel-unidade #topicos,.painel-unidade #materiais,.painel-unidade #presenca,.painel-unidade #especialidades{min-width:0!important;overflow-wrap:anywhere}
+.painel-unidade #topicos .block-head,.painel-unidade #materiais .block-head,.painel-unidade #presenca .block-head{margin-bottom:10px!important}
+.painel-unidade #topicos>.muted,.painel-unidade #materiais>.muted,.painel-unidade #presenca>.muted{font-size:.9rem!important;line-height:1.55!important;margin:0 0 20px!important}
+.painel-unidade #topicos .month-acc,.painel-unidade #materiais .month-acc,.painel-unidade #especialidades .month-acc{box-sizing:border-box!important;width:100%!important;min-width:0!important;margin:0 0 14px!important;border:1px solid var(--border,#79513f)!important;border-radius:16px!important;overflow:hidden!important;background:var(--bg-elevated,#302019)!important;box-shadow:none!important}
+.painel-unidade #topicos .month-acc>summary,.painel-unidade #materiais .month-acc>summary,.painel-unidade #especialidades .month-acc>summary{box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:8px 12px!important;min-width:0!important;min-height:64px!important;padding:16px!important;background:var(--bg-elevated,#302019)!important;color:var(--text,#fff0d4)!important;font-size:1rem!important;line-height:1.35!important;overflow-wrap:anywhere!important;box-shadow:none!important}
+.painel-unidade #topicos .month-acc[open]>summary,.painel-unidade #materiais .month-acc[open]>summary,.painel-unidade #especialidades .month-acc[open]>summary{border-bottom:1px solid var(--border,#79513f)!important}
+.painel-unidade #topicos .month-acc>.unidade-acc-conteudo,.painel-unidade #materiais .month-acc>.unidade-acc-conteudo{box-sizing:border-box!important;width:100%!important;min-width:0!important;padding:16px!important}
+.painel-unidade #topicos .registro-list,.painel-unidade #materiais .mat-list{box-sizing:border-box!important;display:grid!important;gap:8px!important;width:100%!important;min-width:0!important;margin:0 0 22px!important;padding:0!important;list-style:none!important}
+.painel-unidade #topicos .registro-list>li,.painel-unidade #materiais .mat-list>li{box-sizing:border-box!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto auto!important;align-items:center!important;gap:5px 12px!important;min-width:0!important;width:100%!important;margin:0!important;padding:13px!important;border:1px solid var(--border,#79513f)!important;border-radius:12px!important;background:var(--bg,#241a16)!important;box-shadow:none!important;overflow-wrap:anywhere!important}
+.painel-unidade #topicos .registro-list>li .rg-criterio,.painel-unidade #materiais .mat-list>li .mat-nome{grid-column:1!important;grid-row:1!important;min-width:0!important;font-size:.95rem!important;line-height:1.4!important;font-weight:800!important}
+.painel-unidade #topicos .registro-list>li .rg-data{grid-column:1!important;grid-row:2!important;font-size:.8rem!important;color:var(--text-muted,#cdb5a2)!important}
+.painel-unidade #topicos .registro-list>li>button,.painel-unidade #materiais .mat-list>li>button:last-child{grid-column:2!important;grid-row:1/3!important;justify-self:end!important;align-self:center!important;margin:0!important;padding:9px!important;border:1px solid #b56a61!important;border-radius:9px!important;background:transparent!important;color:#e79b91!important;font-size:.78rem!important;line-height:1.2!important;white-space:nowrap!important}
+.painel-unidade #topicos .registro-add-form,.painel-unidade #materiais .registro-add-form{box-sizing:border-box!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:13px!important;width:100%!important;min-width:0!important;margin:0!important;padding:17px!important;border:1px solid var(--border,#79513f)!important;border-radius:14px!important;background:var(--bg,#241a16)!important}
+.painel-unidade #topicos .registro-add-form:before{content:"Novo registro";display:block;font-size:1.02rem;font-weight:800;color:var(--text,#fff0d4)}
+.painel-unidade #materiais .registro-add-form:before{content:"Adicionar material";display:block;font-size:1.02rem;font-weight:800;color:var(--text,#fff0d4)}
+.painel-unidade #topicos .registro-add-form>.field,.painel-unidade #materiais .registro-add-form>.field{box-sizing:border-box!important;width:100%!important;min-width:0!important;margin:0!important}
+.painel-unidade #topicos .registro-add-form label,.painel-unidade #materiais .registro-add-form label{display:block!important;margin-bottom:7px!important;font-size:.86rem!important;font-weight:750!important}
+.painel-unidade #topicos .registro-add-form input,.painel-unidade #topicos .registro-add-form select,.painel-unidade #materiais .registro-add-form input{box-sizing:border-box!important;display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;min-height:49px!important;margin:0!important;padding:10px 12px!important;border-radius:10px!important;font:inherit!important;font-size:1rem!important}
+.painel-unidade #topicos .registro-add-form>button,.painel-unidade #materiais .registro-add-form>button{box-sizing:border-box!important;display:block!important;width:100%!important;min-height:48px!important;margin:4px 0 0!important;border-radius:11px!important;box-shadow:none!important}
+.painel-unidade #materiais .unidade-compras-cabecalho{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;margin:18px 0!important}
+.painel-unidade #materiais .unidade-compra-filtros{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;min-width:0!important;width:100%!important}
+.painel-unidade #materiais .unidade-compra-filtros>button{box-sizing:border-box!important;min-width:0!important;width:100%!important;min-height:44px!important;margin:0!important;padding:9px 3px!important;border-radius:10px!important;font-size:clamp(.65rem,2.5vw,.85rem)!important;box-shadow:none!important}
 .painel-unidade #materiais #compras-contagem{margin:0!important;font-size:.83rem!important}
-.painel-unidade #materiais .unidade-compras-gerenciar{box-sizing:border-box!important;width:100%!important;margin-top:20px!important;padding:0!important;border:1px solid var(--border,#87573f)!important;border-radius:13px!important;overflow:hidden!important}
-.painel-unidade #materiais .unidade-compras-gerenciar>summary{box-sizing:border-box!important;display:block!important;width:100%!important;min-height:48px!important;padding:13px!important;font-size:.92rem!important;font-weight:800!important;line-height:1.4!important;cursor:pointer!important;overflow-wrap:anywhere!important}
-.painel-unidade #materiais #lista-materiais{padding:10px!important;min-width:0!important}
-.painel-unidade #topicos #lista-requisitos,.painel-unidade #especialidades #lista-especialidades,.painel-unidade #materiais #lista-materiais{width:100%!important;min-width:0!important}
-.painel-unidade #topicos .month-acc,.painel-unidade #especialidades .month-acc,.painel-unidade #materiais .month-acc{box-sizing:border-box!important;width:100%!important;min-width:0!important;margin:10px 0!important;overflow:hidden!important}
-.painel-unidade #topicos .month-acc>summary,.painel-unidade #especialidades .month-acc>summary,.painel-unidade #materiais .month-acc>summary{box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important;min-width:0!important;padding:13px!important;line-height:1.35!important;overflow-wrap:anywhere!important}
-.painel-unidade #topicos .month-acc>div,.painel-unidade #especialidades .month-acc>div,.painel-unidade #materiais .month-acc>div{box-sizing:border-box!important;width:100%!important;min-width:0!important;padding:13px!important}
-.painel-unidade #topicos .registro-list,.painel-unidade #materiais .mat-list{box-sizing:border-box!important;display:grid!important;gap:8px!important;width:100%!important;min-width:0!important;margin:0 0 16px!important;padding:0!important;list-style:none!important}
-.painel-unidade #topicos .registro-list>li,.painel-unidade #materiais .mat-list>li{box-sizing:border-box!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:6px 10px!important;width:100%!important;min-width:0!important;margin:0!important;padding:12px!important;border:1px solid var(--border,#87573f)!important;border-radius:10px!important;overflow-wrap:anywhere!important}
-.painel-unidade #topicos .registro-list>li .rg-criterio,.painel-unidade #materiais .mat-list>li .mat-nome{grid-column:1!important;min-width:0!important}
-.painel-unidade #topicos .registro-list>li .rg-data{grid-column:1!important;font-size:.82rem!important}
-.painel-unidade #topicos .registro-list>li>button,.painel-unidade #materiais .mat-list>li>button:last-child{grid-column:2!important;grid-row:1/3!important;justify-self:end!important;padding:8px!important;font-size:.82rem!important;white-space:normal!important}
-.painel-unidade #topicos .registro-add-form,.painel-unidade #materiais .registro-add-form,.painel-unidade #especialidades .registro-add-form{box-sizing:border-box!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important;width:100%!important;min-width:0!important}
-.painel-unidade #topicos .registro-add-form>.field,.painel-unidade #materiais .registro-add-form>.field,.painel-unidade #especialidades .registro-add-form>.field{box-sizing:border-box!important;width:100%!important;min-width:0!important;margin:0!important}
-.painel-unidade #topicos .registro-add-form input,.painel-unidade #topicos .registro-add-form select,.painel-unidade #materiais .registro-add-form input,.painel-unidade #especialidades .registro-add-form input{box-sizing:border-box!important;display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;min-height:45px!important;margin:7px 0 0!important}
-.painel-unidade #topicos .registro-add-form>button,.painel-unidade #materiais .registro-add-form>button{width:100%!important;min-height:45px!important;margin:0!important}
-@media(max-width:400px){.painel-unidade #presenca .unidade-data-domingo{grid-template-columns:40px minmax(0,1fr) 40px!important;gap:5px!important}.painel-unidade #presenca .unidade-data-domingo>button{width:40px!important}.painel-unidade #materiais .unidade-compra-filtros>button{font-size:.7rem!important;padding:7px 3px!important}}
+.painel-unidade #materiais .unidade-compras-gerenciar{box-sizing:border-box!important;width:100%!important;margin:20px 0 0!important;border:1px solid var(--border,#79513f)!important;border-radius:14px!important;overflow:hidden!important}
+.painel-unidade #materiais .unidade-compras-gerenciar>summary{box-sizing:border-box!important;display:block!important;min-height:52px!important;padding:15px!important;font-size:.9rem!important;font-weight:800!important;line-height:1.4!important;overflow-wrap:anywhere!important}
+.painel-unidade #materiais #lista-materiais{min-width:0!important;padding:12px!important}
+.painel-unidade #presenca .unidade-chamada-toolbar{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:16px!important;margin:18px 0!important}
+.painel-unidade #presenca .unidade-chamada-toolbar>.field{width:100%!important;min-width:0!important;margin:0!important}
+.painel-unidade #presenca .unidade-data-domingo{display:grid!important;grid-template-columns:44px minmax(0,1fr) 44px!important;align-items:stretch!important;gap:7px!important;width:100%!important;min-width:0!important;margin:8px 0!important}
+.painel-unidade #presenca .unidade-data-domingo>button{box-sizing:border-box!important;display:grid!important;place-items:center!important;width:44px!important;min-width:0!important;min-height:49px!important;margin:0!important;padding:0!important;border-radius:10px!important;box-shadow:none!important}
+.painel-unidade #presenca #pr-data{box-sizing:border-box!important;display:block!important;min-width:0!important;width:100%!important;max-width:100%!important;min-height:49px!important;margin:0!important;padding:8px!important;border-radius:10px!important;font:inherit!important;font-size:clamp(.8rem,3vw,1rem)!important;text-align:center!important}
+.painel-unidade #presenca #ajuda-data-chamada{display:block!important;margin:7px 0!important;font-size:.78rem!important;line-height:1.5!important}
+.painel-unidade #presenca .unidade-chamada-resumo{display:grid!important;gap:10px!important;min-width:0!important}
+.painel-unidade #presenca .unidade-chamada-acoes{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+.painel-unidade #presenca .unidade-chamada-acoes>button{box-sizing:border-box!important;min-width:0!important;width:100%!important;min-height:44px!important;margin:0!important;padding:8px!important;border-radius:10px!important;font-size:.8rem!important}
+.painel-unidade #presenca #lista-chamada{display:grid!important;gap:9px!important}
+.painel-unidade #presenca #lista-chamada>.unidade-chamada-card{box-sizing:border-box!important;display:grid!important;grid-template-columns:36px minmax(0,1fr) 23px!important;align-items:center!important;gap:10px!important;min-width:0!important;width:100%!important;margin:0!important;padding:13px!important;border:1px solid var(--border,#79513f)!important;border-radius:12px!important;background:var(--bg-elevated,#302019)!important}
+.painel-unidade #presenca #lista-chamada .unidade-membro-avatar{display:grid!important;place-items:center!important;width:36px!important;height:36px!important;font-size:1rem!important}
+.painel-unidade #presenca #lista-chamada .unidade-chamada-nome{min-width:0!important;font-size:.92rem!important;line-height:1.4!important;overflow-wrap:anywhere!important}
+.painel-unidade #presenca #lista-chamada input[type=checkbox]{grid-column:3!important;grid-row:1!important;width:22px!important;height:22px!important;margin:0!important}
+.painel-unidade #presenca #lista-chamada .unidade-chamada-status{grid-column:2!important;grid-row:2!important;font-size:.75rem!important}
+.painel-unidade #presenca #btn-salvar-presenca{display:block!important;box-sizing:border-box!important;width:100%!important;min-height:49px!important;margin:18px 0!important;border-radius:11px!important;box-shadow:none!important}
+@media(max-width:450px){.painel-unidade #topicos .month-acc>.unidade-acc-conteudo,.painel-unidade #materiais .month-acc>.unidade-acc-conteudo{padding:10px!important}.painel-unidade #topicos .registro-add-form,.painel-unidade #materiais .registro-add-form{padding:13px!important}.painel-unidade #topicos .month-acc>summary,.painel-unidade #materiais .month-acc>summary{padding:13px!important}.painel-unidade #presenca .unidade-data-domingo{grid-template-columns:40px minmax(0,1fr) 40px!important;gap:5px!important}.painel-unidade #presenca .unidade-data-domingo>button{width:40px!important}}
+
 </style>
 </head>
 <body class="painel-unidade">
@@ -532,6 +539,6 @@
 })();
 </script>
 <script type="module" src="assets/js/main.js"></script>
-<script type="module" src="assets/js/painel-unidade.js?v=56"></script>
+<script type="module" src="assets/js/painel-unidade.js?v=57"></script>
 </body>
 </html>
