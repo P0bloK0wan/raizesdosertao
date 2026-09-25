@@ -590,3 +590,14 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
  [data-site-header] .nav-menu-grid a{touch-action:manipulation;}
 }
 @media(min-width:1521px){[data-site-header] .nav-links{display:flex!important;visibility:visible!important;}}
+
+/* v77: um único menu acionado pelo hambúrguer em celular, tablet e desktop. */
+[data-site-header] .nav-toggle{display:inline-flex!important;flex:0 0 44px;}
+[data-site-header] .nav-links{position:absolute!important;display:none!important;visibility:hidden!important;pointer-events:none!important;inset:100% 0 auto auto!important;top:100%!important;left:auto!important;right:0!important;bottom:auto!important;width:min(100%,760px)!important;max-width:100%!important;height:calc(100vh - var(--header-h))!important;height:calc(100dvh - var(--header-h))!important;max-height:calc(100vh - var(--header-h))!important;max-height:calc(100dvh - var(--header-h))!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;box-sizing:border-box;transform:none!important;transition:none!important;flex-direction:column;align-items:stretch;padding:18px max(16px,env(safe-area-inset-left)) calc(26px + env(safe-area-inset-bottom));background:var(--bg);border:2px solid var(--border);border-top:0;border-radius:0 0 0 18px;box-shadow:0 14px 25px rgba(0,0,0,.18);z-index:1001;}
+[data-site-header] .nav-links.open{display:block!important;visibility:visible!important;pointer-events:auto!important;}
+[data-site-header] .nav-menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+[data-site-header] .nav-menu-grid a{display:flex;align-items:center;gap:10px;min-height:52px;padding:12px;border:1.5px solid var(--border);border-radius:12px;background:var(--bg-elevated);color:var(--text);font-weight:750;text-decoration:none;}
+[data-site-header] .nav-menu-grid a.active{background:var(--orange);border-color:var(--orange);color:#fff;}
+@media(max-width:520px){[data-site-header] .nav-links{width:100%!important;border-radius:0;}[data-site-header] .nav-menu-grid{grid-template-columns:1fr;}}
+@media(min-width:521px) and (max-width:900px){[data-site-header] .nav-links{width:100%!important;}}
+@media(min-width:901px){[data-site-header] .nav-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
