@@ -25,7 +25,7 @@ fecharVagaNormal, reabrirVagaNormal,
   watchIdentidadeUnidade, salvarIdentidadeUnidade, watchConselheiros,
   gerarDesbloqueioUnidade,
   addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
-  watchMidia, addPastaMidia, adicionarFotosMidia, adicionarVideosMidia, deletePastaMidia,
+  watchMidia, addPastaMidia, renomearPastaMidia, adicionarFotosMidia, adicionarVideosMidia, deletePastaMidia,
   watchCampori, setCamporiData,
   watchAvisos, addAviso, updateAviso, deleteAviso,
   exportarBackup,
@@ -1354,6 +1354,18 @@ if (btnReabrirVaga) {
       const cab = document.createElement("div"); cab.className = "pasta-cabecalho";
       const titulo = document.createElement("h3"); titulo.textContent = (idDrive ? "📁 " : "📸 ") + (album.nome || "Álbum");
       const acoes = document.createElement("div"); acoes.className = "midia-admin-acoes";
+      const editar=document.createElement("button");editar.type="button";editar.className="btn btn-outline btn-sm";editar.textContent="✏️ Renomear";
+      editar.addEventListener("click",()=>{
+        const form=document.createElement("form");form.className="midia-editar-nome";
+        const campo=document.createElement("input");campo.type="text";campo.value=album.nome||"";campo.maxLength=120;campo.required=true;campo.setAttribute("aria-label","Novo nome do álbum");
+        const salvar=document.createElement("button");salvar.type="submit";salvar.className="btn btn-primary btn-sm";salvar.textContent="Salvar";
+        const cancelar=document.createElement("button");cancelar.type="button";cancelar.className="btn btn-outline btn-sm";cancelar.textContent="Cancelar";
+        const encerrar=()=>{form.remove();editar.hidden=false;};
+        cancelar.addEventListener("click",encerrar);
+        form.addEventListener("submit",async e=>{e.preventDefault();const nome=campo.value.trim();if(!nome){campo.focus();return;}salvar.disabled=true;try{await renomearPastaMidia(album.id,nome);titulo.textContent=(idDrive?"📁 ":"📸 ")+nome;encerrar();mostrarToast("Nome do álbum atualizado!");}catch(err){alert(err.message||"Não foi possível renomear.");salvar.disabled=false;}});
+        editar.hidden=true;cab.after(form);campo.focus();campo.select();
+      });
+      acoes.append(editar);
       const contador = document.createElement("p"); contador.className = "muted"; contador.textContent = idDrive ? "Pasta externa do Google Drive" : (album.fotos || []).length + " fotos · " + (album.videos || []).length + " vídeos";
       if (idDrive) {
         const abrir = document.createElement("a"); abrir.className = "btn btn-outline btn-sm"; abrir.href = "https://drive.google.com/drive/folders/" + encodeURIComponent(idDrive); abrir.target = "_blank"; abrir.rel = "noopener noreferrer"; abrir.textContent = "Abrir no Drive ↗"; acoes.append(abrir);
