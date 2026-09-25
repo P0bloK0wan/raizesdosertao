@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/logo.png">
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/nordeste.css?v=45">
+<link rel="stylesheet" href="assets/css/nordeste.css?v=46">
 <style>
 /* Estilos essenciais da central da unidade, independentes do CSS em cache. */
 #unidade-inicio[hidden],#unidade-resumo-toggle[hidden],.unidade-voltar[hidden],.app-main>.panel-block[hidden],.app-main>.stat-row[hidden]{display:none!important}
@@ -44,6 +44,33 @@
 @media(max-width:620px){#cards-membros.unidade-membros-grid{grid-template-columns:1fr}.unidade-perfil-dados{grid-template-columns:1fr}.unidade-compra-item{flex-wrap:wrap}.unidade-compra-item button{width:100%}}
 @media(hover:hover){.unidade-membro-card:hover{border-color:var(--orange,#e97305);transform:translateY(-2px)}}
 @media(prefers-reduced-motion:reduce){.unidade-membro-card{transition:none!important;transform:none!important}}
+</style>
+<style>
+/* Redesign v46: hierarquia limpa, atalhos e uma seção por vez. */
+#unidade-inicio .unidade-boas-vindas{margin:4px 0 20px}
+#unidade-inicio .unidade-boas-vindas h2{font-size:clamp(1.6rem,4vw,2.4rem);letter-spacing:-.025em}
+#unidade-inicio .unidade-atalhos{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 26px}
+#unidade-inicio .unidade-atalhos a{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:11px 17px;border-radius:12px;border:1px solid var(--border,#9b6348);background:var(--bg-elevated,#32221a);color:var(--text,#fff2d9);font-size:.9rem;font-weight:750;text-decoration:none}
+#unidade-inicio .unidade-atalhos a:first-child{background:var(--orange,#d16b28);border-color:var(--orange,#d16b28);color:#fff}
+#unidade-inicio .unidade-menu-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:13px!important}
+#unidade-inicio .unidade-menu-card{min-height:145px!important;padding:19px!important;gap:8px!important;box-shadow:none!important;border-radius:16px!important}
+#unidade-inicio .unidade-menu-card .unidade-menu-icon{font-size:1.7rem}
+#unidade-inicio .unidade-menu-card strong{font-size:1.05rem}
+#unidade-inicio .unidade-menu-card .unidade-menu-entrar{margin-top:auto}
+#unidade-subnav[hidden]{display:none!important}
+#unidade-subnav{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 18px;padding:5px;border-radius:13px;background:var(--bg-elevated,#32221a);border:1px solid var(--border,#9b6348)}
+#unidade-subnav a{flex:1;min-width:145px;display:flex;align-items:center;justify-content:center;min-height:44px;padding:10px 13px;border-radius:9px;color:var(--text,#fff2d9);font-weight:750;text-align:center;text-decoration:none}
+#unidade-subnav a[aria-current="page"]{background:var(--orange,#d16b28);color:#fff}
+.painel-unidade .app-main>.panel-block:not([hidden]){max-width:1100px;margin-inline:auto}
+.painel-unidade .app-main>.panel-block:not([hidden])>.block-head{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+.painel-unidade .app-main>.panel-block:not([hidden])>.block-head h2{margin:0}
+.painel-unidade .app-main>.panel-block:not([hidden])>.muted{max-width:70ch;line-height:1.5}
+.painel-unidade .unidade-busca{max-width:500px}
+#unidade-resumo{margin-top:10px}
+@media(max-width:1000px){#unidade-inicio .unidade-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:650px){#unidade-inicio .unidade-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}#unidade-inicio .unidade-menu-card{min-height:146px!important;padding:14px!important}#unidade-inicio .unidade-atalhos{display:grid;grid-template-columns:1fr 1fr;gap:9px}#unidade-inicio .unidade-atalhos a:first-child{grid-column:1/-1}#unidade-subnav{padding:4px}#unidade-subnav a{min-width:0} .painel-unidade .app-main>.panel-block:not([hidden]){padding:16px}}
+@media(max-width:360px){#unidade-inicio .unidade-menu-grid{grid-template-columns:1fr!important}}
+@media(prefers-reduced-motion:reduce){#unidade-inicio .unidade-menu-card{transition:none!important}}
 </style>
 </head>
 <body class="painel-unidade">
@@ -99,15 +126,14 @@
       </div>
     </div>
 
-    <section id="unidade-inicio" aria-label="Menu principal"><div class="unidade-boas-vindas"><span class="eyebrow">Central da unidade</span><h2>O que vamos organizar hoje?</h2><p>Escolha uma área para ver suas ferramentas.</p></div><nav class="unidade-menu-grid" aria-label="Áreas da unidade"><a class="unidade-menu-card" href="#mural-avisos"><span class="unidade-menu-icon" aria-hidden="true">📣</span><strong>Mural de avisos</strong><span>Comunicados da liderança</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
-<a class="unidade-menu-card" href="#membros"><span class="unidade-menu-icon" aria-hidden="true">👥</span><strong>Desbravadores e conselheiros</strong><span>Cadastros e dados da unidade</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
-<a class="unidade-menu-card" href="#presenca"><span class="unidade-menu-icon" aria-hidden="true">✅</span><strong>Presença</strong><span>Chamadas e histórico</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
-<a class="unidade-menu-card" href="#topicos"><span class="unidade-menu-icon" aria-hidden="true">📝</span><strong>Atividades e requisitos</strong><span>Registros dos desbravadores</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
-<a class="unidade-menu-card" href="#especialidades"><span class="unidade-menu-icon" aria-hidden="true">🎖️</span><strong>Especialidades e compras</strong><span>Progresso e materiais</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
-<a class="unidade-menu-card" href="#planejamento"><span class="unidade-menu-icon" aria-hidden="true">📋</span><strong>Planejamento da unidade</strong><span>Criar e acompanhar propostas</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
-<a class="unidade-menu-card" href="#planejamento-clube"><span class="unidade-menu-icon" aria-hidden="true">📅</span><strong>Calendário do clube</strong><span>Eventos e atividades</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
-<a class="unidade-menu-card" href="#placar-acampamento"><span class="unidade-menu-icon" aria-hidden="true">🏆</span><strong>Placar do acampamento</strong><span>Pontos e histórico</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
-<a class="unidade-menu-card" href="#config"><span class="unidade-menu-icon" aria-hidden="true">⚙️</span><strong>Configurações</strong><span>Solicitar troca de senha</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a></nav></section>
+    <section id="unidade-inicio" aria-label="Início do painel"><header class="unidade-boas-vindas"><span class="eyebrow">Minha Unidade</span><h2>O que vamos fazer hoje?</h2><p>Acesse rapidamente as tarefas da sua unidade.</p></header><div class="unidade-atalhos" aria-label="Ações rápidas"><a href="#presenca">✓ Fazer chamada</a><a href="#membros">＋ Cadastrar desbravador</a><a href="#materiais">🛒 Ver compras</a></div><nav class="unidade-menu-grid" aria-label="Áreas da unidade"><a class="unidade-menu-card" href="#membros"><span class="unidade-menu-icon" aria-hidden="true">👥</span><strong>Minha equipe</strong><span>Desbravadores e conselheiros</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="unidade-menu-card" href="#presenca"><span class="unidade-menu-icon" aria-hidden="true">✅</span><strong>Fazer chamada</strong><span>Presença e histórico</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="unidade-menu-card" href="#topicos"><span class="unidade-menu-icon" aria-hidden="true">📚</span><strong>Desenvolvimento</strong><span>Atividades e especialidades</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="unidade-menu-card" href="#materiais"><span class="unidade-menu-icon" aria-hidden="true">🛒</span><strong>Compras</strong><span>O que falta comprar</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="unidade-menu-card" href="#planejamento"><span class="unidade-menu-icon" aria-hidden="true">📅</span><strong>Planejamento</strong><span>Propostas e calendário</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="unidade-menu-card" href="#mural-avisos"><span class="unidade-menu-icon" aria-hidden="true">📣</span><strong>Comunicados</strong><span>Avisos e placar</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a>
+<a class="unidade-menu-card" href="#config"><span class="unidade-menu-icon" aria-hidden="true">⚙️</span><strong>Configurações</strong><span>Acesso e segurança</span><span class="unidade-menu-entrar" aria-hidden="true">Abrir →</span></a></nav></section>
+<div id="unidade-subnav" class="unidade-subnav" hidden aria-label="Seções da área"></div>
 <button type="button" id="unidade-resumo-toggle" aria-expanded="false" aria-controls="unidade-resumo">📊 Ver resumo rápido <span aria-hidden="true">⌄</span></button>
 <section class="stat-row" id="unidade-resumo">
       <div class="stat"><b id="s-membros">0</b><span>Desbravadores da unidade</span></div>
@@ -328,25 +354,46 @@
 </div>
 
 <script>
-/* Mantém todos os formulários montados; só alterna a visibilidade das áreas. */
+/* Navegação sem desmontar os formulários ou alterar os dados no Firebase. */
 (function(){
- const areas=[{"id":"mural-avisos","title":"Mural de avisos","ids":["mural-avisos"]},{"id":"membros","title":"Desbravadores e conselheiros","ids":["membros","conselheiros"]},{"id":"presenca","title":"Presença","ids":["presenca"]},{"id":"topicos","title":"Atividades e requisitos","ids":["topicos"]},{"id":"especialidades","title":"Especialidades e compras","ids":["especialidades","materiais"]},{"id":"planejamento","title":"Planejamento da unidade","ids":["planejamento"]},{"id":"planejamento-clube","title":"Calendário do clube","ids":["planejamento-clube"]},{"id":"placar-acampamento","title":"Placar do acampamento","ids":["placar-acampamento"]},{"id":"config","title":"Configurações","ids":["config"]}];
- const rotas=new Map(areas.flatMap(a=>a.ids.map(id=>[id,a])));
+ const grupos=[{"id":"equipe","title":"Minha equipe","ids":["membros","conselheiros"]},{"id":"chamada","title":"Fazer chamada","ids":["presenca"]},{"id":"desenvolvimento","title":"Desenvolvimento","ids":["topicos","especialidades"]},{"id":"compras","title":"Compras","ids":["materiais"]},{"id":"agenda","title":"Planejamento","ids":["planejamento","planejamento-clube"]},{"id":"comunicados","title":"Comunicados","ids":["mural-avisos","placar-acampamento"]},{"id":"configuracoes","title":"Configurações","ids":["config"]}];
+ const rotas=new Map(grupos.flatMap(g=>g.ids.map(id=>[id,g])));
+ const rotulos={"membros":"Desbravadores","conselheiros":"Conselheiros","presenca":"Presença","topicos":"Atividades e requisitos","especialidades":"Especialidades","materiais":"O que falta comprar","planejamento":"Propostas da unidade","planejamento-clube":"Calendário do clube","mural-avisos":"Mural de avisos","placar-acampamento":"Placar do acampamento","config":"Configurações"};
  const inicio=document.getElementById("unidade-inicio");
  const resumo=document.getElementById("unidade-resumo");
  const toggle=document.getElementById("unidade-resumo-toggle");
  const voltar=document.getElementById("unidade-voltar");
  const titulo=document.getElementById("visao-geral");
+ const subnav=document.getElementById("unidade-subnav");
  const barra=document.querySelector("[data-sidebar]");
  const overlay=document.querySelector("[data-sidebar-overlay]");
  toggle.addEventListener("click",()=>toggle.setAttribute("aria-expanded",String(toggle.getAttribute("aria-expanded")!=="true")));
  function navegar(){
-  const area=rotas.get(decodeURIComponent(location.hash.slice(1)));
-  inicio.hidden=!!area;resumo.hidden=!!area;toggle.hidden=!!area;voltar.hidden=!area;
-  titulo.textContent=area?area.title:"Painel da Unidade";
-  for(const item of areas)for(const id of item.ids){const sec=document.getElementById(id);if(sec)sec.hidden=!area||area.id!==item.id;}
-  document.querySelectorAll(".app-nav a[href^='#']").forEach(a=>{const id=a.getAttribute("href").slice(1);if((area&&rotas.get(id)?.id===area.id)||(!area&&id==="visao-geral"))a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
-  barra?.classList.remove("open");overlay?.classList.remove("show");document.body.classList.remove("sidebar-open");window.scrollTo(0,0);
+  const id=decodeURIComponent(location.hash.slice(1));
+  const grupo=rotas.get(id);
+  const atual=grupo?(grupo.ids.includes(id)?id:grupo.ids[0]):null;
+  inicio.hidden=!!grupo;resumo.hidden=!!grupo;toggle.hidden=!!grupo;voltar.hidden=!grupo;
+  titulo.textContent=grupo?grupo.title:"Minha Unidade";
+  subnav.replaceChildren();
+  subnav.hidden=!grupo||grupo.ids.length===1;
+  if(grupo&&grupo.ids.length>1)for(const secao of grupo.ids){
+   const link=document.createElement("a");
+   link.href="#"+secao;link.textContent=rotulos[secao]||secao;
+   if(secao===atual)link.setAttribute("aria-current","page");
+   subnav.append(link);
+  }
+  for(const item of grupos)for(const secao of item.ids){
+   const el=document.getElementById(secao);
+   if(el)el.hidden=secao!==atual;
+  }
+  document.querySelectorAll(".app-nav a[href^='#']").forEach(a=>{
+   const secao=a.getAttribute("href").slice(1);
+   if((grupo&&secao===atual)||(!grupo&&secao==="visao-geral"))a.setAttribute("aria-current","page");
+   else a.removeAttribute("aria-current");
+  });
+  barra?.classList.remove("open");overlay?.classList.remove("show");
+  document.body.classList.remove("sidebar-open");
+  window.scrollTo(0,0);
  }
  voltar.addEventListener("click",()=>{location.hash="visao-geral";});
  window.addEventListener("hashchange",navegar);navegar();
