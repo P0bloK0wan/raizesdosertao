@@ -546,15 +546,15 @@ function iniciarPainel(unidadeId) {
           <div class="unidade-acc-conteudo">
             <ul class="registro-list">${linhas || "<li class='muted' style='border:none;'>Nenhum registro lançado ainda.</li>"}</ul>
             <form class="registro-add-form" data-form-registro="${m.id}">
-              <div class="field">
-                <label>Requisito</label>
-                <select class="rg-criterio-select">
-                  ${RS_TOPICOS_PADRAO.map((t) => `<option value="${t}">${t}</option>`).join("")}
-                  <option value="__outro">Outro...</option>
-                </select>
-              </div>
-              <div class="field rg-outro-wrap" style="display:none;">
-                <label>Qual?</label>
+              <fieldset class="rg-opcoes">
+                <legend>Marque os requisitos cumpridos</legend>
+                <div class="rg-opcoes-grid">
+                  ${RS_TOPICOS_PADRAO.map((t,i) => `<label class="rg-opcao"><input type="checkbox" name="requisito" value="${t}" id="rg-${m.id}-${i}"><span>${t}</span></label>`).join("")}
+                  <label class="rg-opcao"><input type="checkbox" class="rg-outro-check" name="requisito" value="__outro"><span>Outro</span></label>
+                </div>
+              </fieldset>
+              <div class="field rg-outro-wrap" hidden>
+                <label>Qual outro requisito?</label>
                 <input type="text" class="rg-outro-input" placeholder="Nome do requisito">
               </div>
               <div class="field">
@@ -588,22 +588,32 @@ function iniciarPainel(unidadeId) {
     );
 
     wrap.querySelectorAll("[data-form-registro]").forEach((form) => {
-      const select = form.querySelector(".rg-criterio-select");
+      const outroCheck = form.querySelector(".rg-outro-check");
       const outroWrap = form.querySelector(".rg-outro-wrap");
       const outroInput = form.querySelector(".rg-outro-input");
-      select.addEventListener("change", () => {
-        outroWrap.style.display = select.value === "__outro" ? "block" : "none";
-      });
+      outroCheck.addEventListener("change", () => { outroWrap.hidden = !outroCheck.checked; });
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const membroId = form.dataset.formRegistro;
-        const criterio = select.value === "__outro" ? outroInput.value.trim() : select.value;
-        const data = form.querySelector(".rg-data-input").value;
-        if (!criterio || !data) return;
-        await addRegistro(unidadeId, membroId, { criterio, data });
-        const m = estado.membros.find((x) => x.id === membroId);
-        avisarLideranca(`lançou o requisito "${criterio}" pra ${m ? m.nome : membroId}.`);
-        mostrarToast("Registro adicionado.");
+        const marcados=[...form.querySelectorAll('input[name="requisito"]:checked')];
+        const criterios=marcados.map(input=>input.value==="__outro"?outroInput.value.trim():input.value).filter(Boolean);
+        const data=form.querySelector(".rg-data-input").value;
+        if(!criterios.length||!data){mostrarToast("Selecione pelo menos um requisito e informe a data.");return}
+        const botao=form.querySelector('button[type="submit"]');
+        botao.disabled=true;
+        let concluidos=0;
+        try{
+          for(const criterio of criterios){
+            await addRegistro(unidadeId,membroId,{criterio,data});
+            concluidos++;
+          }
+          const m=estado.membros.find(x=>x.id===membroId);
+          avisarLideranca("lançou "+concluidos+" requisito(s) para "+(m?m.nome:membroId)+".");
+          mostrarToast(concluidos+" requisito(s) adicionado(s).");
+        }catch(err){
+          console.error("Falha ao salvar requisitos",err);
+          mostrarToast(concluidos+" salvo(s); não foi possível salvar os demais. Confira o histórico antes de tentar novamente.");
+        }finally{botao.disabled=false}
       });
     });
   }
