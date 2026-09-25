@@ -32,7 +32,7 @@
   <div class="container" style="text-align:center; max-width:680px; margin:0 auto;">
     <div class="hero-tag" style="margin-inline:auto;">🚗 Todo domingo · 7h às 11h</div>
     <h1>Lava Jato R.S</h1>
-    <p class="lead" style="margin-inline:auto;">Traga seu carro, apoie o clube e ajude nossos desbravadores a chegar no Campori DSA 2027. Valor único: <strong>R$ 50,00</strong>, pago na hora. Só aceitamos <strong>5 carros por domingo</strong> — confira a agenda e garanta sua vaga.</p>
+    <p class="lead" style="margin-inline:auto;">Traga seu carro, apoie o clube e ajude nossos desbravadores a chegar no Campori DSA 2027. Valor único: <strong>R$ 50,00</strong>. Reserve agora e escolha pagar por Pix ou no dia. Só aceitamos <strong>5 carros por domingo</strong> — confira a agenda e garanta sua vaga.</p>
   </div>
 </section>
 
@@ -66,13 +66,30 @@
         <div class="field"><label>Cor do carro</label><input type="text" id="lj-cor" required></div>
         <button class="btn btn-primary btn-block" type="submit">Cadastrar atendimento</button>
       </form>
-      <p class="form-note">O pagamento (R$ 50,00) é feito na hora, no dia do Lava Jato.</p>
+      <p class="form-note">A vaga é reservada mesmo sem pagamento. Você poderá pagar R$ 50,00 por Pix quando quiser ou no dia da lavagem.</p>
     </div>
 
     <div class="card text-center" style="max-width:520px; margin:20px auto 0; display:none;" id="bloco-confirmado">
       <div style="font-size:2.4rem;">✅</div>
       <h2>Cadastro feito!</h2>
       <p>Anotamos o carro <strong id="conf-modelo"></strong> (<span id="conf-placa"></span>) em nome de <strong id="conf-nome"></strong> pro domingo <strong id="conf-data"></strong>. Te esperamos lá!</p>
+      <div id="lj-pagamento" style="text-align:left; margin:20px 0; padding:16px; border:1px solid var(--border, #b9c7b7); border-radius:14px;">
+        <h3 style="margin:0 0 8px;">💚 Pagamento — R$ 50,00</h3>
+        <p id="lj-pix-status" role="status" aria-live="polite">Você pode pagar por Pix agora ou no dia da lavagem.</p>
+        <div id="lj-pix-form">
+          <label for="lj-email-pix">E-mail para o comprovante Pix</label>
+          <input id="lj-email-pix" type="email" autocomplete="email" placeholder="voce@exemplo.com" style="width:100%; margin:8px 0 12px;">
+          <button type="button" class="btn btn-primary btn-block" id="lj-gerar-pix">Pagar agora com Pix</button>
+        </div>
+        <div id="lj-pix-qr" hidden style="text-align:center; overflow-wrap:anywhere;">
+          <img id="lj-pix-imagem" alt="QR Code do pagamento Pix" style="display:block; max-width:240px; width:100%; margin:14px auto;" hidden>
+          <label for="lj-pix-codigo">Pix Copia e Cola</label>
+          <textarea id="lj-pix-codigo" readonly rows="4" style="width:100%; margin:8px 0;"></textarea>
+          <button type="button" class="btn btn-outline btn-block" id="lj-copiar-pix">Copiar código Pix</button>
+          <a id="lj-pix-link" target="_blank" rel="noopener noreferrer" style="display:none; margin:12px 0;">Abrir instruções do Mercado Pago</a>
+          <p style="font-size:.85rem;">A confirmação é automática. Não é necessário enviar comprovante.</p>
+        </div>
+      </div>
       <button class="btn btn-outline btn-block" id="btn-cancelar-meu">Cancelar meu atendimento</button>
     </div>
   </div>
@@ -89,6 +106,74 @@ import {
 } from "./assets/js/data.js";
   
   const LS_KEY = "rs_meu_lavajato";
+  const PIX_API = "https://us-central1-raizes-do-sertao-7d82c.cloudfunctions.net";
+  let pixIntervalo = null;
+  let pixPago = false;
+  const pixStatus = document.getElementById("lj-pix-status");
+  const pixForm = document.getElementById("lj-pix-form");
+  const pixQr = document.getElementById("lj-pix-qr");
+  const pixBotao = document.getElementById("lj-gerar-pix");
+  function minhaReserva() { try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch { return {}; } }
+  async function chamarPix(endpoint, payload) {
+    const resposta = await fetch(PIX_API + "/" + endpoint, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const resultado = await resposta.json().catch(() => ({}));
+    if (!resposta.ok) throw new Error(resultado.erro || "Pix ainda não disponível. Você pode pagar no dia.");
+    return resultado;
+  }
+  function exibirPix(pix) {
+    if (!pix.codigo) return;
+    pixQr.hidden = false;
+    pixForm.hidden = true;
+    document.getElementById("lj-pix-codigo").value = pix.codigo;
+    const imagem = document.getElementById("lj-pix-imagem");
+    if (pix.qrBase64) {
+      imagem.src = "data:image/png;base64," + pix.qrBase64;
+      imagem.hidden = false;
+    }
+    const link = document.getElementById("lj-pix-link");
+    if (pix.ticketUrl && /^https:\/\/([a-z0-9-]+\.)*mercadopago\.com(\.br)?\//i.test(pix.ticketUrl)) {
+      link.href = pix.ticketUrl; link.style.display = "inline-block";
+    }
+    pixStatus.textContent = "Pix gerado. Aguardando confirmação do Mercado Pago.";
+  }
+  async function atualizarPix() {
+    const reserva = minhaReserva();
+    if (!reserva.id || !reserva.tokenCancelamento) return;
+    try {
+      const pix = await chamarPix("statusPixLavaJato", { reservaId: reserva.id, token: reserva.tokenCancelamento });
+      if (pix.status === "approved") {
+        pixPago = true; pixStatus.textContent = "✅ Pix confirmado! Sua lavagem está paga.";
+        pixForm.hidden = true; pixQr.hidden = true;
+        document.getElementById("btn-cancelar-meu").disabled = true;
+        document.getElementById("btn-cancelar-meu").title = "Para cancelar uma reserva paga, entre em contato com a liderança.";
+        if (pixIntervalo) clearInterval(pixIntervalo);
+      } else if (pix.codigo) exibirPix(pix);
+    } catch { /* O cadastro continua válido se o serviço Pix estiver indisponível. */ }
+  }
+  pixBotao.addEventListener("click", async () => {
+    const reserva = minhaReserva();
+    const email = document.getElementById("lj-email-pix");
+    if (!email.reportValidity() || !email.value.trim()) {
+      email.required = true; email.reportValidity(); return;
+    }
+    pixBotao.disabled = true;
+    pixStatus.textContent = "Gerando seu Pix com segurança...";
+    try {
+      const pix = await chamarPix("criarPixLavaJato", { reservaId: reserva.id, token: reserva.tokenCancelamento, email: email.value.trim() });
+      exibirPix(pix);
+      if (!pixIntervalo) pixIntervalo = setInterval(atualizarPix, 12000);
+    } catch (e) {
+      pixStatus.textContent = e.message;
+    } finally { pixBotao.disabled = false; }
+  });
+  document.getElementById("lj-copiar-pix").addEventListener("click", async () => {
+    const codigo = document.getElementById("lj-pix-codigo");
+    try { await navigator.clipboard.writeText(codigo.value); pixStatus.textContent = "Código Pix copiado!"; }
+    catch { codigo.select(); pixStatus.textContent = "Selecione e copie o código Pix."; }
+  });
   const blocoCadastro = document.getElementById("bloco-cadastro");
   const blocoConfirmado = document.getElementById("bloco-confirmado");
   const erro = document.getElementById("erro");
@@ -188,6 +273,8 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
     document.getElementById("conf-modelo").textContent = dados.modelo;
     document.getElementById("conf-placa").textContent = dados.placa;
     document.getElementById("conf-data").textContent = fmtDataLonga(dados.data);
+    atualizarPix();
+    if (!pixIntervalo) pixIntervalo = setInterval(atualizarPix, 12000);
   }
 
   const salvo = localStorage.getItem(LS_KEY);
@@ -222,12 +309,14 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
   });
 
   document.getElementById("btn-cancelar-meu").addEventListener("click", async () => {
+    if (pixPago) { alert("Para cancelar uma reserva já paga, entre em contato com a liderança."); return; }
     if (!confirm("Cancelar seu atendimento no Lava Jato?")) return;
     const dados = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
     if (!dados.id) return;
     try {
       await cancelarRegistroLavaJato(dados.id, dados.data, dados.tokenCancelamento);
       localStorage.removeItem(LS_KEY);
+      if (pixIntervalo) { clearInterval(pixIntervalo); pixIntervalo = null; }
       blocoConfirmado.style.display = "none";
       blocoCadastro.style.display = "block";
       document.getElementById("form-cadastro").reset();
