@@ -38,6 +38,21 @@ service cloud.firestore {
       allow write: if eLideranca();
     }
 
+    // Apenas eventos explicitamente publicados pela liderança ficam visíveis.
+    // A agenda interna planejamentoClube continua restrita a contas autenticadas.
+    match /eventosPublicos/{eventoId} {
+      allow read: if true;
+      allow create, update: if eLideranca() &&
+        request.resource.data.keys().hasOnly(['titulo','descricao','data','localPublico','publicado']) &&
+        request.resource.data.titulo is string &&
+        request.resource.data.titulo.size() >= 3 && request.resource.data.titulo.size() <= 120 &&
+        request.resource.data.descricao is string && request.resource.data.descricao.size() <= 800 &&
+        request.resource.data.data is string && request.resource.data.data.size() == 10 &&
+        request.resource.data.localPublico is string && request.resource.data.localPublico.size() <= 150 &&
+        request.resource.data.publicado is bool;
+      allow delete: if eLideranca();
+    }
+
     // Pastas de mídia (nome + link de uma pasta do Google Drive) —
     // públicas pra leitura, só a liderança publica/edita/remove.
     match /midia/{pastaId} {
