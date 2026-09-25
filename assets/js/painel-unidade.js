@@ -629,7 +629,14 @@ function iniciarPainel(unidadeId) {
     const vazio = document.getElementById("especialidades-vazio");
     vazio.style.display = estado.membros.length ? "none" : "block";
 
-    wrap.innerHTML = estado.membros
+    const seletor = document.getElementById("especialidades-membro-select");
+    const escolhido = seletor.value;
+    const ordenados = [...estado.membros].sort((a,b)=>(a.nome||"").localeCompare(b.nome||"","pt-BR"));
+    seletor.replaceChildren(new Option("Selecione um desbravador…",""),...ordenados.map(m=>new Option(m.nome,m.id)));
+    seletor.value = ordenados.some(m=>m.id===escolhido)?escolhido:"";
+    seletor.onchange = renderEspecialidades;
+    const membroSelecionado = ordenados.find(m=>m.id===seletor.value);
+    wrap.innerHTML = (membroSelecionado ? [membroSelecionado] : [])
       .map((m) => {
         const lista = fanOutEspecialidades.dados[m.id] || [];
         const itens = lista
@@ -770,7 +777,14 @@ function iniciarPainel(unidadeId) {
     const vazio = document.getElementById("materiais-vazio");
     vazio.style.display = estado.membros.length ? "none" : "block";
 
-    wrap.innerHTML = estado.membros
+    const seletor = document.getElementById("materiais-membro-select");
+    const escolhido = seletor.value;
+    const ordenados = [...estado.membros].sort((a,b)=>(a.nome||"").localeCompare(b.nome||"","pt-BR"));
+    seletor.replaceChildren(new Option("Selecione um desbravador…",""),...ordenados.map(m=>new Option(m.nome,m.id)));
+    seletor.value = ordenados.some(m=>m.id===escolhido)?escolhido:"";
+    seletor.onchange = renderMateriais;
+    const membroSelecionado = ordenados.find(m=>m.id===seletor.value);
+    wrap.innerHTML = (membroSelecionado ? [membroSelecionado] : [])
       .map((m) => {
         const lista = fanOutMateriais.dados[m.id] || [];
         const pendentes = lista.filter((it) => it.status !== "comprado").length;
