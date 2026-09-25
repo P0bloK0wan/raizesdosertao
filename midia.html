@@ -27,14 +27,6 @@ document.getElementById("midia-fechar").addEventListener("click", fecharFoto);
 lightbox.addEventListener("click", e => { if (e.target === lightbox) fecharFoto(); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") fecharFoto(); });
 function fecharFoto(){lightbox.hidden = true;fotoAmpliada.removeAttribute("src");document.body.style.overflow = "";}
-function idPasta(link) {
-  try {
-    const url = new URL(link);
-    if (!["drive.google.com","www.drive.google.com"].includes(url.hostname)) return null;
-    const id = url.pathname.match(/\/folders\/([\w-]+)/)?.[1] || url.searchParams.get("id");
-    return id && /^[\w-]+$/.test(id) ? id : null;
-  } catch { return null; }
-}
 function urlFoto(link) {
   try {
     const url = new URL(link);
@@ -53,7 +45,6 @@ function render(pastas) {
     const empty = document.createElement("div");empty.className="empty-state";empty.textContent="Os álbuns ainda estão sendo preparados. Volte em breve!";wrap.append(empty);return;
   }
   for (const pasta of pastas) {
-    const id = idPasta(pasta.link);
     const fotos = (Array.isArray(pasta.fotos) ? pasta.fotos : []).map(urlFoto).filter(Boolean);
     const card = document.createElement("article");card.className="midia-album";
     const head = document.createElement("div");head.className="midia-album-head";
@@ -70,11 +61,8 @@ function render(pastas) {
     } else {
       const capa=document.createElement("div");capa.className="midia-capa-vazia";
       const simbolo=document.createElement("span");simbolo.textContent="📷";simbolo.setAttribute("aria-hidden","true");
-      const txt=document.createElement("p");txt.textContent="As fotos deste álbum estão disponíveis no Drive.";
+      const txt=document.createElement("p");txt.textContent="As fotos deste álbum ainda não foram enviadas.";
       capa.append(simbolo,txt);card.append(capa);
-    }
-    if (id) {
-      const link=document.createElement("a");link.className="midia-link";link.href="https://drive.google.com/drive/folders/"+encodeURIComponent(id);link.target="_blank";link.rel="noopener noreferrer";link.textContent="Ver álbum completo ↗";card.append(link);
     }
     wrap.append(card);
   }
