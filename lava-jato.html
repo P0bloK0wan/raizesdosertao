@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/nordeste.css">
-<link rel="stylesheet" href="assets/css/cadastro-lavajato.css?v=1">
+<link rel="stylesheet" href="assets/css/cadastro-lavajato.css?v=2">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:site_name" content="Raízes do Sertão">
@@ -51,8 +51,10 @@
 <section class="section" style="padding-top:0;">
   <div class="container">
     <div class="card" style="max-width:520px; margin:0 auto;" id="bloco-cadastro">
-      <span class="eyebrow">Cadastro</span>
-      <h2>Cadastrar meu carro</h2>
+      <span class="eyebrow">Cadastro rápido · 3 minutos</span>
+      <h2>Garanta sua lavagem 🚗</h2>
+      <p class="lj-intro">Reserve sua vaga por <strong>R$ 50,00</strong>. Você escolhe pagar com Pix ou no dia, sem perder sua reserva.</p>
+      <div class="lj-progress" aria-label="Etapas do agendamento"><span class="lj-progress-on">1 · Seus dados</span><span>2 · Pagamento</span><span>3 · Confirmado</span></div>
       <div class="alert alert-error" id="erro"></div>
 
       <form id="form-cadastro">
@@ -65,20 +67,21 @@
         <div class="field"><label>Placa do carro</label><input type="text" id="lj-placa" placeholder="ABC-1D23" required style="text-transform:uppercase;"></div>
         <div class="field"><label>Modelo do carro</label><input type="text" id="lj-modelo" required></div>
         <div class="field"><label>Cor do carro</label><input type="text" id="lj-cor" required></div>
-        <div class="field"><label for="lj-forma-pagamento">Como deseja pagar?</label><select id="lj-forma-pagamento" required><option value="local">Pagar no local (no dia)</option><option value="pix">Pix</option></select></div>
-        <button class="btn btn-primary btn-block" type="submit">Cadastrar atendimento</button>
+        <fieldset class="lj-payment-choice"><legend>Como você prefere pagar?</legend><div class="lj-payment-options"><label class="lj-payment-option"><input type="radio" name="lj-forma-pagamento" value="pix"><span class="lj-payment-icon">◆</span><span><strong>Pix pelo site</strong><small>Pague agora ou mais tarde pelo celular</small></span><span class="lj-choice-check" aria-hidden="true">✓</span></label><label class="lj-payment-option"><input type="radio" name="lj-forma-pagamento" value="local" checked><span class="lj-payment-icon">💵</span><span><strong>Pagar no dia</strong><small>Sua vaga fica reservada sem pagamento antecipado</small></span><span class="lj-choice-check" aria-hidden="true">✓</span></label></div></fieldset>
+        <div class="lj-summary"><span>Valor da lavagem</span><strong>R$ 50,00</strong></div><button class="btn btn-primary btn-block" type="submit">Confirmar minha reserva →</button>
       </form>
       <p class="form-note">A vaga é reservada mesmo sem pagamento. Você poderá pagar R$ 50,00 por Pix quando quiser ou no dia da lavagem.</p>
     </div>
 
     <div class="card text-center" style="max-width:520px; margin:20px auto 0; display:none;" id="bloco-confirmado">
       <div style="font-size:2.4rem;">✅</div>
-      <h2>Cadastro feito!</h2>
+      <h2>Sua vaga está reservada!</h2>
+      <span class="lj-reservation-pill">✓ Reserva confirmada</span>
       <p>Anotamos o carro <strong id="conf-modelo"></strong> (<span id="conf-placa"></span>) em nome de <strong id="conf-nome"></strong> pro domingo <strong id="conf-data"></strong>. Te esperamos lá!</p>
-      <div id="lj-pagamento" style="text-align:left; margin:20px 0; padding:16px; border:1px solid var(--border, #b9c7b7); border-radius:14px;">
-        <h3 style="margin:0 0 8px;">💚 Pagamento — R$ 50,00</h3>
+      <div id="lj-pagamento" class="lj-payment-panel">
+        <div class="lj-payment-header"><div><span class="eyebrow">Pagamento</span><h3>R$ 50,00</h3></div><span class="lj-pix-badge">Pix</span></div>
         <p id="lj-pix-status" role="status" aria-live="polite">Pagamento pendente.</p>
-        <p id="lj-local-aviso" hidden>Você escolheu pagar no local. Sua reserva está confirmada e o pagamento será registrado pela liderança no dia.</p>
+        <p id="lj-local-aviso" hidden>Você escolheu pagar no dia. Se preferir antecipar, pode gerar um Pix aqui a qualquer momento.</p>
         <div id="lj-pix-form">
           <label for="lj-email-pix">E-mail para o comprovante Pix</label>
           <input id="lj-email-pix" type="email" autocomplete="email" placeholder="voce@exemplo.com" style="width:100%; margin:8px 0 12px;">
@@ -129,8 +132,8 @@ import {
   function configurarFormaPagamento(reserva) {
     const local = reserva.formaPagamento !== "pix";
     document.getElementById("lj-local-aviso").hidden = !local;
-    pixForm.hidden = local;
-    if (local) pixStatus.textContent = "💵 Pagar no local — R$ 50,00 (pendente)";
+    pixForm.hidden = false;
+    if (local) pixStatus.textContent = "💵 Pagamento pendente — você pode pagar no dia ou antecipar com Pix.";
   }
   function exibirPix(pix) {
     if (!pix.codigo) return;
@@ -283,10 +286,8 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
     document.getElementById("conf-placa").textContent = dados.placa;
     document.getElementById("conf-data").textContent = fmtDataLonga(dados.data);
     configurarFormaPagamento(dados);
-    if (dados.formaPagamento === "pix" || !dados.formaPagamento) {
-      atualizarPix();
-      if (!pixIntervalo) pixIntervalo = setInterval(atualizarPix, 12000);
-    }
+    atualizarPix();
+    if (!pixIntervalo) pixIntervalo = setInterval(atualizarPix, 12000);
   }
 
   const salvo = localStorage.getItem(LS_KEY);
@@ -306,7 +307,7 @@ const domingos = rsAgendamentoDomingoAberto("22:00")
       placa: document.getElementById("lj-placa").value.trim().toUpperCase(),
       modelo: document.getElementById("lj-modelo").value.trim(),
       cor: document.getElementById("lj-cor").value.trim(),
-      formaPagamento: document.getElementById("lj-forma-pagamento").value,
+      formaPagamento: document.querySelector('input[name="lj-forma-pagamento"]:checked').value,
     };
     try {
       const ref = await criarRegistroLavaJato(dados);
