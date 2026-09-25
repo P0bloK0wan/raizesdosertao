@@ -616,3 +616,11 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 .midia-video-card{position:relative;overflow:hidden;min-width:0;min-height:0;aspect-ratio:4/5;display:flex;align-items:center;background:#171717;border-radius:14px;}
 .midia-video-card video{display:block;width:100%;height:100%;max-height:480px;object-fit:contain;background:#171717;border-radius:14px;}
 @media(max-width:700px){.midia-video-card{aspect-ratio:4/5;}.midia-video-card video{max-height:70dvh;}}
+
+/* v82: remoção individual de vídeos e fotos antes de publicar. */
+.midia-arquivos-lista{display:grid;gap:8px;margin-top:10px;min-width:0;}
+.midia-arquivo-item{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--bg);}
+.midia-arquivo-nome{min-width:0;overflow-wrap:anywhere;font-size:.88rem;line-height:1.4;}
+.midia-arquivo-item button{flex-shrink:0;min-height:44px;}
+.midia-arquivo-grande{border-color:#df6345;background:rgba(223,99,69,.12);}
+@media(max-width:390px){.midia-arquivo-item{flex-wrap:wrap;}.midia-arquivo-item button{margin-left:auto;}}
