@@ -601,3 +601,13 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 @media(max-width:520px){[data-site-header] .nav-links{width:100%!important;border-radius:0;}[data-site-header] .nav-menu-grid{grid-template-columns:1fr;}}
 @media(min-width:521px) and (max-width:900px){[data-site-header] .nav-links{width:100%!important;}}
 @media(min-width:901px){[data-site-header] .nav-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+
+/* v79: proteção contra estouro horizontal e alvos pequenos em aparelhos variados. */
+.site-header .container{min-width:0;}
+.site-header .brand{min-width:0;max-width:calc(100% - 112px);}
+.site-header .brand span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.site-header .header-actions{flex-shrink:0;}
+.site-header .icon-btn,.site-header .nav-toggle{min-width:44px;min-height:44px;}
+@media(max-width:390px){.site-header .container{gap:6px;padding-inline:10px;}.site-header .brand{gap:7px;max-width:calc(100% - 103px);}.site-header .brand img{max-height:38px;}.site-header .brand span{font-size:clamp(.9rem,4vw,1.1rem);}.site-header .brand small{display:none;}.site-header .header-actions{gap:5px;}}
+@media(max-width:700px){.container,.app-main,.app-content,.panel-main{min-width:0;}.table-wrap,.table-responsive{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}input,select,textarea{max-width:100%;}input[type=text],input[type=email],input[type=password],input[type=tel],input[type=date],select,textarea{font-size:max(16px,1rem);}}
+@media(prefers-reduced-motion:reduce){[data-site-header] .nav-links,[data-site-header] .nav-toggle span{transition:none!important;}}
