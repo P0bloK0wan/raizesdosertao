@@ -1,3 +1,4 @@
+import { enviarImagemCloudinary } from "./cloudinary.js";
 /* =========================================================
    Painel da Liderança
    ========================================================= */
@@ -25,7 +26,7 @@ fecharVagaNormal, reabrirVagaNormal,
   watchIdentidadeUnidade, salvarIdentidadeUnidade, watchConselheiros,
   gerarDesbloqueioUnidade,
   addEventoClube, updateEventoClube, deleteEventoClube, seedPlanejamentoClube,
-  watchMidia, addPastaMidia, deletePastaMidia,
+  watchMidia, addPastaMidia, adicionarFotosMidia, deletePastaMidia,
   watchCampori, setCamporiData,
   watchAvisos, addAviso, updateAviso, deleteAviso,
   exportarBackup,
@@ -1274,54 +1275,80 @@ if (btnReabrirVaga) {
     btn.disabled = false;
   });
 
-  /* ---------------- Mídia (pastas com link do Google Drive) ---------------- */
+  /* ---------------- Mídia: upload direto de fotos ---------------- */
   watchMidia((pastas) => {
     estado.midia = pastas;
     renderMidia();
     renderStats();
   });
-
+  const modalPasta = document.getElementById("modal-pasta");
+  const progresso = document.getElementById("pa-progresso");
+  const arquivosInput = document.getElementById("pa-fotos-arquivos");
+  const MAX_FOTO = 10 * 1024 * 1024;
+  const TIPOS_FOTO = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+  function validarFotos(arquivos) {
+    if (!arquivos.length) throw new Error("Selecione pelo menos uma foto.");
+    if (arquivos.length > 40) throw new Error("Envie no máximo 40 fotos por vez.");
+    for (const arquivo of arquivos) {
+      if (!TIPOS_FOTO.includes(arquivo.type)) throw new Error("Formato não aceito: " + arquivo.name);
+      if (arquivo.size > MAX_FOTO) throw new Error("A foto " + arquivo.name + " ultrapassa 10 MB.");
+    }
+  }
+  async function enviarFotos(arquivos) {
+    validarFotos(arquivos);
+    const urls = [];
+    for (let i = 0; i < arquivos.length; i++) {
+      progresso.textContent = "Enviando foto " + (i + 1) + " de " + arquivos.length + "…";
+      const resultado = await enviarImagemCloudinary(arquivos[i]);
+      urls.push(resultado.url);
+    }
+    return urls;
+  }
   function renderMidia() {
     const wrap = document.getElementById("lista-midia");
-    const vazio = document.getElementById("midia-vazio");
-    vazio.style.display = estado.midia.length ? "none" : "block";
-
-    wrap.innerHTML = estado.midia
-      .map(
-        (p) => `<div class="pasta-bloco">
-          <div class="pasta-cabecalho">
-            <h3>📁 ${p.nome}</h3>
-            <div style="display:flex; gap:8px;">
-              <a class="btn btn-outline btn-sm" href="${p.link}" target="_blank" rel="noopener">Abrir no Drive ↗</a>
-              <button type="button" class="danger" data-del-pasta="${p.id}">Excluir</button>
-            </div>
-          </div>
-        </div>`
-      )
-      .join("");
-
-    wrap.querySelectorAll("[data-del-pasta]").forEach((btn) =>
-      btn.addEventListener("click", async () => {
-        if (!confirm("Excluir esta pasta?")) return;
-        await deletePastaMidia(btn.dataset.delPasta);
-        mostrarToast("Pasta removida.");
-      })
-    );
+    document.getElementById("midia-vazio").style.display = estado.midia.length ? "none" : "block";
+    wrap.replaceChildren();
+    for (const album of estado.midia) {
+      const bloco = document.createElement("div"); bloco.className = "pasta-bloco";
+      const cab = document.createElement("div"); cab.className = "pasta-cabecalho";
+      const titulo = document.createElement("h3"); titulo.textContent = "📸 " + (album.nome || "Álbum");
+      const acoes = document.createElement("div"); acoes.style.cssText = "display:flex;gap:8px;flex-wrap:wrap";
+      const adicionar = document.createElement("button"); adicionar.type = "button"; adicionar.className = "btn btn-outline btn-sm"; adicionar.textContent = "+ Adicionar fotos";
+      const excluir = document.createElement("button"); excluir.type = "button"; excluir.className = "danger"; excluir.textContent = "Excluir álbum";
+      const contador = document.createElement("p"); contador.className = "muted"; contador.textContent = (album.fotos || []).length + " fotos";
+      const input = document.createElement("input"); input.type = "file"; input.accept = arquivosInput.accept; input.multiple = true; input.hidden = true;
+      adicionar.addEventListener("click", () => input.click());
+      input.addEventListener("change", async () => {
+        const arquivos = Array.from(input.files || []);
+        if (!arquivos.length) return;
+        adicionar.disabled = true;
+        try {
+          const urls = await enviarFotos(arquivos);
+          await adicionarFotosMidia(album.id, [...(album.fotos || []), ...urls]);
+          mostrarToast("Fotos adicionadas!");
+        } catch (e) { alert(e.message || "Não foi possível enviar as fotos."); }
+        finally { adicionar.disabled = false; progresso.textContent = ""; input.value = ""; }
+      });
+      excluir.addEventListener("click", async () => {
+        if (!confirm("Excluir este álbum do site? As fotos já enviadas ao Cloudinary não são apagadas automaticamente.")) return;
+        await deletePastaMidia(album.id); mostrarToast("Álbum removido.");
+      });
+      acoes.append(adicionar, excluir, input); cab.append(titulo, acoes); bloco.append(cab, contador); wrap.append(bloco);
+    }
   }
-
-  const modalPasta = document.getElementById("modal-pasta");
   document.getElementById("btn-nova-pasta").addEventListener("click", () => modalPasta.classList.add("show"));
   document.getElementById("btn-cancelar-pasta").addEventListener("click", () => modalPasta.classList.remove("show"));
-  document.getElementById("form-pasta").addEventListener("submit", async (e) => {
+  document.getElementById("form-pasta").addEventListener("submit", async e => {
     e.preventDefault();
-    await addPastaMidia(
-      document.getElementById("pa-nome").value.trim(),
-      document.getElementById("pa-link").value.trim(),
-      document.getElementById("pa-fotos").value.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
-    );
-    modalPasta.classList.remove("show");
-    e.target.reset();
-    mostrarToast("Pasta publicada!");
+    const botao = e.currentTarget.querySelector('button[type="submit"]');
+    botao.disabled = true;
+    try {
+      const fotos = await enviarFotos(Array.from(arquivosInput.files || []));
+      await addPastaMidia(document.getElementById("pa-nome").value.trim(), fotos);
+      modalPasta.classList.remove("show"); e.currentTarget.reset(); progresso.textContent = "";
+      mostrarToast("Álbum publicado!");
+    } catch (err) { progresso.textContent = ""; alert(err.message || "Falha ao publicar o álbum."); }
+    finally { botao.disabled = false; }
   });
 
   /* ---------------- Campori ---------------- */
