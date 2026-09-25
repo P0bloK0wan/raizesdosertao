@@ -69,7 +69,7 @@
         <div class="field"><label>Cor do carro</label><input type="text" id="lj-cor" maxlength="40" required></div>
         <div class="lj-summary"><span>Valor da lavagem</span><strong>R$ 50,00</strong></div><button class="btn btn-primary btn-block" type="submit">Confirmar minha reserva →</button>
       </form>
-      <p class="form-note">O pagamento de R$ 50,00 é feito no dia da lavagem.</p>
+      <p class="form-note">Sem pagamento online: R$ 50,00 no dia da lavagem.</p>
     </div>
 
     <div class="card text-center" style="max-width:520px; margin:20px auto 0; display:none;" id="bloco-confirmado">
@@ -183,6 +183,9 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
     document.querySelector("#form-cadastro button[type=submit]").disabled = !disponiveis;
   }
 
+  // Mostra a agenda imediatamente: falhas de rede não deixam o botão inerte.
+  renderAgenda();
+  renderSelect();
   watchDomingos((dados) => {
     porData = dados;
     renderAgenda();
@@ -234,6 +237,7 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
         ? err.message
         : "Não foi possível confirmar sua reserva. Verifique sua conexão e tente novamente.";
       erro.classList.add("show");
+      erro.scrollIntoView({ behavior: "smooth", block: "center" });
       btn.disabled = false;
     } finally { btn.textContent = "Confirmar minha reserva →"; }
   });
