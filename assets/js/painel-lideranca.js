@@ -1371,15 +1371,27 @@ if (btnReabrirVaga) {
       const titulo = document.createElement("h3"); titulo.textContent = (idDrive ? "📁 " : "📸 ") + (album.nome || "Álbum");
       const acoes = document.createElement("div"); acoes.className = "midia-admin-acoes";
       const editar=document.createElement("button");editar.type="button";editar.className="btn btn-outline btn-sm";editar.textContent="✏️ Renomear";
-      editar.addEventListener("click",()=>{
-        const form=document.createElement("form");form.className="midia-editar-nome";
-        const campo=document.createElement("input");campo.type="text";campo.value=album.nome||"";campo.maxLength=120;campo.required=true;campo.setAttribute("aria-label","Novo nome do álbum");
-        const salvar=document.createElement("button");salvar.type="submit";salvar.className="btn btn-primary btn-sm";salvar.textContent="Salvar";
-        const cancelar=document.createElement("button");cancelar.type="button";cancelar.className="btn btn-outline btn-sm";cancelar.textContent="Cancelar";
-        const encerrar=()=>{form.remove();editar.hidden=false;};
-        cancelar.addEventListener("click",encerrar);
-        form.addEventListener("submit",async e=>{e.preventDefault();const nome=campo.value.trim();if(!nome){campo.focus();return;}salvar.disabled=true;try{await renomearPastaMidia(album.id,nome);titulo.textContent=(idDrive?"📁 ":"📸 ")+nome;encerrar();mostrarToast("Nome do álbum atualizado!");}catch(err){alert(err.message||"Não foi possível renomear.");salvar.disabled=false;}});
-        editar.hidden=true;cab.after(form);campo.focus();campo.select();
+      editar.addEventListener("click", async () => {
+        // Diálogo nativo: permanece acessível mesmo no painel móvel e
+        // não desaparece quando o Firestore atualiza a lista de álbuns.
+        const nomeAtual = album.nome || "";
+        const resposta = prompt("Novo nome do álbum:", nomeAtual);
+        if (resposta === null) return;
+        const nome = resposta.trim();
+        if (!nome) { alert("Digite um nome para o álbum."); return; }
+        if (nome.length > 120) { alert("Use no máximo 120 caracteres."); return; }
+        if (nome === nomeAtual) return;
+        editar.disabled = true;
+        try {
+          await renomearPastaMidia(album.id, nome);
+          titulo.textContent = (idDrive ? "📁 " : "📸 ") + nome;
+          mostrarToast("Nome do álbum atualizado!");
+        } catch (err) {
+          console.error("Erro ao renomear álbum:", err);
+          alert(err?.code === "permission-denied"
+            ? "O Firebase bloqueou a alteração. Entre novamente como liderança e confira as regras da coleção midia."
+            : "Não foi possível renomear: " + (err?.message || "tente novamente."));
+        } finally { editar.disabled = false; }
       });
       acoes.append(editar);
       const contador = document.createElement("p"); contador.className = "muted"; contador.textContent = idDrive ? "Pasta externa do Google Drive" : (album.fotos || []).length + " fotos · " + (album.videos || []).length + " vídeos";
