@@ -9,7 +9,7 @@ import {
 } from "./data.js";
 import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
-  watchLavaJato, deleteRegistroLavaJato, criarRegistroLavaJato,
+  watchLavaJato, deleteRegistroLavaJato, criarRegistroLavaJato, atualizarPagamentoLavaJato,
   watchDomingos, fecharDomingo, abrirDomingo, adicionarVagaExtra, removerVagaExtra,
 fecharVagaNormal, reabrirVagaNormal,
   watchMembros, updateMembro, deleteMembro,
@@ -179,10 +179,16 @@ estado.lavajato = lista;
         <td>${r.modelo}</td>
         <td>${r.cor}</td>
         <td><span class="pill ${r.cancelado ? "pill-closed" : "pill-open"}">${r.cancelado ? "Cancelado" : "Ativo"}</span></td>
+        <td>${r.formaPagamento === 'pix' ? 'Pix' : 'No local'} — ${r.pagamentoStatus === 'pago' ? 'Pago' : 'Pendente'}<br><button type="button" data-pagamento="${r.id}" data-pago="${r.pagamentoStatus === 'pago' ? 'true' : 'false'}" ${r.cancelado ? 'disabled' : ''}>${r.pagamentoStatus === 'pago' ? 'Marcar pendente' : 'Confirmar recebimento'}</button></td>
         <td class="row-actions"><button class="danger" data-del="${r.id}" data-del-data="${r.data}">Excluir</button></td>`;
       tbody.appendChild(tr);
     });
 
+    tbody.querySelectorAll("[data-pagamento]").forEach(btn => btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      try { await atualizarPagamentoLavaJato(btn.dataset.pagamento, btn.dataset.pago !== "true"); mostrarToast("Pagamento atualizado."); }
+      catch (err) { mostrarToast(err.message || "Não foi possível atualizar o pagamento."); btn.disabled = false; }
+    }));
     tbody.querySelectorAll("[data-del]").forEach((btn) =>
       btn.addEventListener("click", async () => {
         if (!confirm("Excluir este cadastro do Lava Jato?")) return;
