@@ -151,7 +151,7 @@ function iniciarPainel(unidadeId) {
       const botao = document.createElement("button");
       botao.type = "button"; botao.className = "unidade-membro-card";
       const avatar = document.createElement("span"); avatar.className = "unidade-membro-avatar";
-      avatar.textContent = (m.nome || "?").trim().charAt(0).toUpperCase();
+      avatar.textContent = "👤"; avatar.setAttribute("aria-hidden", "true");
       const info = document.createElement("span"); info.className = "unidade-membro-info";
       const nome = document.createElement("strong"); nome.textContent = m.nome || "Sem nome";
       const classe = document.createElement("small"); classe.textContent = m.classe || "Classe não informada";
@@ -170,7 +170,7 @@ function iniciarPainel(unidadeId) {
     voltar.textContent = "← Voltar aos desbravadores";
     voltar.addEventListener("click", () => { membroSelecionado = null; renderMembros(); });
     const cab = document.createElement("div"); cab.className = "unidade-perfil-cabecalho";
-    const avatar = document.createElement("span"); avatar.className = "unidade-membro-avatar"; avatar.textContent = (m.nome || "?").charAt(0).toUpperCase();
+    const avatar = document.createElement("span"); avatar.className = "unidade-membro-avatar"; avatar.textContent = "👤"; avatar.setAttribute("aria-hidden", "true");
     const nome = document.createElement("h3"); nome.textContent = m.nome || "Sem nome"; cab.append(avatar,nome);
     const dados = document.createElement("div"); dados.className = "unidade-perfil-dados";
     [["Classe",m.classe],["Nascimento",m.nascimento ? fmtDataBr(m.nascimento) : "—"],["Idade",m.idade],["Responsável",m.responsavel],["Parentesco",m.parentesco],["Telefone",m.telefone],["Segundo responsável",m.responsavel2Nome],["Telefone adicional",m.responsavel2Telefone],["Tipo sanguíneo",m.tipoSanguineo],["Observações",m.observacoesResponsavel]].forEach(([rotulo,valor]) => {
