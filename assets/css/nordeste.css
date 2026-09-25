@@ -548,3 +548,22 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 @media(max-width:390px){.nav-menu-grid{grid-template-columns:1fr;}.site-header .nav-menu-grid a{min-height:48px;}}
 @media(min-width:800px) and (max-width:1520px){.nav-menu-grid{grid-template-columns:repeat(3,minmax(0,1fr));}}
 @media(prefers-reduced-motion:reduce){.site-header .nav-links{transition:none;}}
+
+/* v73: manter o cabeçalho visível em todas as páginas, inclusive Safari iOS. */
+[data-site-header]{display:block;position:sticky;top:0;z-index:100;isolation:isolate;}
+[data-site-header] .site-header{position:relative;top:auto;z-index:1;}
+@media(max-width:1520px){
+ [data-site-header] .nav-links{position:fixed!important;top:var(--header-h)!important;bottom:0!important;left:0!important;right:0!important;inset:var(--header-h) 0 0 0!important;max-height:calc(100dvh - var(--header-h));height:calc(100dvh - var(--header-h));z-index:101;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+ [data-site-header] .nav-links:not(.open){pointer-events:none;}
+ [data-site-header] .nav-links.open{pointer-events:auto;}
+ [data-site-header] .nav-toggle{position:relative;z-index:102;flex-shrink:0;}
+}
+@media(max-width:700px){
+ .access-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:16px!important;}
+ .access-card{width:100%;min-width:0;box-sizing:border-box;padding:22px 18px;border-radius:16px;animation:none;transform:none!important;}
+ .access-card h3{font-size:clamp(1.15rem,5vw,1.45rem);line-height:1.25;overflow-wrap:anywhere;}
+ .access-card .btn{display:flex;justify-content:center;align-items:center;min-height:48px;width:100%;white-space:normal;text-align:center;}
+ .auth-shell{min-height:100dvh;padding:max(16px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom));align-items:center;}
+ .auth-card{width:100%;max-width:440px;margin:0;padding:24px 18px;overflow-wrap:anywhere;}
+ .auth-card input,.auth-card select{font-size:16px;max-width:100%;}
+}
