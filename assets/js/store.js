@@ -550,6 +550,8 @@ export async function criarRegistroLavaJato(dados) {
     }, { merge: true });
     tx.set(novoRegistroRef, {
       ...dados,
+      formaPagamento: dados.formaPagamento === 'pix' ? 'pix' : 'local',
+      pagamentoStatus: 'pendente',
       tokenCancelamento,
       criadoEm: serverTimestamp(),
       cancelado: false,
@@ -558,6 +560,9 @@ export async function criarRegistroLavaJato(dados) {
   });
 
   return { id: novoRegistroRef.id, tokenCancelamento };
+}
+export async function atualizarPagamentoLavaJato(registroId, pago) {
+  await updateDoc(doc(db, 'lavajato', registroId), { pagamentoStatus: pago ? 'pago' : 'pendente', pagoEm: pago ? serverTimestamp() : null });
 }
 export async function cancelarRegistroLavaJato(registroId, data, tokenCancelamento) {
   if (!tokenCancelamento) throw new Error("Código de cancelamento ausente.");
