@@ -635,3 +635,8 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 .midia-editar-nome input{flex:1 1 190px;min-width:0;max-width:100%;min-height:44px;font-size:16px;}
 .midia-editar-nome .btn{min-height:44px;}
 @media(max-width:480px){.midia-editar-nome input{flex-basis:100%;}}
+
+/* v85: controle de vídeo acessível por toque e teclado. */
+.midia-video-assistir{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;border:2px solid rgba(255,255,255,.9);border-radius:999px;padding:13px 18px;background:rgba(15,15,15,.84);color:#fff;font-weight:800;font-size:1rem;min-height:48px;white-space:nowrap;cursor:pointer;}
+.midia-video-assistir:focus-visible{outline:3px solid #f3a833;outline-offset:3px;}
+@media(max-width:390px){.midia-video-assistir{font-size:.86rem;padding:11px 13px;}}
