@@ -472,3 +472,19 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 /* Download em resolução original na visualização ampliada. */
 .midia-lightbox .midia-download{margin-top:8px;max-width:100%;text-align:center;flex-shrink:0}
 @media(max-width:700px){.midia-lightbox .midia-download{width:100%;margin-top:12px}.midia-lightbox img{max-height:67vh}}
+
+/* Mídia: entrada escalonada, movimento delicado e navegação por gestos. */
+@keyframes midia-surgir{from{opacity:0;transform:translateY(18px) scale(.975)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes midia-ampliar{from{opacity:.3;transform:scale(.965)}to{opacity:1;transform:scale(1)}}
+.midia-foto{animation:midia-surgir .55s both;animation-delay:calc(var(--foto-ordem,0)*45ms);transition:box-shadow .25s,transform .25s}
+.midia-foto img{transition:transform .4s cubic-bezier(.2,.75,.3,1),filter .3s}
+@media(hover:hover){.midia-foto:hover{transform:translateY(-4px);box-shadow:0 9px 18px rgba(0,0,0,.18)}.midia-foto:hover img{transform:scale(1.075)}}
+.midia-foto:active{transform:scale(.975)}
+.midia-lightbox-stage{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:0;flex:1}
+.midia-lightbox-stage img{min-width:0;max-width:min(100%,1000px);max-height:70vh;object-fit:contain;touch-action:pan-y}
+.midia-lightbox-stage img.midia-troca{animation:midia-ampliar .24s ease-out}
+.midia-navegar{flex:0 0 44px;width:44px;height:52px;border:1px solid rgba(255,255,255,.35);border-radius:14px;background:rgba(255,255,255,.12);color:#fff;font-size:2rem;cursor:pointer}
+.midia-navegar[hidden]{display:none}
+.midia-navegar:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+@media(max-width:700px){.midia-lightbox-stage{position:relative}.midia-navegar{position:absolute;z-index:2;bottom:8px;width:44px;height:44px;background:rgba(0,0,0,.65)}.midia-anterior{left:4px}.midia-proxima{right:4px}.midia-lightbox-stage img{max-height:63vh}}
+@media(prefers-reduced-motion:reduce){.midia-foto,.midia-lightbox-stage img.midia-troca{animation:none!important}.midia-foto,.midia-foto img{transition:none!important}.midia-foto:hover,.midia-foto:active{transform:none!important}}
