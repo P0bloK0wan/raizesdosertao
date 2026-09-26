@@ -28,7 +28,7 @@
 </div></main>
 <div class="midia-lightbox" id="midia-lightbox" hidden role="dialog" aria-modal="true" aria-label="Visualizar foto">
   <button type="button" class="midia-fechar" id="midia-fechar" aria-label="Fechar foto">×</button>
-  <div class="midia-lightbox-stage"><button type="button" class="midia-navegar midia-anterior" id="midia-anterior" aria-label="Foto anterior">‹</button><img id="midia-foto-ampliada" alt=""><button type="button" class="midia-navegar midia-proxima" id="midia-proxima" aria-label="Próxima foto">›</button></div><p id="midia-legenda"></p><a id="midia-baixar" class="midia-link midia-download" href="#" target="_blank" rel="noopener noreferrer">⬇ Baixar foto original</a>
+  <div class="midia-lightbox-stage"><button type="button" class="midia-navegar midia-anterior" id="midia-anterior" aria-label="Foto anterior">‹</button><img id="midia-foto-ampliada" alt=""><button type="button" class="midia-navegar midia-proxima" id="midia-proxima" aria-label="Próxima foto">›</button></div><p id="midia-legenda"></p><button type="button" id="midia-salvar-fotos" class="midia-link midia-download" hidden>📲 Salvar no app Fotos</button><p id="midia-salvar-ajuda" class="muted" role="status" hidden style="max-width:420px;text-align:center;margin:8px auto">No menu de compartilhamento, toque em “Salvar Imagem”. O navegador não pode salvar automaticamente no app Fotos.</p><a id="midia-baixar" class="midia-link midia-download" href="#" target="_blank" rel="noopener noreferrer">⬇ Baixar foto original</a>
 </div>
 <div data-site-footer></div>
 <script type="module">
@@ -38,6 +38,8 @@ const lightbox = document.getElementById("midia-lightbox");
 const fotoAmpliada = document.getElementById("midia-foto-ampliada");
 const legenda = document.getElementById("midia-legenda");
 const baixar = document.getElementById("midia-baixar");
+const salvarFotos = document.getElementById("midia-salvar-fotos");
+const salvarAjuda = document.getElementById("midia-salvar-ajuda");
 const anterior = document.getElementById("midia-anterior");
 const proxima = document.getElementById("midia-proxima");
 let fotosAbertas = [];
@@ -87,6 +89,8 @@ function fecharFoto(){
   lightbox.hidden = true;
   fotoAmpliada.removeAttribute("src");
   baixar.removeAttribute("href");
+  salvarFotos.hidden = true;
+  salvarAjuda.hidden = true;
   document.body.style.overflow = "";
   focoAnterior?.focus();
   focoAnterior=null;
@@ -115,6 +119,8 @@ function mostrarFoto(){
       void fotoAmpliada.offsetWidth;
       fotoAmpliada.classList.add("midia-troca");
       baixar.href = downloadOriginal(src);
+      salvarFotos.hidden = !navigator.share || src.includes("drive.google.com");
+      salvarAjuda.hidden = salvarFotos.hidden;
       baixar.textContent = src.includes("drive.google.com") ? "↗ Abrir foto no Drive" : "⬇ Baixar em resolução original";
     } else {
       fotoAmpliada.classList.remove("midia-carregando");
@@ -169,6 +175,31 @@ function miniatura(src) {
   } catch {}
   return src;
 }
+// No iPhone, o menu de compartilhamento oferece “Salvar Imagem”.
+// Navegadores não têm permissão para inserir arquivos diretamente no app Fotos.
+salvarFotos.addEventListener("click", async () => {
+  const src = fotosAbertas[indiceAberto];
+  if (!src || !navigator.share) return;
+  salvarFotos.disabled = true;
+  try {
+    // Compartilhar o arquivo, não o link, para oferecer “Salvar Imagem” no iOS.
+    const resposta = await fetch(src, { mode: "cors" });
+    if (!resposta.ok) throw new Error("Não foi possível carregar a foto original.");
+    const blob = await resposta.blob();
+    const tipo = blob.type.startsWith("image/") ? blob.type : "image/jpeg";
+    const extensao = tipo === "image/png" ? "png" : tipo === "image/webp" ? "webp" : "jpg";
+    const arquivo = new File([blob], "raizes-do-sertao-foto." + extensao, { type: tipo });
+    if (!navigator.canShare?.({ files: [arquivo] })) throw new Error("Este navegador não permite compartilhar a imagem diretamente.");
+    await navigator.share({ files: [arquivo] });
+  } catch (err) {
+    if (err?.name !== "AbortError") {
+      console.warn("Compartilhamento da foto indisponível:", err);
+      salvarAjuda.hidden = false;
+      salvarAjuda.textContent = "Não foi possível abrir o compartilhamento da imagem. Abra a foto no navegador, mantenha o dedo sobre ela e escolha Salvar em Fotos.";
+      window.open(src, "_blank", "noopener");
+    }
+  } finally { salvarFotos.disabled = false; }
+});
 function downloadOriginal(src) {
   try {
     const url = new URL(src);
