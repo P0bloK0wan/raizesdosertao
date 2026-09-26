@@ -43,3 +43,16 @@
 #lj-pix-form input{box-sizing:border-box;min-height:48px;border-radius:11px;padding:11px;font-size:16px;border:1px solid var(--border,#b9c7b7);background:var(--bg-elevated,#fff);color:var(--text,#292018)}
 #lj-pix-form button,#lj-pix-qr button{min-height:50px;border-radius:12px}
 @media(max-width:420px){.lj-progress span{font-size:.68rem;min-width:0}.lj-payment-option{padding:12px!important}.lj-payment-icon{font-size:1.15rem;width:24px}}
+
+/* Prévia de carro ou moto após preencher uma placa válida. */
+.lj-veiculo-preview{margin:18px 0;padding:18px 14px;border:1px solid var(--border,#c6a17b);border-radius:16px;text-align:center;background:rgba(208,132,58,.08);}
+.lj-veiculo-preview[hidden]{display:none!important;}
+.lj-veiculo-preview>p:first-child{font-size:.8rem;opacity:.8;margin:0 0 8px;}
+.lj-veiculo-cena{padding:8px 0;perspective:650px;}
+.lj-veiculo-cena svg{display:block;width:min(100%,340px);margin:auto;animation:lj-veiculo-flutuar 5s ease-in-out infinite;filter:drop-shadow(0 12px 9px rgba(0,0,0,.17));}
+#lj-veiculo-descricao{display:block;margin:8px 0;overflow-wrap:anywhere;}
+#lj-veiculo-placa{display:inline-block;background:#eee;color:#1c2025;border:2px solid #222;border-radius:5px;padding:5px 15px;font-size:1.1rem;font-weight:900;letter-spacing:.13em;margin:5px 0 16px;}
+.lj-veiculo-confirma{display:flex;gap:10px;align-items:center;text-align:left;justify-content:center;cursor:pointer;}
+.lj-veiculo-confirma input{width:21px;height:21px;flex-shrink:0;accent-color:#db7137;}
+@keyframes lj-veiculo-flutuar{0%,100%{transform:translateY(0) rotateY(-3deg)}50%{transform:translateY(-7px) rotateY(3deg)}}
+@media(prefers-reduced-motion:reduce){.lj-veiculo-cena svg{animation:none}}
