@@ -31,9 +31,9 @@
 
 <section class="hero">
   <div class="container" style="text-align:center; max-width:680px; margin:0 auto;">
-    <div class="hero-tag" style="margin-inline:auto;">🚗 Todo domingo · 7h às 11h</div>
+    <div class="hero-tag" style="margin-inline:auto;">🚗 🏍️ Todo domingo · 7h às 11h</div>
     <h1>Lava Jato R.S</h1>
-    <p class="lead" style="margin-inline:auto;">Traga seu carro, apoie o clube e ajude nossos desbravadores a chegar no Campori DSA 2027. Valor único: <strong>R$ 50,00</strong>. Reserve sua vaga e pague no dia da lavagem. Só aceitamos <strong>5 carros por domingo</strong> — confira a agenda e garanta sua vaga.</p>
+    <p class="lead" style="margin-inline:auto;">Traga seu carro ou moto, apoie o clube e ajude nossos desbravadores a chegar no Campori DSA 2027. Valor único: <strong>R$ 50,00</strong>. Reserve sua vaga e pague no dia da lavagem. São <strong>5 vagas por domingo</strong> para carros e motos — confira a agenda e garanta sua vaga.</p>
   </div>
 </section>
 
@@ -52,7 +52,7 @@
   <div class="container">
     <div class="card" style="max-width:520px; margin:0 auto;" id="bloco-cadastro">
       <span class="eyebrow">Cadastro rápido · 3 minutos</span>
-      <h2>Garanta sua lavagem 🚗</h2>
+      <h2>Garanta sua lavagem 🚗🏍️</h2>
       <p class="lj-intro">Reserve sua vaga por <strong>R$ 50,00</strong>. Faça sua reserva agora e pague no dia da lavagem.</p>
       <div class="lj-progress" aria-label="Etapas do agendamento"><span class="lj-progress-on">1 · Seus dados</span><span>2 · Reserva</span><span>3 · Confirmado</span></div>
       <div class="alert alert-error" id="erro" role="alert" aria-live="polite"></div>
@@ -64,9 +64,11 @@
         </div>
         <div class="field"><label>Seu nome</label><input type="text" id="lj-nome" autocomplete="name" maxlength="80" required></div>
         <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="lj-telefone" autocomplete="tel" inputmode="tel" maxlength="24" placeholder="(87) 9XXXX-XXXX" required></div>
-        <div class="field"><label for="lj-placa">Placa do carro</label><input type="text" id="lj-placa" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text" maxlength="8" placeholder="ABC1234 ou ABC1D23" aria-describedby="lj-placa-ajuda" required style="text-transform:uppercase;"><small id="lj-placa-ajuda" style="display:block;margin-top:6px;">Aceita placas antigas e Mercosul, com ou sem hífen. Ex.: ABC-1234 ou ABC1D23.</small></div>
-        <div class="field"><label>Modelo do carro</label><input type="text" id="lj-modelo" maxlength="60" required></div>
-        <div class="field"><label>Cor do carro</label><input type="text" id="lj-cor" maxlength="40" required></div>
+        <div class="field"><label for="lj-tipo">Tipo de veículo</label><select id="lj-tipo" required><option value="Carro">🚗 Carro</option><option value="Moto">🏍️ Moto</option></select></div>
+        <div class="field"><label for="lj-placa">Placa do veículo</label><input type="text" id="lj-placa" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text" maxlength="8" placeholder="ABC1234 ou ABC1D23" aria-describedby="lj-placa-ajuda" required style="text-transform:uppercase;"><small id="lj-placa-ajuda" style="display:block;margin-top:6px;">Aceita placas antigas e Mercosul, com ou sem hífen. Ex.: ABC-1234 ou ABC1D23.</small></div>
+        <div class="field"><label>Modelo do veículo</label><input type="text" id="lj-modelo" maxlength="60" required></div>
+        <div class="field"><label>Cor do veículo</label><input type="text" id="lj-cor" maxlength="40" required></div>
+        <div id="lj-veiculo-preview" class="lj-veiculo-preview" hidden><p>Prévia ilustrativa · não é consulta pela placa</p><div class="lj-veiculo-cena"><svg id="lj-veiculo-svg" viewBox="0 0 360 180" role="img" aria-label="Ilustração do veículo" xmlns="http://www.w3.org/2000/svg"><ellipse cx="180" cy="151" rx="136" ry="12" fill="#000" opacity=".18"/><g id="lj-carro"><path d="M39 102h30l38-43q9-10 23-10h88q16 0 26 12l35 41h29q13 0 13 15v19H38v-20q0-14 1-14Z" fill="var(--lj-pintura,#db7137)" stroke="#47372d" stroke-width="4"/><path d="m112 63-28 38h182l-31-38q-7-8-17-8h-89q-10 0-17 8Z" fill="#9bc7d4" stroke="#47372d" stroke-width="3"/><path d="M177 55v46" stroke="#47372d" stroke-width="4"/><circle cx="99" cy="135" r="23" fill="#27292b" stroke="#ccc" stroke-width="6"/><circle cx="261" cy="135" r="23" fill="#27292b" stroke="#ccc" stroke-width="6"/></g><g id="lj-moto" visibility="hidden"><circle cx="95" cy="132" r="32" fill="none" stroke="#27292b" stroke-width="10"/><circle cx="263" cy="132" r="32" fill="none" stroke="#27292b" stroke-width="10"/><path d="m95 132 54-65 43 65H95l74-49 94 49-28-69" fill="none" stroke="var(--lj-pintura,#db7137)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M150 67h45l21 12h-44l-22-12Zm86-5h22m-12-4 20 74M141 65l-15-14h-26" fill="none" stroke="#353535" stroke-width="8" stroke-linecap="round"/><path d="m169 83 16-20h41l-11 25Z" fill="var(--lj-pintura,#db7137)" stroke="#353535" stroke-width="3"/></g></svg></div><strong id="lj-veiculo-descricao"></strong><p id="lj-veiculo-placa"></p><label class="lj-veiculo-confirma"><input type="checkbox" id="lj-veiculo-confirmado"> Sim, os dados do meu veículo estão corretos</label></div>
         <div class="lj-summary"><span>Valor da lavagem</span><strong>R$ 50,00</strong></div><button class="btn btn-primary btn-block" type="submit">Confirmar minha reserva →</button>
       </form>
       <p class="form-note">Sem pagamento online: R$ 50,00 no dia da lavagem.</p>
@@ -76,7 +78,7 @@
       <div style="font-size:2.4rem;">✅</div>
       <h2>Sua vaga está reservada!</h2>
       <span class="lj-reservation-pill">✓ Reserva confirmada</span>
-      <p>Anotamos o carro <strong id="conf-modelo"></strong> (<span id="conf-placa"></span>) em nome de <strong id="conf-nome"></strong> pro domingo <strong id="conf-data"></strong>. Te esperamos lá!</p>
+      <p>Anotamos seu veículo <strong id="conf-modelo"></strong> (<span id="conf-placa"></span>) em nome de <strong id="conf-nome"></strong> pro domingo <strong id="conf-data"></strong>. Te esperamos lá!</p>
       <p class="form-note">Pagamento de R$ 50,00 no dia da lavagem.</p>
       <button class="btn btn-outline btn-block" id="btn-cancelar-meu">Cancelar meu atendimento</button>
       <button class="btn btn-outline btn-block" id="btn-limpar-reserva-antiga" style="display:none;margin-top:12px;">Voltar ao cadastro</button>
@@ -213,6 +215,26 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
   } catch (e) { try { localStorage.removeItem(LS_KEY); } catch (_) {} }
 
   const campoPlaca = document.getElementById("lj-placa");
+  const campoTipo = document.getElementById("lj-tipo");
+  const campoModelo = document.getElementById("lj-modelo");
+  const campoCor = document.getElementById("lj-cor");
+  const previa = document.getElementById("lj-veiculo-preview");
+  const confirmado = document.getElementById("lj-veiculo-confirmado");
+  const cores = {branco:"#e8e8e8",preto:"#303030",preta:"#303030",prata:"#b0b3b8",cinza:"#888",vermelho:"#ce3933",vermelha:"#ce3933",azul:"#3766a4",verde:"#4d8250",amarelo:"#e3b82f",amarela:"#e3b82f",laranja:"#e77728"};
+  function atualizarPrevia() {
+    const placa = normalizarPlaca(campoPlaca.value);
+    previa.hidden = !/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(placa);
+    confirmado.checked = false;
+    if (previa.hidden) return;
+    const moto = campoTipo.value === "Moto";
+    document.getElementById("lj-carro").setAttribute("visibility",moto?"hidden":"visible");
+    document.getElementById("lj-moto").setAttribute("visibility",moto?"visible":"hidden");
+    const cor = campoCor.value.trim().toLocaleLowerCase("pt-BR");
+    document.getElementById("lj-veiculo-svg").style.setProperty("--lj-pintura",cores[cor] || "#db7137");
+    document.getElementById("lj-veiculo-descricao").textContent = campoTipo.value + (campoModelo.value.trim()?" · "+campoModelo.value.trim():"") + (cor?" · "+campoCor.value.trim():"");
+    document.getElementById("lj-veiculo-placa").textContent = placa;
+  }
+  [campoTipo,campoModelo,campoCor].forEach(el=>el.addEventListener("input",atualizarPrevia));
   function normalizarPlaca(valor) {
     // Evita falsos erros ao colar placas com espaços, hífens ou caracteres invisíveis.
     return String(valor || "").normalize("NFKC").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
@@ -221,6 +243,7 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
     const placa = normalizarPlaca(campoPlaca.value);
     campoPlaca.value = placa;
     campoPlaca.setCustomValidity("");
+    atualizarPrevia();
     document.getElementById("lj-placa-ajuda").textContent = placa.length === 7
       ? (/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(placa) ? "✓ Formato da placa válido." : "Confira a sequência de letras e números da placa.")
       : "Aceita placas antigas e Mercosul, com ou sem hífen. Ex.: ABC-1234 ou ABC1D23.";
@@ -238,18 +261,19 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
       nome: document.getElementById("lj-nome").value.trim(),
       telefone: document.getElementById("lj-telefone").value.trim(),
       placa: normalizarPlaca(campoPlaca.value),
-      modelo: document.getElementById("lj-modelo").value.trim(),
+      modelo: campoTipo.value + " — " + campoModelo.value.trim(),
       cor: document.getElementById("lj-cor").value.trim(),
     };
     try {
       if (!domingos.includes(dados.data) || statusDoDia(dados.data).classe !== "aberto") throw new Error("Escolha um domingo com vagas disponíveis.");
       if (!/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(dados.placa)) { campoPlaca.focus(); throw new Error("Confira a placa: são 7 caracteres, como ABC1234 ou ABC1D23. O hífen é opcional."); }
       if (dados.telefone.replace(/\D/g, "").length < 10) throw new Error("Informe um WhatsApp com DDD.");
+      if (!confirmado.checked) throw new Error("Confira a prévia do veículo e confirme os dados.");
       const ref = await criarRegistroLavaJato(dados);
       try { localStorage.setItem(LS_KEY, JSON.stringify({ ...dados, id: ref.id, tokenCancelamento: ref.tokenCancelamento })); } catch (_) { /* Reserva salva mesmo se o armazenamento do navegador estiver bloqueado. */ }
       mostrarConfirmado({ ...dados, id: ref.id, tokenCancelamento: ref.tokenCancelamento });
     } catch (err) {
-      erro.textContent = err.message && /domingo|placa|WhatsApp|vaga/i.test(err.message)
+      erro.textContent = err.message && /domingo|placa|WhatsApp|vaga|veículo|prévia/i.test(err.message)
         ? err.message
         : "Não foi possível confirmar sua reserva. Verifique sua conexão e tente novamente.";
       erro.classList.add("show");
@@ -263,6 +287,7 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
     blocoConfirmado.style.display = "none";
     blocoCadastro.style.display = "block";
     document.getElementById("form-cadastro").reset();
+    atualizarPrevia();
     document.getElementById("btn-limpar-reserva-antiga").style.display = "none";
     document.getElementById("aviso-reserva-antiga").style.display = "none";
     renderAgenda();
