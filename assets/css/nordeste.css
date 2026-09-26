@@ -640,3 +640,12 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 .midia-video-assistir{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;border:2px solid rgba(255,255,255,.9);border-radius:999px;padding:13px 18px;background:rgba(15,15,15,.84);color:#fff;font-weight:800;font-size:1rem;min-height:48px;white-space:nowrap;cursor:pointer;}
 .midia-video-assistir:focus-visible{outline:3px solid #f3a833;outline-offset:3px;}
 @media(max-width:390px){.midia-video-assistir{font-size:.86rem;padding:11px 13px;}}
+
+/* Galeria: flutuação suave e contínua da foto central ampliada. */
+@keyframes midia-flutuar-suave {
+  0%,100% { transform:translate3d(0,0,0) rotate(-.3deg); }
+  50% { transform:translate3d(0,-13px,0) rotate(.3deg); }
+}
+.midia-lightbox-stage img:not(.midia-carregando):not(.midia-troca){animation:midia-flutuar-suave 4.6s ease-in-out infinite;will-change:transform;}
+.midia-lightbox-stage img.midia-troca{animation:midia-ampliar .25s ease-out,midia-flutuar-suave 4.6s ease-in-out .25s infinite;}
+@media(prefers-reduced-motion:reduce){.midia-lightbox-stage img,.midia-lightbox-stage img.midia-troca{animation:none!important;will-change:auto;}}
