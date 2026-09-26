@@ -649,3 +649,21 @@ html,body{max-width:100%;overflow-x:hidden}button,input,select,textarea{font:inh
 .midia-lightbox-stage img:not(.midia-carregando):not(.midia-troca){animation:midia-flutuar-suave 4.6s ease-in-out infinite;will-change:transform;}
 .midia-lightbox-stage img.midia-troca{animation:midia-ampliar .25s ease-out,midia-flutuar-suave 4.6s ease-in-out .25s infinite;}
 @media(prefers-reduced-motion:reduce){.midia-lightbox-stage img,.midia-lightbox-stage img.midia-troca{animation:none!important;will-change:auto;}}
+
+/* Fundo com identidade do clube ao ampliar uma foto. */
+.midia-lightbox{isolation:isolate;background:radial-gradient(ellipse at 50% 45%,#412412 0%,#21150e 54%,#110d0b 100%)!important;overflow:hidden;}
+.midia-marca-fundo{position:absolute;inset:-6%;z-index:-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(76px,1fr);align-items:center;justify-items:center;gap:8px 18px;transform:rotate(-9deg) scale(1.15);pointer-events:none;overflow:hidden;mask-image:radial-gradient(ellipse at center,transparent 8%,#000 85%);}
+.midia-marca-fundo span{font-size:clamp(13px,2.8vw,39px);font-weight:900;letter-spacing:.065em;white-space:nowrap;color:rgba(208,118,49,.16);text-shadow:0 1px 1px rgba(0,0,0,.3);user-select:none;}
+.midia-lightbox-stage,.midia-lightbox>.midia-fechar,.midia-lightbox>#midia-legenda,.midia-lightbox>#midia-salvar-ajuda,.midia-lightbox>#midia-baixar{position:relative;z-index:1;}
+.midia-lightbox-stage img{box-shadow:0 22px 52px rgba(0,0,0,.65),0 0 0 1px rgba(240,171,96,.35);}
+/* Leve balanço para a esquerda e a direita, sem rotação completa. */
+@keyframes midia-balanco-flutuante{
+  0%,100%{transform:translate3d(0,0,0) rotate(-1.1deg);}
+  25%{transform:translate3d(2px,-8px,0) rotate(.7deg);}
+  50%{transform:translate3d(0,-13px,0) rotate(1.2deg);}
+  75%{transform:translate3d(-2px,-7px,0) rotate(-.5deg);}
+}
+.midia-lightbox-stage img:not(.midia-carregando):not(.midia-troca){animation:midia-balanco-flutuante 5.5s ease-in-out infinite;}
+.midia-lightbox-stage img.midia-troca{animation:midia-ampliar .25s ease-out,midia-balanco-flutuante 5.5s ease-in-out .25s infinite;}
+@media(max-width:700px){.midia-marca-fundo{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}.midia-marca-fundo span{font-size:clamp(13px,4.2vw,23px);}}
+@media(prefers-reduced-motion:reduce){.midia-lightbox-stage img,.midia-lightbox-stage img.midia-troca{animation:none!important;}}
