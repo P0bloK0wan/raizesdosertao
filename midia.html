@@ -28,7 +28,6 @@
 </div></main>
 <div class="midia-lightbox" id="midia-lightbox" hidden role="dialog" aria-modal="true" aria-label="Visualizar foto">
   <button type="button" class="midia-fechar" id="midia-fechar" aria-label="Fechar foto">×</button>
-  <div class="midia-marca-fundo" aria-hidden="true"><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span><span>RAÍZES DO SERTÃO</span></div>
   <div class="midia-lightbox-stage"><button type="button" class="midia-navegar midia-anterior" id="midia-anterior" aria-label="Foto anterior">‹</button><img id="midia-foto-ampliada" alt=""><button type="button" class="midia-navegar midia-proxima" id="midia-proxima" aria-label="Próxima foto">›</button></div><p id="midia-legenda"></p><p id="midia-salvar-ajuda" class="muted" role="status" hidden style="max-width:420px;text-align:center;margin:8px auto"></p><a id="midia-baixar" class="midia-link midia-download" href="#" target="_blank" rel="noopener noreferrer">⬇ Baixar em resolução original</a>
 </div>
 <div data-site-footer></div>
@@ -50,6 +49,22 @@ let carregandoFoto = false;
 let trocaId = 0;
 let timeoutFoto = null;
 let fotoPendente = null;
+// Pré-carrega somente a foto aberta, para o botão responder mais rápido.
+const fotosPreparadas = new Map();
+function prepararOriginal(src) {
+  if (!src || src.includes("drive.google.com")) return null;
+  if (!fotosPreparadas.has(src)) {
+    const pedido = fetch(src, { mode: "cors" }).then(r => {
+      if (!r.ok) throw new Error("Falha ao carregar a foto original.");
+      return r.blob();
+    });
+    fotosPreparadas.set(src, pedido);
+    pedido.catch(() => { if (fotosPreparadas.get(src) === pedido) fotosPreparadas.delete(src); });
+    // Não acumular fotos antigas na memória do celular.
+    if (fotosPreparadas.size > 3) fotosPreparadas.delete(fotosPreparadas.keys().next().value);
+  }
+  return fotosPreparadas.get(src);
+}
 const fecharBtn = document.getElementById("midia-fechar");
 const atualizarBotoes = () => {
   const varias = fotosAbertas.length > 1;
@@ -118,6 +133,7 @@ function mostrarFoto(){
       void fotoAmpliada.offsetWidth;
       fotoAmpliada.classList.add("midia-troca");
       baixar.href = downloadOriginal(src);
+      if (navigator.share) prepararOriginal(src);
       salvarAjuda.hidden = true;
       baixar.textContent = src.includes("drive.google.com") ? "↗ Abrir foto no Drive" : "⬇ Baixar em resolução original";
     } else {
@@ -184,17 +200,17 @@ baixar.addEventListener("click", async (event) => {
   salvarAjuda.hidden = false;
   salvarAjuda.textContent = "Preparando a foto original…";
   try {
-    const resposta = await fetch(src, { mode: "cors" });
-    if (!resposta.ok) throw new Error("Falha ao carregar a foto original.");
-    const blob = await resposta.blob();
+    const blob = await prepararOriginal(src);
     const tipo = blob.type.startsWith("image/") ? blob.type : "image/jpeg";
     const extensao = tipo === "image/png" ? "png" : tipo === "image/webp" ? "webp" : "jpg";
     const arquivo = new File([blob], "raizes-do-sertao-foto." + extensao, { type: tipo });
     if (!navigator.canShare?.({ files: [arquivo] })) throw new Error("Compartilhamento de imagens indisponível.");
+    // A foto escolhida fica congelada no início do toque, mesmo que a galeria mude.
     await navigator.share({ files: [arquivo] });
-    salvarAjuda.textContent = "Para guardar no app Fotos, escolha “Salvar Imagem” no menu do celular.";
+    if (fotosAbertas[indiceAberto] === src && !lightbox.hidden)
+      salvarAjuda.textContent = "Para guardar no app Fotos, escolha “Salvar Imagem” no menu do celular.";
   } catch (err) {
-    if (err?.name === "AbortError") salvarAjuda.hidden = true;
+    if (err?.name === "AbortError") { if (fotosAbertas[indiceAberto] === src) salvarAjuda.hidden = true; }
     else {
       salvarAjuda.textContent = "O compartilhamento não está disponível. A foto original será aberta para você salvar manualmente.";
       window.open(src, "_blank", "noopener");
