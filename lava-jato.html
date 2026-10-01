@@ -25,7 +25,9 @@
 <meta name="twitter:description" content="Apoie o Clube Raízes do Sertão com nosso lava-jato.">
 <meta name="twitter:image" content="https://cluberaizesdosertao.site/assets/img/banner-compartilhamento.png">
 </head>
-<body>
+<body class="lavajato-verificando">
+<div id="lavajato-indisponivel" class="section" hidden><div class="container"><div class="card text-center" style="max-width:560px;margin:10vh auto;"><h1>Lava Jato temporariamente desativado</h1><p>A liderança ainda não abriu o Lava Jato para novas reservas.</p><a class="btn btn-primary" href="index.html">Voltar ao início</a></div></div></div>
+<div id="lavajato-conteudo" hidden>
 
 <div data-site-header></div>
 
@@ -88,15 +90,30 @@
 </section>
 
 <div data-site-footer></div>
+</div>
 
 <script type="module">
-  import { criarRegistroLavaJato, cancelarRegistroLavaJato, watchDomingos } from "./assets/js/store.js";
+  import { criarRegistroLavaJato, cancelarRegistroLavaJato, watchDomingos, watchLavaJatoPublico } from "./assets/js/store.js";
 import {
   rsProximosDomingos,
   rsAgendamentoDomingoAberto,
   RS_LAVAJATO_VAGAS_POR_DOMINGO
 } from "./assets/js/data.js";
   
+  const conteudoPublico = document.getElementById("lavajato-conteudo");
+  const indisponivel = document.getElementById("lavajato-indisponivel");
+  let lavaJatoLiberado = false;
+  watchLavaJatoPublico((ativo) => {
+    lavaJatoLiberado = ativo;
+    conteudoPublico.hidden = !ativo;
+    indisponivel.hidden = ativo;
+    document.body.classList.remove("lavajato-verificando");
+  }, () => {
+    lavaJatoLiberado = false;
+    conteudoPublico.hidden = true;
+    indisponivel.hidden = false;
+    document.body.classList.remove("lavajato-verificando");
+  });
   const LS_KEY = "rs_meu_lavajato";
   const blocoCadastro = document.getElementById("bloco-cadastro");
   const blocoConfirmado = document.getElementById("bloco-confirmado");
@@ -251,6 +268,7 @@ const domingos = rsProximosDomingos(8).filter((iso, i) => i > 0 || rsAgendamento
 
   document.getElementById("form-cadastro").addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (!lavaJatoLiberado) { erro.textContent = "O Lava Jato está desativado para novas reservas."; erro.classList.add("show"); return; }
     erro.classList.remove("show");
     const btn = e.target.querySelector("button[type=submit]");
     if (btn.disabled) return;
