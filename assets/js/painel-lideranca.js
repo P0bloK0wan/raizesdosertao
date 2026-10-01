@@ -10,6 +10,7 @@ import {
 import { exigirSessao, logout, trocarSenha } from "./auth.js";
 import {
   watchLavaJato, deleteRegistroLavaJato, criarRegistroLavaJato, atualizarPagamentoLavaJato,
+  watchLavaJatoPublico, setLavaJatoPublico,
   watchDomingos, fecharDomingo, abrirDomingo, adicionarVagaExtra, removerVagaExtra,
 fecharVagaNormal, reabrirVagaNormal,
   watchMembros, updateMembro, deleteMembro,
@@ -108,6 +109,34 @@ function iniciarPainel() {
   const unidadesAbertas = new Set();
   const membrosAbertos = new Set();
   const filtros = { unidade: "", status: "", data: "" };
+
+  /* ---------------- Lava Jato: publicação no site ---------------- */
+  let lavaJatoPublicoAtivo = false;
+  const btnLavaPublico = document.getElementById("btn-lavajato-publico");
+  const statusLavaPublico = document.getElementById("lavajato-publico-status");
+  watchLavaJatoPublico((ativo) => {
+    lavaJatoPublicoAtivo = ativo;
+    statusLavaPublico.textContent = ativo
+      ? "ATIVO — aparece na área pública e aceita reservas."
+      : "DESATIVADO — oculto da área pública. A liderança continua com acesso aqui.";
+    btnLavaPublico.textContent = ativo ? "Desativar na área pública" : "Ativar na área pública";
+    btnLavaPublico.disabled = false;
+  }, () => {
+    statusLavaPublico.textContent = "Não foi possível consultar o status agora.";
+    btnLavaPublico.disabled = true;
+  });
+  btnLavaPublico.addEventListener("click", async () => {
+    const novo = !lavaJatoPublicoAtivo;
+    if (!confirm(novo ? "Ativar o Lava Jato na área pública?" : "Desativar o Lava Jato na área pública?")) return;
+    btnLavaPublico.disabled = true;
+    try {
+      await setLavaJatoPublico(novo);
+      mostrarToast(novo ? "Lava Jato ativado na área pública." : "Lava Jato desativado da área pública.");
+    } catch (err) {
+      alert("Não foi possível alterar a visibilidade do Lava Jato: " + (err?.message || "tente novamente."));
+      btnLavaPublico.disabled = false;
+    }
+  });
 
   /* ---------------- Lava Jato ---------------- */
   watchLavaJato((lista) => {
