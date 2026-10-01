@@ -3,6 +3,12 @@
    ========================================================= */
 
 import { RS_CLUBE, RS_LINKS } from "./data.js";
+import { watchLavaJatoPublico } from "./store.js";
+// O Lava Jato começa oculto e só aparece após o Firebase confirmar que a liderança o ativou.
+watchLavaJatoPublico((ativo) => {
+  document.querySelectorAll("[data-nav-lavajato]").forEach(el => { el.hidden = !ativo; });
+}, () => {});
+
 // A navegação pública não deve depender da conexão com Firebase.
 function getTheme(){try{return localStorage.getItem("rs_tema") || "light";}catch{return "light";}}
 function setTheme(theme){try{localStorage.setItem("rs_tema",theme);}catch{/* Navegação continua funcional sem armazenamento. */}}
@@ -19,7 +25,7 @@ const NAV_GROUPS = [
   ] },
   { titulo: "Apoie e conecte-se", itens: [
     { href: "campori.html", label: "Campori DSA 2027", emoji: "💙" },
-    { href: "lava-jato.html", label: "Lava-jato", emoji: "🚗" },
+    { href: "lava-jato.html", label: "Lava-jato", emoji: "🚗", lavajato: true },
     { href: "redes.html", label: "Nossas redes", emoji: "📱" },
     { href: "login.html", label: "Área da liderança", emoji: "🔐" }
   ] }
@@ -45,7 +51,7 @@ function montarCabecalho() {
         </a>
         <nav class="nav-links" data-nav-links id="menu-principal" aria-label="Menu principal" aria-hidden="true">
           <div class="nav-menu-intro"><strong>Explore o Raízes</strong><span>Encontre o que você procura</span></div>
-          ${NAV_GROUPS.map((grupo) => `<section class="nav-menu-group" aria-label="${grupo.titulo}"><h2>${grupo.titulo}</h2><div class="nav-menu-grid">${grupo.itens.map((it) => `<a href="${it.href}" class="${it.href === atual ? "active" : ""}" ${it.href === atual ? 'aria-current="page"' : ""}><span class="nav-menu-emoji" aria-hidden="true">${it.emoji}</span><span>${it.label}</span><span class="nav-menu-arrow" aria-hidden="true">›</span></a>`).join("")}</div></section>`).join("")}
+          ${NAV_GROUPS.map((grupo) => `<section class="nav-menu-group" aria-label="${grupo.titulo}"><h2>${grupo.titulo}</h2><div class="nav-menu-grid">${grupo.itens.map((it) => `<a href="${it.href}" class="${it.href === atual ? "active" : ""}" ${it.href === atual ? 'aria-current="page"' : ""} ${it.lavajato ? 'data-nav-lavajato hidden' : ""}><span class="nav-menu-emoji" aria-hidden="true">${it.emoji}</span><span>${it.label}</span><span class="nav-menu-arrow" aria-hidden="true">›</span></a>`).join("")}</div></section>`).join("")}
         </nav>
         <div class="header-actions">
           <button class="icon-btn" data-theme-toggle aria-label="Alternar tema claro/escuro"><span data-theme-icon>🌙</span></button>
