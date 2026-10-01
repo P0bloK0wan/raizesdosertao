@@ -373,6 +373,16 @@ export function deletePontuacaoAcampamento(lancamentoId) {
   return deleteDoc(doc(db, "pontuacaoAcampamento", lancamentoId));
 }
 
+/* ---------- Lava Jato: visibilidade pública ---------- */
+export function watchLavaJatoPublico(cb, onError) {
+  return onSnapshot(doc(db, "config", "lavajato"), (d) => {
+    cb(d.exists() && d.data().ativo === true);
+  }, onError);
+}
+export function setLavaJatoPublico(ativo) {
+  return setDoc(doc(db, "config", "lavajato"), { ativo: ativo === true }, { merge: true });
+}
+
 /* ---------- Lava Jato: agenda de domingos + cadastros ----------
    "lavajato_domingos" guarda só o resumo de cada domingo (vagas
    ocupadas, se está fechado) — é pública pra leitura, pra qualquer
